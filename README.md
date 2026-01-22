@@ -26,16 +26,37 @@ Features:
 
 ## Install
 
+
+
+**Ubuntu**
+
+- WSL 2 or Ubuntu 20.04.6 or higher
+
+Install on /usr/bin/nsk
+```bash
+wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh
+chmod +x install.sh
+sudo ./install.sh 
+source ~/.bashrc
+```
+
+Install on ~/.local/nsk
+```bash
+wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh
+chmod +x install.sh
+./install.sh 
+source ~/.bashrc
+```
+
 **Make**:
 
-- WSL 2 or Ubuntu 22
+- WSL 2 or Ubuntu 20.04.6 or higher
 
 - clang version 19;
-
   
 ```bash
 wget https://apt.llvm.org/llvm.sh
-chmod +x *.sh
+chmod +x llvm.sh
 sudo ./llvm.sh 19 all
 
 sudo apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-dev
