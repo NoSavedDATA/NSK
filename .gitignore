@@ -20,6 +20,7 @@ trace.log
 windows_llvm.txt
 a.out
 foo.nk
+update_submodules.sh
 *.cu
 *.swp
 *.o

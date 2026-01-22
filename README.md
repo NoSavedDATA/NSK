@@ -46,12 +46,6 @@ sudo apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-d
 ./alias.sh
 ```
 
-- Update submodules:
-
-```bash
-./update_submodules.sh
-```
-
 - Make:
 
 ```bash
