@@ -21,6 +21,7 @@ windows_llvm.txt
 a.out
 foo.nk
 *.cu
+*.swp
 *.o
 *backup
 mall.sh
