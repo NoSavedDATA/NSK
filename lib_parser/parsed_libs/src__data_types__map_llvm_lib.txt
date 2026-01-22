@@ -1,0 +1,64 @@
+1822-01-22 12:01:28
+
+	FunctionType *map_CreateTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_Create", map_CreateTy);
+
+	FunctionType *map_expandTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_expand", map_expandTy);
+
+	FunctionType *print_strTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("print_str", print_strTy);
+
+	FunctionType *map_printTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_print", map_printTy);
+
+	FunctionType *map_keysTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_keys", map_keysTy);
+
+	FunctionType *map_valuesTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_values", map_valuesTy);
+
+	FunctionType *map_bad_key_strTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_bad_key_str", map_bad_key_strTy);
+
+	FunctionType *map_bad_key_intTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_bad_key_int", map_bad_key_intTy);
+
+	FunctionType *map_bad_key_floatTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_bad_key_float", map_bad_key_floatTy);

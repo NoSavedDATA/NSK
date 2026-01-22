@@ -1,0 +1,2 @@
+	functions_return_data_type["dir_exists"] = Data_Tree("float");
+	functions_return_data_type["path_exists"] = Data_Tree("float");

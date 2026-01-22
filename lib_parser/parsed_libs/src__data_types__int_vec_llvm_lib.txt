@@ -1,0 +1,57 @@
+1822-01-20 14:34:51
+
+	FunctionType *int_vec_CreateTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_Create", int_vec_CreateTy);
+
+	FunctionType *nsk_vec_sizeTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("nsk_vec_size", nsk_vec_sizeTy);
+
+	FunctionType *int_vec_CalculateSliceIdxTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext)},
+		true //vararg
+	);
+	TheModule->getOrInsertFunction("int_vec_CalculateSliceIdx", int_vec_CalculateSliceIdxTy);
+
+	FunctionType *int_vec_SliceTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_Slice", int_vec_SliceTy);
+
+	FunctionType *int_vec_printTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_print", int_vec_printTy);
+
+	FunctionType *int_vec_Split_ParallelTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_Split_Parallel", int_vec_Split_ParallelTy);
+
+	FunctionType *int_vec_Split_Strided_ParallelTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_Split_Strided_Parallel", int_vec_Split_Strided_ParallelTy);
+
+	FunctionType *int_vec_sizeTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_vec_size", int_vec_sizeTy);

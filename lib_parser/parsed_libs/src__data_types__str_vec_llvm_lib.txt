@@ -1,0 +1,57 @@
+1822-01-20 14:35:11
+
+	FunctionType *str_vec_CreateTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_vec_Create", str_vec_CreateTy);
+
+	FunctionType *LenStrVecTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("LenStrVec", LenStrVecTy);
+
+	FunctionType *ShuffleStrVecTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("ShuffleStrVec", ShuffleStrVecTy);
+
+	FunctionType *shuffle_strTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("shuffle_str", shuffle_strTy);
+
+	FunctionType *IndexStrVecTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("IndexStrVec", IndexStrVecTy);
+
+	FunctionType *str_vec_IdxTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_vec_Idx", str_vec_IdxTy);
+
+	FunctionType *str_vec_CalculateIdxTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext)},
+		true //vararg
+	);
+	TheModule->getOrInsertFunction("str_vec_CalculateIdx", str_vec_CalculateIdxTy);
+
+	FunctionType *str_vec_printTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_vec_print", str_vec_printTy);

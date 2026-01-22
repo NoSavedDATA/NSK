@@ -1,0 +1,8 @@
+1821-09-03 09:39:44
+
+	FunctionType *get_barrierTy= FunctionType::get(
+		int8PtrTy,
+		{Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("get_barrier", get_barrierTy);

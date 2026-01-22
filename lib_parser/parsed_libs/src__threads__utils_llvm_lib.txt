@@ -1,0 +1,54 @@
+1822-01-19 14:21:39
+
+	FunctionType *dive_voidTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("dive_void", dive_voidTy);
+
+	FunctionType *dive_intTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("dive_int", dive_intTy);
+
+	FunctionType *dive_floatTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("dive_float", dive_floatTy);
+
+	FunctionType *emerge_voidTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("emerge_void", emerge_voidTy);
+
+	FunctionType *emerge_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("emerge_int", emerge_intTy);
+
+	FunctionType *emerge_floatTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("emerge_float", emerge_floatTy);
+
+	FunctionType *tidTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("tid", tidTy);
+
+
+
+

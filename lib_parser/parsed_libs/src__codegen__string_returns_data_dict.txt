@@ -1,0 +1,6 @@
+	functions_return_data_type["GetEmptyChar"] = Data_Tree("str");
+	functions_return_data_type["CopyString"] = Data_Tree("str");
+	functions_return_data_type["ConcatStr"] = Data_Tree("str");
+	functions_return_data_type["ConcatStrFreeLeft"] = Data_Tree("str");
+	functions_return_data_type["ConcatFloatToStr"] = Data_Tree("str");
+	functions_return_data_type["ConcatNumToStrFree"] = Data_Tree("str");

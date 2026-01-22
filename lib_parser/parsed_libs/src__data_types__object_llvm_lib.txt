@@ -1,0 +1,106 @@
+1821-11-17 16:07:24
+
+	FunctionType *offset_object_ptrTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("offset_object_ptr", offset_object_ptrTy);
+
+	FunctionType *object_Attr_floatTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Attr_float", object_Attr_floatTy);
+
+	FunctionType *object_Attr_intTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Attr_int", object_Attr_intTy);
+
+	FunctionType *object_Load_floatTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_float", object_Load_floatTy);
+
+	FunctionType *object_Load_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_int", object_Load_intTy);
+
+	FunctionType *object_Load_slotTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_slot", object_Load_slotTy);
+
+	FunctionType *tie_object_to_objectTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("tie_object_to_object", tie_object_to_objectTy);
+
+	FunctionType *object_Attr_on_Offset_floatTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext), Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Attr_on_Offset_float", object_Attr_on_Offset_floatTy);
+
+	FunctionType *object_Attr_on_Offset_intTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Attr_on_Offset_int", object_Attr_on_Offset_intTy);
+
+	FunctionType *object_Attr_on_OffsetTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Attr_on_Offset", object_Attr_on_OffsetTy);
+
+	FunctionType *object_Load_on_Offset_floatTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_on_Offset_float", object_Load_on_Offset_floatTy);
+
+	FunctionType *object_Load_on_Offset_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_on_Offset_int", object_Load_on_Offset_intTy);
+
+	FunctionType *object_Load_on_OffsetTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_Load_on_Offset", object_Load_on_OffsetTy);
+
+	FunctionType *object_ptr_Load_on_OffsetTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("object_ptr_Load_on_Offset", object_ptr_Load_on_OffsetTy);
+
+	FunctionType *object_ptr_Attribute_objectTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("object_ptr_Attribute_object", object_ptr_Attribute_objectTy);

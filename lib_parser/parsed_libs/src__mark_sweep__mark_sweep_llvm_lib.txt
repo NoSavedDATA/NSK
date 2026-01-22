@@ -1,0 +1,8 @@
+1822-01-20 13:24:25
+
+	FunctionType *scope_struct_Alloc_GCTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("scope_struct_Alloc_GC", scope_struct_Alloc_GCTy);

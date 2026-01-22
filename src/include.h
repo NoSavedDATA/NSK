@@ -1,0 +1,16 @@
+#pragma once
+
+#include"clean_up/include.h"
+#include"codegen/include.h"
+#include"common/include.h"
+#include"compiler_frontend/include.h"
+#include"data_types/include.h"
+#include"idx/include.h"
+#include"libs_llvm/include.h"
+#include"math/include.h"
+#include"mangler/include.h"
+#include"mark_sweep/include.h"
+#include"notators/include.h"
+#include"os/include.h"
+#include"pool/include.h"
+#include"threads/include.h"
