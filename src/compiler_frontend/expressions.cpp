@@ -118,10 +118,10 @@ bool ExprAST::GetNeedGCSafePoint() {
 }
 
 
-nlohmann::json ExprAST::toJSON() {
-  nlohmann::json j;
-  return j;
-}
+// nlohmann::json ExprAST::toJSON() {
+//   nlohmann::json j;
+//   return j;
+// }
  
   
 NameSolverAST::NameSolverAST(std::vector<std::tuple<std::string, int, std::vector<std::unique_ptr<ExprAST>>>> Names)
@@ -598,46 +598,46 @@ fn_descriptor::fn_descriptor(const std::string &Name, const std::string &Return)
 ClassExprAST::ClassExprAST(Parser_Struct parser_struct, const std::string &Name, const std::vector<fn_descriptor> &Functions)
   : Name(Name), parser_struct(parser_struct), Functions(Functions) {}
 
-nlohmann::json ClassExprAST::toJSON() {
-  std::cout << "class to json" << ".\n";
-  nlohmann::json j;
-  j["type"] = "class";
-  j["name"] = Name;
+// nlohmann::json ClassExprAST::toJSON() {
+//   std::cout << "class to json" << ".\n";
+//   nlohmann::json j;
+//   j["type"] = "class";
+//   j["name"] = Name;
 
-  j["fields"] = nlohmann::json::array();
-  for (const auto &pair : typeVars[Name]) {
-    nlohmann::json type_j;
-    type_j["name"] = pair.first;
-    type_j["type"] = pair.second;
-    j["fields"].push_back(type_j);
-  }
+//   j["fields"] = nlohmann::json::array();
+//   for (const auto &pair : typeVars[Name]) {
+//     nlohmann::json type_j;
+//     type_j["name"] = pair.first;
+//     type_j["type"] = pair.second;
+//     j["fields"].push_back(type_j);
+//   }
 
 
-  j["fields"] = nlohmann::json::array();
-  for (const auto &pair : typeVars[Name]) {
-    nlohmann::json type_j;
-    type_j["name"] = pair.first;
-    type_j["type"] = pair.second;
-    j["fields"].push_back(type_j);
-  }
+//   j["fields"] = nlohmann::json::array();
+//   for (const auto &pair : typeVars[Name]) {
+//     nlohmann::json type_j;
+//     type_j["name"] = pair.first;
+//     type_j["type"] = pair.second;
+//     j["fields"].push_back(type_j);
+//   }
 
-  j["methods"] = nlohmann::json::array();
-  for (const auto &fn : Functions) {
-    nlohmann::json method_j;
-    method_j["args"] = nlohmann::json::array();
-    for (int i=0; i<fn.ArgNames.size(); ++i) {
-      nlohmann::json arg_j;
-      arg_j["name"] = fn.ArgNames[i];
-      arg_j["type"] = fn.ArgTypes[i];
-      method_j["args"].push_back(arg_j);
-    }
-    method_j["name"] = fn.Name;
-    method_j["return"] = fn.Return;
-    j["methods"].push_back(method_j);
-  }
+//   j["methods"] = nlohmann::json::array();
+//   for (const auto &fn : Functions) {
+//     nlohmann::json method_j;
+//     method_j["args"] = nlohmann::json::array();
+//     for (int i=0; i<fn.ArgNames.size(); ++i) {
+//       nlohmann::json arg_j;
+//       arg_j["name"] = fn.ArgNames[i];
+//       arg_j["type"] = fn.ArgTypes[i];
+//       method_j["args"].push_back(arg_j);
+//     }
+//     method_j["name"] = fn.Name;
+//     method_j["return"] = fn.Return;
+//     j["methods"].push_back(method_j);
+//   }
 
-  return j;
-}
+//   return j;
+// }
   
 GCSafePointExprAST::GCSafePointExprAST(Parser_Struct parser_struct) : parser_struct(parser_struct) {}
   

@@ -24,6 +24,8 @@ Features:
 - Mark-sweep garbage collector with a go-like memory pool;
 - Ease of extending it with C++ functions.
 
+---
+
 ## Install
 
 
@@ -47,8 +49,9 @@ chmod +x install.sh
 ./install.sh 
 source ~/.bashrc
 ```
+---
 
-**Make**:
+**Make**
 
 - WSL 2 or Ubuntu 20.04.6 or higher
 
@@ -74,3 +77,4 @@ make -j8
 ```
 
 This adds nsk to bin/nsk
+

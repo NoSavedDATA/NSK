@@ -5,7 +5,7 @@
 #include "llvm/IR/Value.h"
 
 #include "../data_types/data_tree.h"
-#include "../../lsp/json.hpp"
+// #include "../../lsp/json.hpp"
 #include "parser_struct.h"
 
 using namespace llvm;
@@ -76,7 +76,7 @@ class ExprAST {
 
     virtual bool GetNeedGCSafePoint();
 
-    virtual nlohmann::json toJSON();
+    // virtual nlohmann::json toJSON();
 };
   
 class IndexExprAST : public ExprAST {
@@ -690,7 +690,7 @@ class ClassExprAST : public ExprAST {
 
     Value *codegen(Value *scope_struct) override;
     
-    nlohmann::json toJSON() override;
+    // nlohmann::json toJSON() override;
 
     // std::string GetType(bool from_assignment=false) override; 
     // Data_Tree GetDataTree(bool from_assignment=false) override;
