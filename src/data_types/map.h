@@ -2,6 +2,7 @@
 
 #include "../compiler_frontend/logging_v.h"
 
+#include <cstring>
 #include <string>
 
 inline unsigned int str_hash(const char *str) {

@@ -53,7 +53,7 @@ source ~/.bashrc
 
 **Make**
 
-- WSL 2 or Ubuntu 20.04.6 or higher
+- Requires a Linux distro;
 
 - clang version 19;
   

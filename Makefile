@@ -2,7 +2,7 @@
 #-L"/usr/local/cuda-12.1/lib64" -I"/usr/local/cuda-12.1/include" -I/usr/include/eigen3 -lcudart_static -lcublas -lcublasLt -ldl -lrt -pthread
 #-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -lcudnn -lopencv_imgcodecs -lopencv_imgproc -lopencv_core -w -o bin/nsk
 
-CXX := clang++-19
+CXX := clang++-19 -std=c++17
 CXXFLAGS := -O3 -rdynamic -march=native -fno-exceptions
 # CXXFLAGS := -O0 -g -rdynamic
 LLVM_CONFIG := llvm-config-19 --link-static --libs core orcjit native
