@@ -67,7 +67,9 @@ sudo apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-d
 - Add commands `nsk` to `PATH`:
 
 ```bash
+chmod +x alias.sh
 ./alias.sh
+source ~/.bashrc
 ```
 
 - Make:
