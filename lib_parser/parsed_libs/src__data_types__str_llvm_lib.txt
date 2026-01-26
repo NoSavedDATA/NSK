@@ -1,0 +1,127 @@
+1822-01-20 14:35:29
+
+	FunctionType *str_CreateTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_Create", str_CreateTy);
+
+	FunctionType *str_CopyTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_Copy", str_CopyTy);
+
+	FunctionType *str_CopyArgTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_CopyArg", str_CopyArgTy);
+
+	FunctionType *str_str_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_str_add", str_str_addTy);
+
+	FunctionType *str_int_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_int_add", str_int_addTy);
+
+	FunctionType *str_float_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_float_add", str_float_addTy);
+
+	FunctionType *int_str_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_str_add", int_str_addTy);
+
+	FunctionType *float_str_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("float_str_add", float_str_addTy);
+
+	FunctionType *str_bool_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, Type::getInt1Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_bool_add", str_bool_addTy);
+
+	FunctionType *bool_str_addTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt1Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("bool_str_add", bool_str_addTy);
+
+	FunctionType *PrintStrTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("PrintStr", PrintStrTy);
+
+	FunctionType *cat_str_floatTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("cat_str_float", cat_str_floatTy);
+
+	FunctionType *str_split_idxTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_split_idx", str_split_idxTy);
+
+	FunctionType *str_to_floatTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_to_float", str_to_floatTy);
+
+	FunctionType *str_str_differentTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_str_different", str_str_differentTy);
+
+	FunctionType *str_str_equalTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_str_equal", str_str_equalTy);
+
+	FunctionType *str_DeleteTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_Delete", str_DeleteTy);
+
+	FunctionType *readlineTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("readline", readlineTy);

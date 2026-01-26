@@ -1,0 +1,77 @@
+
+	
+	Function_Arg_Types["int_vec_Create"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_Create"]["1"] = "int";
+	
+	Function_Arg_DataTypes["int_vec_Create"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["int_vec_Create"]["1"] = Data_Tree("int");
+	
+	Function_Arg_Names["int_vec_Create"].push_back("0");
+	Function_Arg_Names["int_vec_Create"].push_back("1");
+	
+	Function_Arg_Types["nsk_vec_size"]["0"] = "Scope_Struct";
+	Function_Arg_Types["nsk_vec_size"]["1"] = "Nsk_Vector";
+	
+	Function_Arg_DataTypes["nsk_vec_size"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["nsk_vec_size"]["1"] = Data_Tree("Nsk_Vector");
+	
+	Function_Arg_Names["nsk_vec_size"].push_back("0");
+	Function_Arg_Names["nsk_vec_size"].push_back("1");
+	
+	Function_Arg_Types["int_vec_Slice"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_Slice"]["1"] = "int_vec";
+	Function_Arg_Types["int_vec_Slice"]["2"] = "Vec_Slices";
+	
+	Function_Arg_DataTypes["int_vec_Slice"]["0"] = Data_Tree("Scope_Struct");
+	Data_Tree int_vec_Slice_1 = Data_Tree("vec");
+	int_vec_Slice_1.Nested_Data.push_back(Data_Tree("int"));
+	Function_Arg_DataTypes["int_vec_Slice"]["1"] = int_vec_Slice_1;
+	Function_Arg_DataTypes["int_vec_Slice"]["2"] = Data_Tree("Vec_Slices");
+	
+	Function_Arg_Names["int_vec_Slice"].push_back("0");
+	Function_Arg_Names["int_vec_Slice"].push_back("1");
+	Function_Arg_Names["int_vec_Slice"].push_back("2");
+	
+	Function_Arg_Types["int_vec_print"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_print"]["1"] = "int_vec";
+	
+	Function_Arg_DataTypes["int_vec_print"]["0"] = Data_Tree("Scope_Struct");
+	Data_Tree int_vec_print_1 = Data_Tree("vec");
+	int_vec_print_1.Nested_Data.push_back(Data_Tree("int"));
+	Function_Arg_DataTypes["int_vec_print"]["1"] = int_vec_print_1;
+	
+	Function_Arg_Names["int_vec_print"].push_back("0");
+	Function_Arg_Names["int_vec_print"].push_back("1");
+	
+	Function_Arg_Types["int_vec_Split_Parallel"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_Split_Parallel"]["1"] = "int_vec";
+	
+	Function_Arg_DataTypes["int_vec_Split_Parallel"]["0"] = Data_Tree("Scope_Struct");
+	Data_Tree int_vec_Split_Parallel_1 = Data_Tree("vec");
+	int_vec_Split_Parallel_1.Nested_Data.push_back(Data_Tree("int"));
+	Function_Arg_DataTypes["int_vec_Split_Parallel"]["1"] = int_vec_Split_Parallel_1;
+	
+	Function_Arg_Names["int_vec_Split_Parallel"].push_back("0");
+	Function_Arg_Names["int_vec_Split_Parallel"].push_back("1");
+	
+	Function_Arg_Types["int_vec_Split_Strided_Parallel"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_Split_Strided_Parallel"]["1"] = "int_vec";
+	
+	Function_Arg_DataTypes["int_vec_Split_Strided_Parallel"]["0"] = Data_Tree("Scope_Struct");
+	Data_Tree int_vec_Split_Strided_Parallel_1 = Data_Tree("vec");
+	int_vec_Split_Strided_Parallel_1.Nested_Data.push_back(Data_Tree("int"));
+	Function_Arg_DataTypes["int_vec_Split_Strided_Parallel"]["1"] = int_vec_Split_Strided_Parallel_1;
+	
+	Function_Arg_Names["int_vec_Split_Strided_Parallel"].push_back("0");
+	Function_Arg_Names["int_vec_Split_Strided_Parallel"].push_back("1");
+	
+	Function_Arg_Types["int_vec_size"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_vec_size"]["1"] = "int_vec";
+	
+	Function_Arg_DataTypes["int_vec_size"]["0"] = Data_Tree("Scope_Struct");
+	Data_Tree int_vec_size_1 = Data_Tree("vec");
+	int_vec_size_1.Nested_Data.push_back(Data_Tree("int"));
+	Function_Arg_DataTypes["int_vec_size"]["1"] = int_vec_size_1;
+	
+	Function_Arg_Names["int_vec_size"].push_back("0");
+	Function_Arg_Names["int_vec_size"].push_back("1");

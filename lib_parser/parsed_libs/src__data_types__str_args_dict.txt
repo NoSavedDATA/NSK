@@ -1,0 +1,166 @@
+
+	
+	Function_Arg_Types["str_Create"]["0"] = "Scope_Struct";
+	
+	Function_Arg_DataTypes["str_Create"]["0"] = Data_Tree("Scope_Struct");
+	
+	Function_Arg_Names["str_Create"].push_back("0");
+	
+	Function_Arg_Types["str_Copy"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_Copy"]["1"] = "str";
+	
+	Function_Arg_DataTypes["str_Copy"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_Copy"]["1"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_Copy"].push_back("0");
+	Function_Arg_Names["str_Copy"].push_back("1");
+	
+	Function_Arg_Types["str_CopyArg"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_CopyArg"]["1"] = "str";
+	Function_Arg_Types["str_CopyArg"]["2"] = "str";
+	
+	Function_Arg_DataTypes["str_CopyArg"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_CopyArg"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_CopyArg"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_CopyArg"].push_back("0");
+	Function_Arg_Names["str_CopyArg"].push_back("1");
+	Function_Arg_Names["str_CopyArg"].push_back("2");
+	
+	Function_Arg_Types["str_str_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_str_add"]["1"] = "str";
+	Function_Arg_Types["str_str_add"]["2"] = "str";
+	
+	Function_Arg_DataTypes["str_str_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_str_add"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_str_add"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_str_add"].push_back("0");
+	Function_Arg_Names["str_str_add"].push_back("1");
+	Function_Arg_Names["str_str_add"].push_back("2");
+	
+	Function_Arg_Types["str_int_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_int_add"]["1"] = "str";
+	Function_Arg_Types["str_int_add"]["2"] = "int";
+	
+	Function_Arg_DataTypes["str_int_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_int_add"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_int_add"]["2"] = Data_Tree("int");
+	
+	Function_Arg_Names["str_int_add"].push_back("0");
+	Function_Arg_Names["str_int_add"].push_back("1");
+	Function_Arg_Names["str_int_add"].push_back("2");
+	
+	Function_Arg_Types["str_float_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_float_add"]["1"] = "str";
+	Function_Arg_Types["str_float_add"]["2"] = "float";
+	
+	Function_Arg_DataTypes["str_float_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_float_add"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_float_add"]["2"] = Data_Tree("float");
+	
+	Function_Arg_Names["str_float_add"].push_back("0");
+	Function_Arg_Names["str_float_add"].push_back("1");
+	Function_Arg_Names["str_float_add"].push_back("2");
+	
+	Function_Arg_Types["int_str_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["int_str_add"]["1"] = "int";
+	Function_Arg_Types["int_str_add"]["2"] = "str";
+	
+	Function_Arg_DataTypes["int_str_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["int_str_add"]["1"] = Data_Tree("int");
+	Function_Arg_DataTypes["int_str_add"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["int_str_add"].push_back("0");
+	Function_Arg_Names["int_str_add"].push_back("1");
+	Function_Arg_Names["int_str_add"].push_back("2");
+	
+	Function_Arg_Types["float_str_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["float_str_add"]["1"] = "float";
+	Function_Arg_Types["float_str_add"]["2"] = "str";
+	
+	Function_Arg_DataTypes["float_str_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["float_str_add"]["1"] = Data_Tree("float");
+	Function_Arg_DataTypes["float_str_add"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["float_str_add"].push_back("0");
+	Function_Arg_Names["float_str_add"].push_back("1");
+	Function_Arg_Names["float_str_add"].push_back("2");
+	
+	Function_Arg_Types["str_bool_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_bool_add"]["1"] = "str";
+	Function_Arg_Types["str_bool_add"]["2"] = "bool";
+	
+	Function_Arg_DataTypes["str_bool_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_bool_add"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_bool_add"]["2"] = Data_Tree("bool");
+	
+	Function_Arg_Names["str_bool_add"].push_back("0");
+	Function_Arg_Names["str_bool_add"].push_back("1");
+	Function_Arg_Names["str_bool_add"].push_back("2");
+	
+	Function_Arg_Types["bool_str_add"]["0"] = "Scope_Struct";
+	Function_Arg_Types["bool_str_add"]["1"] = "bool";
+	Function_Arg_Types["bool_str_add"]["2"] = "str";
+	
+	Function_Arg_DataTypes["bool_str_add"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["bool_str_add"]["1"] = Data_Tree("bool");
+	Function_Arg_DataTypes["bool_str_add"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["bool_str_add"].push_back("0");
+	Function_Arg_Names["bool_str_add"].push_back("1");
+	Function_Arg_Names["bool_str_add"].push_back("2");
+	
+	Function_Arg_Types["str_split_idx"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_split_idx"]["1"] = "str";
+	Function_Arg_Types["str_split_idx"]["2"] = "str";
+	Function_Arg_Types["str_split_idx"]["3"] = "int";
+	
+	Function_Arg_DataTypes["str_split_idx"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_split_idx"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_split_idx"]["2"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_split_idx"]["3"] = Data_Tree("int");
+	
+	Function_Arg_Names["str_split_idx"].push_back("0");
+	Function_Arg_Names["str_split_idx"].push_back("1");
+	Function_Arg_Names["str_split_idx"].push_back("2");
+	Function_Arg_Names["str_split_idx"].push_back("3");
+	
+	Function_Arg_Types["str_to_float"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_to_float"]["1"] = "str";
+	
+	Function_Arg_DataTypes["str_to_float"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_to_float"]["1"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_to_float"].push_back("0");
+	Function_Arg_Names["str_to_float"].push_back("1");
+	
+	Function_Arg_Types["str_str_different"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_str_different"]["1"] = "str";
+	Function_Arg_Types["str_str_different"]["2"] = "str";
+	
+	Function_Arg_DataTypes["str_str_different"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_str_different"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_str_different"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_str_different"].push_back("0");
+	Function_Arg_Names["str_str_different"].push_back("1");
+	Function_Arg_Names["str_str_different"].push_back("2");
+	
+	Function_Arg_Types["str_str_equal"]["0"] = "Scope_Struct";
+	Function_Arg_Types["str_str_equal"]["1"] = "str";
+	Function_Arg_Types["str_str_equal"]["2"] = "str";
+	
+	Function_Arg_DataTypes["str_str_equal"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["str_str_equal"]["1"] = Data_Tree("str");
+	Function_Arg_DataTypes["str_str_equal"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["str_str_equal"].push_back("0");
+	Function_Arg_Names["str_str_equal"].push_back("1");
+	Function_Arg_Names["str_str_equal"].push_back("2");
+	
+	Function_Arg_Types["readline"]["0"] = "Scope_Struct";
+	
+	Function_Arg_DataTypes["readline"]["0"] = Data_Tree("Scope_Struct");
+	
+	Function_Arg_Names["readline"].push_back("0");

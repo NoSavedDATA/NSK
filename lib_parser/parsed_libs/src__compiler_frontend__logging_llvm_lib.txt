@@ -1,0 +1,22 @@
+1822-01-20 15:08:27
+
+	FunctionType *LogErrorCallTy= FunctionType::get(
+		int8PtrTy,
+		{Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("LogErrorCall", LogErrorCallTy);
+
+	FunctionType *print_codegenTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("print_codegen", print_codegenTy);
+
+	FunctionType *print_codegen_silentTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("print_codegen_silent", print_codegen_silentTy);

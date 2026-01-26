@@ -1,0 +1,1 @@
+	functions_return_data_type["_quit_"] = Data_Tree("float");
