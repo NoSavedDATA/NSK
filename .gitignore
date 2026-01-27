@@ -22,6 +22,8 @@ windows_llvm.txt
 a.out
 foo.nk
 update_submodules.sh
+*.bz2
+*.zip
 *.cu
 *.swp
 *.o
