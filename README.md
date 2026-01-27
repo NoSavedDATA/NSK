@@ -30,17 +30,12 @@ Features:
 
 
 
-**Ubuntu**
+**Linux**
 
-- WSL 2 or Ubuntu 20.04.6 or higher
+- Ubuntu >= 20.04, Arch, Fedora, Debian;
+- Make sure you have bzip2 in Debian;
+- Windows users can try NSK with WSL 2.
 
-Install on /usr/bin/nsk
-```bash
-wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh
-chmod +x install.sh
-sudo ./install.sh 
-source ~/.bashrc
-```
 
 Install on ~/.local/nsk
 ```bash
@@ -58,11 +53,13 @@ source ~/.bashrc
 - clang version 19;
   
 ```bash
+apt-get update
+apt-get install wget lsb-release software-properties-common gnupg make
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-sudo ./llvm.sh 19 all
+./llvm.sh 19 all
 
-sudo apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-dev
+apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-dev
 ```
 - Add commands `nsk` to `PATH`:
 
