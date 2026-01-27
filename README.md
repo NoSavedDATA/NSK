@@ -39,10 +39,7 @@ Features:
 
 Install on ~/.local/nsk
 ```bash
-wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh
-chmod +x install.sh
-./install.sh 
-source ~/.bashrc
+wget -qO- https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh | bash | source ~/.bashrc
 ```
 ---
 
