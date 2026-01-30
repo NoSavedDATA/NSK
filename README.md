@@ -63,12 +63,15 @@ Neovim
 vim.cmd('colorscheme ghdark')
 ```
 ---
+
 - VSCode
 Download the <a href="https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/nsk-syntax-highlight.vsix">extension</a>.
 
 ```bash
 code --install-extension nsk-syntax-highlight.vsix
 ```
+
+---
 
 ## Make
 
