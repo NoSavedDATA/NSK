@@ -43,7 +43,34 @@ wget -qO- https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.s
 ```
 ---
 
-**Make**
+**Syntax Highlight**
+
+- Vim/Neovim
+You can use vim plugins:
+```bash
+NosavedDATA/vim-nsk
+NosavedDATA/vim-nsk-dark
+```
+
+Then add this to your config file:
+
+Vim
+```bash
+colorscheme ghdark
+```
+Neovim
+```bash
+vim.cmd('colorscheme ghdark')
+```
+
+- VSCode
+Download the <a href="https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/nsk-syntax-highlight.vsix">extension(hover)</a>
+
+```bash
+code --install-extension nsk-syntax-highlight.vsix
+```
+
+## Make
 
 - Requires a Linux distro;
 
