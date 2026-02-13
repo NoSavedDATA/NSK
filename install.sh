@@ -3,23 +3,25 @@
 set -e
 
 wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/nsk
+wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/sys.tar.bz2
+wget https://github.com/NoSavedDATA/nsm/releases/download/latest/nsm
 
-
-if [ -n "$SUDO_USER" ]; then
-    PREFIX="/usr/bin/nsk"
-    USER_HOME=$(getent passwd "$SUDO_USER" | cut -d: -f6)
-else
-    PREFIX="$HOME/.local/nsk"
-    USER_HOME="$HOME"
-fi
+PREFIX="$HOME/.local/nsk"
+USER_HOME="$HOME"
 
 
 mkdir -p "$PREFIX/bin"
 mkdir -p "$PREFIX/lib"
+mkdir -p "$PREFIX/sys_lib"
 
 mv ./nsk "$PREFIX/bin"
+mv ./nsm "$PREFIX/bin"
 
 chmod +x "$PREFIX/bin/nsk"
+chmod +x "$PREFIX/bin/nsm"
+
+tar -xjf sys.tar.bz2 -C "$PREFIX"
+rm sys.tar.bz2
 
 
 # Set up bashrc

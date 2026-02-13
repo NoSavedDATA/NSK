@@ -935,9 +935,12 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
               if (create_fn=="array_Create" || create_fn=="map_Create")
                   ArgsV.push_back(VoidPtr_toValue(&data_type));
-              else
+              else {
                   ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Notes), scope_struct, create_fn, true, 1);
-
+                  if(in_str(create_fn, vararg_methods))
+                      ArgsV.push_back(const_int(TERMINATE_VARARG));
+                  
+              }
               initial_value = callret(create_fn, ArgsV);
           }
       }
