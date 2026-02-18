@@ -37,7 +37,8 @@ void print_caller() {
 
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
-std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"float", {"int"}}, {"int", {"float"}}};
+// std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"float", {"int"}}, {"int", {"float"}}};
+std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float"}}};
 
 std::map<std::string, int> Function_Arg_Count;
 std::map<std::string, int> Function_Required_Arg_Count;
@@ -1050,8 +1051,9 @@ std::unique_ptr<ExprAST> ParseFinishExpr(Parser_Struct parser_struct, std::strin
 
 
 
-std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string class_name) {
-  
+std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string class_name) { 
+
+
   int cur_level_tabs = SeenTabs;
   
   getNextToken(); // eat main
@@ -1059,9 +1061,10 @@ std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string 
   std::vector<std::unique_ptr<ExprAST>> Body;
   std::vector<bool> IsAsync;
 
+
+  // Codegen async functions
   for (int i=0; i<has_previous_async; ++i)
-    Body.push_back(std::make_unique<AsyncFnPriorExprAST>());
-  
+    Body.push_back(std::make_unique<AsyncFnPriorExprAST>());  
   
 
   if (CurTok!=tok_space)
@@ -1079,8 +1082,8 @@ std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string 
 
     auto body = std::move(ParseExpression(parser_struct, class_name));
 
-    bool has_call = body->GetNeedGCSafePoint();
-    if(has_call && !has_safe_point) {
+    bool has_call_or_loop = body->GetNeedGCSafePoint();
+    if(has_call_or_loop && !has_safe_point) {
         has_safe_point=true;
         Body.push_back(std::make_unique<GCSafePointExprAST>(parser_struct));
     }
@@ -1356,8 +1359,6 @@ std::unique_ptr<ExprAST> ParseVarExpr(Parser_Struct parser_struct, std::string s
     getNextToken(); // eat identifier.
 
     
-    if (Object_toClass[parser_struct.function_name].count(IdentifierStr)>0||data_typeVars[parser_struct.function_name].count(IdentifierStr)>0)
-        LogError(parser_struct.line, "Redefinition of " + IdentifierStr);
 
 
     std::unique_ptr<ExprAST> Init;
@@ -1582,16 +1583,10 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
 
     std::string prefix_datatype = Extract_List_Prefix(data_type);
 
-    if (!has_notes&&\
-        (Object_toClass[parser_struct.function_name].count(IdentifierStr)>0|| \
-         data_typeVars[parser_struct.function_name].count(IdentifierStr)>0))
-        LogError(parser_struct.line, "Redefinition of " + IdentifierStr);
 
     if ((ends_with(data_type, "_list")||ends_with(data_type,"_dict")) && !in_str(prefix_datatype, data_tokens) )
       Object_toClass[parser_struct.function_name][IdentifierStr] = Data_Tree(prefix_datatype);
 
-    typeVars[parser_struct.function_name][IdentifierStr] = data_type;
-    data_typeVars[parser_struct.function_name][IdentifierStr] = data_tree;
     getNextToken(); // eat identifier.
 
     
@@ -1730,19 +1725,6 @@ std::unique_ptr<ExprAST> ParseLockExpr(Parser_Struct parser_struct, std::string 
 
 
 
-std::unique_ptr<ExprAST> ParseNoGradExpr(Parser_Struct parser_struct, std::string class_name) {
-  int cur_level_tabs = SeenTabs;
-  getNextToken(); // eat no_grad
-  
-  std::vector<std::unique_ptr<ExprAST>> Body = ParseIndentedBodies(parser_struct, cur_level_tabs, class_name);
-
-  return std::make_unique<NoGradExprAST>(std::move(Body));
-}
-
-
-
-
-
 
 
 
@@ -1834,8 +1816,6 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseLockExpr(parser_struct, class_name);
   case tok_main:
     return ParseMainExpr(parser_struct, class_name);
-  case tok_no_grad:
-    return ParseNoGradExpr(parser_struct, class_name);
   case tok_ret:
     return ParseRetExpr(parser_struct, class_name);
   case tok_data:
@@ -2048,7 +2028,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
 
   switch (CurTok) {
   default:
-    return LogErrorP(parser_struct.line, "Expected prototype function name.");
+    return LogErrorProto(parser_struct.line, "Expected prototype function name.");
   case tok_constructor:
     FnName += "__init__";
     method =  "__init__";
@@ -2064,7 +2044,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   case tok_unary:
     getNextToken();
     if (!isascii(CurTok))
-      return LogErrorP(parser_struct.line, "Expected valid ascii prototype unary operator");
+      return LogErrorProto(parser_struct.line, "Expected valid ascii prototype unary operator");
     FnName += "unary";
     FnName += (char)CurTok;
     Kind = 1;
@@ -2073,7 +2053,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   case tok_binary:
     getNextToken();
     if (!isascii(CurTok))
-      return LogErrorP(parser_struct.line, "Expected valid ascii prototype binary operator");
+      return LogErrorProto(parser_struct.line, "Expected valid ascii prototype binary operator");
     FnName += "binary";
     FnName += (char)CurTok;
     Kind = 2;
@@ -2082,7 +2062,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
     // Read the precedence if present.
     if (CurTok == tok_number) {
       if (NumVal < 1 || NumVal > 100)
-        return LogErrorP(parser_struct.line, "Unexpected operator precedence: must be between [1, 100]");
+        return LogErrorProto(parser_struct.line, "Unexpected operator precedence: must be between [1, 100]");
       BinaryPrecedence = (unsigned)NumVal;
       getNextToken();
     }
@@ -2090,7 +2070,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   }
 
   if (CurTok != '(')
-    return LogErrorP(parser_struct.line, "Expected \"(\" at function prototype.");
+    return LogErrorProto(parser_struct.line, "Expected \"(\" at function prototype.");
   getNextToken(); // eat (
 
 
@@ -2127,7 +2107,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       type=IdentifierStr;
 
     if (IdentifierStr!="s" && IdentifierStr!="t" && IdentifierStr!="f" && IdentifierStr!="i" && (!in_str(IdentifierStr, data_tokens)) && !in_str(type, Classes))
-      LogErrorP_to_comma(parser_struct.line, "Prototype var type must be s, t, i, f or a data type. Got " + IdentifierStr);
+      LogErrorProto_to_comma(parser_struct.line, "Prototype var type must be s, t, i, f or a data type. Got " + IdentifierStr);
     else
     {
       std::string data_type = type;
@@ -2207,27 +2187,24 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
         break;
       
     if (CurTok != ',')
-      return LogErrorP(parser_struct.line, "Expected ')' or ',' at prototype arguments list.");
+      return LogErrorProto(parser_struct.line, "Expected ')' or ',' at prototype arguments list.");
       
     
     getNextToken();
   }
-
-  Function_Arg_Count[FnName] = args_count;
-  Function_Required_Arg_Count[FnName] = required_args;
-
-  // std::cout << "CREATING PROTO WITH " << ArgNames.size() << " PARAMETERS.\n";
-
-  // success.
   getNextToken(); // eat ')'.
-
+    
   // Verify right number of names for operator.
   if (Kind && ArgNames.size() != Kind)
-    return LogErrorP(parser_struct.line, "Prototype got an invalid amount of operators.");
+    return LogErrorProto(parser_struct.line, "Prototype got an invalid amount of operators.");
 
   if (CurTok!=tok_space)
     LogError(parser_struct.line, "Post prototype parsing requires a line break.");
   getNextToken();
+
+
+  Function_Arg_Count[FnName] = args_count;
+  Function_Required_Arg_Count[FnName] = required_args;
 
   functions_return_type[FnName] = return_type;
   functions_return_data_type[FnName] = return_data_type;

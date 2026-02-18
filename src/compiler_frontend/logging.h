@@ -8,6 +8,7 @@
 std::unique_ptr<ExprAST> LogErrorS(int, std::string Str);
 
 std::unique_ptr<ExprAST> LogError(int, std::string Str); 
+std::unique_ptr<ExprAST> LogErrorP(int, std::string Str); 
 
 void LogBlue(std::string);
 
@@ -25,11 +26,9 @@ void LogWarning(const char *Str);
 std::unique_ptr<ExprAST> LogErrorT(int line, int CurTok); 
 
 
-std::unique_ptr<PrototypeAST> LogErrorP(int ,const char *Str); 
+std::unique_ptr<PrototypeAST> LogErrorProto(int ,const char *Str); 
+std::unique_ptr<PrototypeAST> LogErrorProto_to_comma(int, std::string Str);
 
-
-
-std::unique_ptr<PrototypeAST> LogErrorP_to_comma(int, std::string Str);
 
 Value *LogErrorV(int, std::string Str); 
 

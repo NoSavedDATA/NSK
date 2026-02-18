@@ -50,6 +50,7 @@ using namespace llvm;
 /// LogError* - These are little helper functions for error handling.
 std::unique_ptr<ExprAST> LogErrorS(int line, std::string Str) {
   Shall_Exit = true;
+  // ShallCodegen = false;
 
   
   if(line!=-1)
@@ -91,6 +92,16 @@ void LogBlue(std::string msg) {
 
 std::unique_ptr<ExprAST> LogError(int line, std::string Str) {
   //fprintf(stderr, "\033[31m Error: \033[0m%s\n", Str);
+  LogErrorS(line, Str);
+
+  while(CurTok!=tok_space && CurTok!=',' && CurTok!=')' && !in_char(CurTok, terminal_tokens))
+    getNextToken();
+  
+  return nullptr;
+}
+
+std::unique_ptr<ExprAST> LogErrorP(int line, std::string Str) {
+  ShallCodegen = false;
   LogErrorS(line, Str);
 
   while(CurTok!=tok_space && CurTok!=',' && CurTok!=')' && !in_char(CurTok, terminal_tokens))
@@ -180,7 +191,8 @@ std::unique_ptr<ExprAST> LogErrorT(int line, int CurTok) {
 }
 
 
-std::unique_ptr<PrototypeAST> LogErrorP(int line, const char *Str) {
+std::unique_ptr<PrototypeAST> LogErrorProto(int line, const char *Str) {
+  ShallCodegen = false;
   LogError(line, Str);
   while(CurTok!=tok_space && !in_char(CurTok, terminal_tokens))
     getNextToken();
@@ -188,7 +200,8 @@ std::unique_ptr<PrototypeAST> LogErrorP(int line, const char *Str) {
 }
 
 
-std::unique_ptr<PrototypeAST> LogErrorP_to_comma(int line, std::string Str) {
+std::unique_ptr<PrototypeAST> LogErrorProto_to_comma(int line, std::string Str) {
+  ShallCodegen = false;
   LogError(line, Str);
   while(CurTok!=tok_space && CurTok!=',' && CurTok!=')' && !in_char(CurTok, terminal_tokens))
   {
@@ -201,6 +214,7 @@ std::unique_ptr<PrototypeAST> LogErrorP_to_comma(int line, std::string Str) {
 
 Value *LogErrorV(int line, std::string Str) {
   LogErrorS(line, Str);
+  std::exit(0);
   return nullptr;
 }
 

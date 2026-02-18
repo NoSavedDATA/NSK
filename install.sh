@@ -3,8 +3,8 @@
 set -e
 
 wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/nsk
-wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/sys.tar.bz2
 wget https://github.com/NoSavedDATA/nsm/releases/download/latest/nsm
+wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/sys.tar.bz2
 
 PREFIX="$HOME/.local/nsk"
 USER_HOME="$HOME"

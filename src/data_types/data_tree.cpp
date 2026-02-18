@@ -25,12 +25,13 @@ bool CompareListUnkList(Data_Tree *L, Data_Tree R) {
 }
 
 
-bool CompareArrays(Data_Tree *L, Data_Tree R) {
+int CompareArrays(Data_Tree *L, Data_Tree R) {
 
     if(L->Nested_Data.size()==0||R.Nested_Data.size()==0)
-        return false;
+        return 1;
 
-    return (L->Nested_Data[0].Compare(R.Nested_Data[0]))==0;
+    // return L->Nested_Data[0].Compare(R.Nested_Data[0]);
+    return (L->Nested_Data[0].Type==R.Nested_Data[0].Type) ? 0 : 1;
 }
 
 
@@ -107,8 +108,8 @@ int Data_Tree::Compare(Data_Tree other_tree) {
     if(Type=="any"||other_tree.Type=="any")
         return 0;
 
-    if(Type=="array"&&other_tree.Type=="array"&&CompareArrays(this, other_tree))
-        return 0;
+    if(Type=="array"&&other_tree.Type=="array")
+        return CompareArrays(this, other_tree);
 
     if(Type!="map"&&other_tree.Type=="map"&&CompareMap(other_tree))
         return 0;

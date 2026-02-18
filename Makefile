@@ -57,7 +57,7 @@ LIB_PARSER_SRC = $(shell find $(LIB_PARSER_SRC_DIR) -name "*.cpp")
 # Executable name
 LIB_PARSER := bin/lib_parser.o
 OBJ := bin/nsk
-SRC := toy.cpp
+SRC := main.cpp
 
 .PHONY: prebuild
 

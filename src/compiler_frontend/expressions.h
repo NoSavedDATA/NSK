@@ -400,6 +400,7 @@ class BinaryExprAST : public ExprAST {
   std::string Elements, Operation;
   Parser_Struct parser_struct;
   std::string cast_L_to="", cast_R_to="";
+  Data_Tree L_dt, R_dt;
 
 public:
   std::unique_ptr<ExprAST> LHS, RHS;
@@ -449,7 +450,6 @@ class NameableRoot : public Nameable {
   public:
   
   NameableRoot(Parser_Struct);
-
 
   Value *codegen(Value *scope_struct) override;
 };
@@ -668,6 +668,7 @@ class RetExprAST : public ExprAST {
   public:
     std::vector<std::unique_ptr<ExprAST>> Vars;
     Parser_Struct parser_struct;
+    Data_Tree return_expected_type, returning_type;
     
     RetExprAST(std::vector<std::unique_ptr<ExprAST>> Vars, Parser_Struct);
 
@@ -776,6 +777,15 @@ class BreakExprAST : public ExprAST {
     BreakExprAST();
 
   Value *codegen(Value *scope_struct) override;
+};
+
+
+class ExitCheckExprAST : public ExprAST {
+
+  public:
+    ExitCheckExprAST();
+
+  Value* codegen(Value *scope_struct) override;
 };
 
 
@@ -908,18 +918,7 @@ class MainExprAST : public ExprAST {
   Value* codegen(Value *scope_struct) override;
 };
 
-/// NoGradExprAST
-class NoGradExprAST : public ExprAST {
-  std::vector<std::unique_ptr<ExprAST>> Bodies;
 
-  public:
-    NoGradExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies);
-
-
-  Value* codegen(Value *scope_struct) override;
-};
-  
- 
 /// PrototypeAST - This class represents the "prototype" for a function,
 /// which captures its name, and its argument names (thus implicitly the number
 /// of arguments the function takes), as well as if it is an operator.

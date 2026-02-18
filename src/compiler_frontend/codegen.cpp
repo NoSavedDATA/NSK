@@ -330,7 +330,7 @@ bool Check_Is_Compatible_Data_Type(Data_Tree LType, Data_Tree RType, Parser_Stru
 
   if (differences>0)
   {
-    LogError(parser_struct.line, "Tried to attribute data of different types");
+    LogErrorS(parser_struct.line, "Tried to attribute data of different types");
     std::cout << "Left type:\n   ";
     LType.Print();
     std::cout << "\nRight type:\n   ";
@@ -343,35 +343,6 @@ bool Check_Is_Compatible_Data_Type(Data_Tree LType, Data_Tree RType, Parser_Stru
 }
 
 
-bool Check_Is_Compatible_Type(std::string LType, const std::unique_ptr<ExprAST> &RHS, Parser_Struct parser_struct) {
-  std::string RType = RHS->GetType();
-
-
-
-  if (LType=="float"&&RType=="int")
-    return true;
-
-  if((RType=="nullptr")&&!in_str(LType, {"float", "int", "str", "bool"}))
-    return true;
-  
-  
-  if (LType!=RType)
-  { 
-    // if (dynamic_cast<NestedVectorIdxExprAST *>(RHS.get()) || dynamic_cast<VecIdxExprAST *>(RHS.get()))
-    // {
-    //   RType = Extract_List_Prefix(RType);
-    //   RType = remove_suffix(RType, "_vec");
-    // }
-
-    if (LType!=RType)
-    {
-
-      LogError(parser_struct.line, "Tried to attribute " + RType + " to " + LType);
-      return false;
-    }
-  }
-  return true;
-}
 
 inline bool Check_ArgsV_Count(const std::string &Callee, const std::vector<Value *> &ArgsV,
                               Parser_Struct parser_struct, int backend_args=1) {  
@@ -401,7 +372,7 @@ inline bool Check_Required_Args_Count(const std::string &Callee, int sent_args,
     return true;
 
   if (sent_args<Function_Required_Arg_Count[Callee]) {
-      // LogError(parser_struct.line, "Sent " + std::to_string(sent_args) + " into function " + Callee + ", but the function requires at least "+\
+      // LogErrorS(parser_struct.line, "Sent " + std::to_string(sent_args) + " into function " + Callee + ", but the function requires at least "+\
       //                               std::to_string(Function_Required_Arg_Count[Callee]) + " arguments.");
       return false;
   }
@@ -572,7 +543,7 @@ Value *UnkVarExprAST::codegen(Value *scope_struct) {
       call("object_ptr_Attribute_object", {obj, const_int(object_ptr_offset), initial_value});
 
     } else if (is_attr) {
-      LogError(parser_struct.line, "Creating attribute in a data expression is not supported.");
+      LogErrorS(parser_struct.line, "Creating attribute in a data expression is not supported.");
     }
     else {
       function_values[parser_struct.function_name][VarName] = initial_value;
@@ -728,7 +699,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
       {   
         int differences = expected_data_type.Compare(data_type);
         if (differences>0) { 
-          LogError(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name);
+          LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name);
           std::cout << "Expected\n   ";
           expected_data_type.Print();
           std::cout << "\nPassed\n   ";
@@ -768,7 +739,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
 
     if (!ArgsV.back())
     {
-      LogError(parser_struct.line, "Failed to codegen argument of function " + fn_name);
+      LogErrorS(parser_struct.line, "Failed to codegen argument of function " + fn_name);
       return {};
     }
 
@@ -787,7 +758,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
         std::cout << "try positional argument: " << i << ".\n";
           auto PosArg = dynamic_cast<PositionalArgExprAST*>(Args[i].get());
           if(!PosArg) {
-            LogError(parser_struct.line, "Standard argument followed by positional argument.");
+            LogErrorS(parser_struct.line, "Standard argument followed by positional argument.");
             return std::move(ArgsV);
           }
 
@@ -830,7 +801,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
 
 Value *DataExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
-    return ConstantFP::get(*TheContext, APFloat(0.0f));
+    return const_float(0.0f);
 
 
   Function *TheFunction = Builder->GetInsertBlock()->getParent();
@@ -840,7 +811,6 @@ Value *DataExprAST::codegen(Value *scope_struct) {
     const std::string &VarName = VarNames[i].first; 
     ExprAST *Init = VarNames[i].second.get();
     
-    
 
     bool is_self = GetSelf();
     bool is_attr = GetIsAttribute();
@@ -848,10 +818,6 @@ Value *DataExprAST::codegen(Value *scope_struct) {
     Value *initial_value = Init->codegen(scope_struct);
     Data_Tree init_dt = Init->GetDataTree();
     std::string init_type = init_dt.Type;
-
-
-
-    Check_Is_Compatible_Data_Type(data_type, init_dt, parser_struct);
 
 
     if (Type=="bool"&&init_type=="any")
@@ -871,8 +837,8 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
     if(in_str(Type, primary_data_tokens)&&!(is_self||is_attr))
     { 
-      if (Type=="float"&&Init->GetType()=="int")
-        initial_value = Builder->CreateUIToFP(initial_value, floatTy, "int_to_float");
+      if (Type=="float"&&init_dt.Type=="int")
+        initial_value = Builder->CreateSIToFP(initial_value, floatTy, "int_to_float");
       function_values[parser_struct.function_name][VarName] = initial_value;
       continue;
     }
@@ -954,7 +920,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
       Value *obj = get_scope_obj(scope_struct);
       call("object_ptr_Attribute_object", {obj, const_int(object_ptr_offset), initial_value});
     } else if (is_attr) {
-      LogError(parser_struct.line, "Creating attribute in a data expression is not supported.");
+      LogErrorS(parser_struct.line, "Creating attribute in a data expression is not supported.");
     }
     else { 
         Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, initial_value); 
@@ -1599,14 +1565,14 @@ bool CheckIsSenderChannel(std::string Elements, Parser_Struct parser_struct, std
   if(begins_with(Elements, "channel")) {
     if(ChannelDirections[parser_struct.function_name].count(LName)>0) {
       if(((int)ChannelDirections[parser_struct.function_name][LName])==(int)ch_sender) {
-        LogError(parser_struct.line, "1 Tried to attribute data to a sender only channel." + parser_struct.function_name + "/" + LName + ": " + std::to_string(ChannelDirections[parser_struct.function_name].count(LName)) + "; " + std::to_string(ChannelDirections[parser_struct.function_name][LName]) );
+        LogErrorS(parser_struct.line, "1 Tried to attribute data to a sender only channel." + parser_struct.function_name + "/" + LName + ": " + std::to_string(ChannelDirections[parser_struct.function_name].count(LName)) + "; " + std::to_string(ChannelDirections[parser_struct.function_name][LName]) );
         return false;
       }
     }
     else {
       if(ChannelDirections[parser_struct.class_name].count(LName)>0) {
         if((int)ChannelDirections[parser_struct.class_name][LName]==(int)ch_sender) {
-          LogError(parser_struct.line, "2 Tried to attribute data to a sender only channel. " + parser_struct.class_name + "/" + LName + ": " + std::to_string(ChannelDirections[parser_struct.class_name].count(LName)));
+          LogErrorS(parser_struct.line, "2 Tried to attribute data to a sender only channel. " + parser_struct.class_name + "/" + LName + ": " + std::to_string(ChannelDirections[parser_struct.class_name].count(LName)));
           return false;
         }
       }
@@ -1630,43 +1596,17 @@ bool CheckIsSenderChannel(std::string Elements, Parser_Struct parser_struct, std
 
 
 
-std::string BinaryExprAST::GetType(bool from_assignment) {
-  std::string type = Type;
-  if (type=="None")
-  {
-    std::string LType = LHS->GetDataTree().Type, RType = RHS->GetDataTree().Type;
-    if ((LType=="list"||RType=="list") && Op!='=')
-      LogError(parser_struct.line, "Tuple elements type are unknown during parsing type. Please load the element into a static type variable first.");
-    
-    Elements = LType + "_" + RType;    
-    
-    std::string operation = op_map[Op];
-    Operation = Elements + "_" + operation;
-    
-
-    std::string type;
-    if (Operation=="int_int_div")
-      type = "float";
-    if (elements_type_return.count(Operation)>0)
-    {
-      type = elements_type_return[Operation];
-      std::cout << "found " << type << " for " << Operation << ".\n";
-    }
-    if (elements_type_return.count(Elements)>0)
-      type = elements_type_return[Elements];
-    SetType(type);
-
-  }
-  return type;
-}
 
 
 Value *BinaryExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
     return ConstantFP::get(*TheContext, APFloat(0.0f));
 
-  GetDataTree(); // gets the correct Elements and Operation.
 
+  Value *R = RHS->codegen(scope_struct);
+  if (cast_R_to=="int_to_float")
+    R = Builder->CreateSIToFP(R, floatTy, "lfp");
+  
 
   if (Op == '=' || (Op==tok_arrow&&!begins_with(Elements, "channel"))) {
     seen_var_attr=true;
@@ -1676,28 +1616,17 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
     // dynamic_cast for automatic error checking.
 
 
-    std::string LType = LHS->GetDataTree().Type;
+    std::string LType = L_dt.Type;
 
     // Codegen the RHS.
     Value *Val;
     bool from_channel_op=false;
     if (Op==tok_arrow)
-    {
-      if(ChannelDirections[parser_struct.function_name].count(RHS->GetName())==0)
-      {
-        LogError(parser_struct.line, "Could not find channel " + RHS->GetName());
-        return const_float(0);
-      }
-      if(ChannelDirections[parser_struct.function_name][RHS->GetName()]==ch_receiver)
-      {
-        LogError(parser_struct.line, "Trying to unpack data from a receiver only channel.");
-        return const_float(0);
-      }
-      
+    { 
       bool is_high_lvl_obj = ClassSize.count(LType)>0;
       if(is_high_lvl_obj)
           Operation = "void_channel_message";
-      Val = callret(Operation, {scope_struct, LHS->codegen(scope_struct), RHS->codegen(scope_struct)});
+      Val = callret(Operation, {scope_struct, LHS->codegen(scope_struct), R});
 
       if (!in_str(LType, primary_data_tokens) && !is_high_lvl_obj) {
           std::string copy_fn = LType + "_Copy";
@@ -1712,7 +1641,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
       from_channel_op = true;
     }
     else
-      Val = RHS->codegen(scope_struct);
+      Val = R;
     
 
 
@@ -1769,7 +1698,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
       return const_float(0.0f);
     }
 
-    std::string RType = RHS->GetDataTree().Type;
+    std::string RType = R_dt.Type;
     if (LType=="bool"&&RType=="any")
       Val = callret("to_bool", {scope_struct, Val}); 
     if (LType=="int"&&RType=="any")
@@ -1780,7 +1709,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
 
-    bool is_alloca = (!LHS->GetSelf()&&!LHS->GetIsAttribute());
     
     Value *Lvar_name; 
 
@@ -1800,23 +1728,18 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
       
       if(type=="map")
       {
-        Data_Tree map_dt = LHS->GetDataTree();
-        Check_Is_Compatible_Data_Type(map_dt, RHS->GetDataTree(), parser_struct);
+        Data_Tree map_dt = dt;
         std::string key_type = map_dt.Nested_Data[0].Type;
         std::string value_type = map_dt.Nested_Data[1].Type;
-
-
-
 
         Value *query = idx;
 
         StructType *st = struct_types["map"];
         StructType *st_node = struct_types["map_node"];
 
-        if (query->getType()==intTy&&key_type=="float")
+        if (R_dt.Type=="int"&&key_type=="float")
             query = Builder->CreateSIToFP(query, floatTy);
-        else if(LHSV->Idx->GetDataTree().Type!=key_type)
-            return LogErrorV(parser_struct.line, "Querying " + key_type + " map with " + LHSV->Idx->GetDataTree().Type);
+
 
         Value *nullPtr = ConstantPointerNull::get(
             cast<PointerType>(int8PtrTy)
@@ -2025,7 +1948,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
       if (type=="array") {
-          Check_Is_Compatible_Data_Type(LHS->GetDataTree(), RHS->GetDataTree(), parser_struct);
           StructType *st = struct_types["vec"];
           std::string elem_type = dt.Nested_Data[0].Type;
 
@@ -2062,10 +1984,9 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
     std::string Lname = LHS->GetName();
 
+    bool is_alloca = (!LHS->GetSelf()&&!LHS->GetIsAttribute());
     if (is_alloca)
     {
-      Check_Is_Compatible_Data_Type(LHS->GetDataTree(), RHS->GetDataTree(), parser_struct);
-
 
       std::string store_trigger = LType + "_StoreTrigger";
       std::string copy_fn = LType + "_Copy";
@@ -2087,9 +2008,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         Val = callret(store_trigger, {scope_struct, old_val, Val});
       }
       
-      // Cast int to float
-      if (LType=="float" && RHS->GetType()=="int")
-        Val = Builder->CreateUIToFP(Val, Type::getFloatTy(*TheContext), "floattmp");
 
 
       if (parser_struct.loop_depth==0&&LType=="array")
@@ -2100,21 +2018,13 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
           Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, Val);
       }
 
-      if (function_values[parser_struct.function_name].count(Lname)==0) {
-          LogError(parser_struct.line, "Variable " + Lname + " not yet declared");
-          return const_float(0.0f);
-      }
       function_values[parser_struct.function_name][Lname] = Val;
 
-
-
-      
+ 
 
     } else {
       if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) {
-        Data_Tree L_dt = LHSV->GetDataTree();
 
-        Check_Is_Compatible_Data_Type(L_dt, RHS->GetDataTree(), parser_struct);
         LType = L_dt.Type;
 
 
@@ -2141,25 +2051,16 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
   
 
 
-
+  // --- Handle operations --- //
   
-  Value *L = LHS->codegen(scope_struct);
-  Value *R = RHS->codegen(scope_struct);
-
-
-  // GetType(); // gets the correct Elements and Operation.
-
-
-
-
-  
+  Value *L = LHS->codegen(scope_struct);  
   if (!L || !R)
     return nullptr;
 
+
   if (cast_L_to=="int_to_float")
     L = Builder->CreateSIToFP(L, Type::getFloatTy(*TheContext), "lfp");
-  if (cast_R_to=="int_to_float")
-    R = Builder->CreateSIToFP(R, Type::getFloatTy(*TheContext), "lfp");
+
   if (Operation=="tensor_int_div") {
     Operation = "tensor_float_div";
     R = Builder->CreateSIToFP(R, Type::getFloatTy(*TheContext), "lfp");
@@ -2169,8 +2070,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
     Operation = "channel_float_message";
     R = Builder->CreateSIToFP(R, Type::getFloatTy(*TheContext), "lfp");
   }
-  if(!CheckIsSenderChannel(Elements, parser_struct, LHS->GetName()))
-    return const_float(0);
+
 
 
   
@@ -2236,8 +2136,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         return Builder->CreateMul(L, R, "multmp");
       case '/':
       {
-        llvm::Value* L_float = Builder->CreateSIToFP(L, Type::getFloatTy(*TheContext), "lfp");
-        llvm::Value* R_float = Builder->CreateSIToFP(R, Type::getFloatTy(*TheContext), "rfp");
+        llvm::Value* L_float = Builder->CreateSIToFP(L, floatTy, "lfp");
+        llvm::Value* R_float = Builder->CreateSIToFP(R, floatTy, "rfp");
         return Builder->CreateFDiv(L_float, R_float, "divtmp");
         // return Builder->CreateSDiv(L, R, "divtmp");  // Signed division
       }
@@ -2260,17 +2160,9 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
       default:
         break;
     }
-  } else {
-
-    
-    if(LHS->GetDataTree().Type=="channel"||RHS->GetDataTree().Type=="channel")
-      Check_Is_Compatible_Data_Type(LHS->GetDataTree(), RHS->GetDataTree(), parser_struct);
-
-
-    Value *ret = callret(Operation, {scope_struct, L, R});
-
-    return ret; 
-  }
+  } else
+    return callret(Operation, {scope_struct, L, R}); 
+  
 
 
 
@@ -2343,7 +2235,7 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
   
   if (Opcode==tok_not||Opcode=='!') {
     if(operand_type!="bool")
-      LogError(parser_struct.line, "Cannot use not with type: " + operand_type);
+      LogErrorS(parser_struct.line, "Cannot use not with type: " + operand_type);
     return Builder->CreateNot(OperandV, "logicalnot");
   }
 
@@ -2713,12 +2605,12 @@ Value *FinishExprAST::codegen(Value *scope_struct) {
 
 Value *LockExprAST::codegen(Value *scope_struct){
   
-  Builder->CreateCall(TheModule->getFunction("LockMutex"), {Builder->CreateGlobalString(Name)});
+  call("LockMutex", {Builder->CreateGlobalString(Name)});
 
   for (auto &body : Bodies)
     body->codegen(scope_struct);
 
-  Builder->CreateCall(TheModule->getFunction("UnlockMutex"), {Builder->CreateGlobalString(Name)});
+  call("UnlockMutex", {Builder->CreateGlobalString(Name)});
 
   return ConstantFP::get(*TheContext, APFloat(0.0f));
 }
@@ -2736,68 +2628,75 @@ Value *MainExprAST::codegen(Value *scope_struct) {
 
 
   for (const auto &body : Bodies) {
-
     body->codegen(scope_struct);
     if (!body)
       return const_float(1);
   }
+
 
   
   return const_float(0);
 }
 
 
-Value *NoGradExprAST::codegen(Value *scope_struct){
-  
-  Builder->CreateCall(TheModule->getFunction("set_scope_has_grad"), {scope_struct, ConstantInt::get(Type::getInt32Ty(*TheContext), 0)});
-  for (auto &body : Bodies)
-    body->codegen(scope_struct);
+Value *ExitCheckExprAST::codegen(Value *scope_struct) {
+    // Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    // BasicBlock *okBB = BasicBlock::Create(*TheContext, "shall_exit.no", TheFunction);
+    // BasicBlock *exitBB = BasicBlock::Create(*TheContext, "shall_exit.exit", TheFunction);
 
-  
-  return ConstantFP::get(*TheContext, APFloat(0.0f));
+    // std::cout << "shall exit: " << Shall_Exit << "\n";
+    // Builder->CreateCondBr(const_bool(Shall_Exit), exitBB, okBB);
+
+    // Builder->SetInsertPoint(exitBB);
+    // call("_quit_", {});
+    // Builder->CreateUnreachable();
+
+    // Builder->SetInsertPoint(okBB);
+    return const_float(0.0f);
 }
 
 
 
 Value *VariableListExprAST::codegen(Value *scope_struct) {
-  
   std::cout << "Variable list expr" << ".\n";
-
-  return ConstantFP::get(*TheContext, APFloat(0.0f));
+  return const_float(0.0f);
 }
 
 
 
 Value *RetExprAST::codegen(Value *scope_struct) {
+  if (!ShallCodegen) {
+      Value *ret = const_float(0.0f);
+      Builder->CreateRet(ret);
+      return ret;
+  }
   seen_var_attr=true;
-
     
+
   if(Vars.size()==1)
   { 
-    // p2t("Reached if");
     Value *ret = Vars[0]->codegen(scope_struct);
-    std::string type = Vars[0]->GetDataTree().Type;
+
+    if (returning_type.Type=="int" && return_expected_type.Type=="float")
+        ret = Builder->CreateSIToFP(ret, floatTy, "lfp");
 
     seen_var_attr=false;
     Builder->CreateRet(ret);
-    // Function *TheFunction = Builder->GetInsertBlock()->getParent();
-    // verifyFunction(*TheFunction);
-    // TheModule->print(llvm::errs(), nullptr);
+
     return ret;
   }
   
+
   std::vector<Value *> values = {scope_struct};
   for (int i=0; i<Vars.size(); i++)
   {
     Value *value = Vars[i]->codegen(scope_struct); 
     std::string type = Vars[i]->GetDataTree().Type;
 
-
     values.push_back(global_str(type));
     values.push_back(value);
   }
   values.push_back(global_str("TERMINATE_VARARG"));
-
 
   seen_var_attr=false;
   Value *ret = callret("list_New", values);
@@ -2805,6 +2704,10 @@ Value *RetExprAST::codegen(Value *scope_struct) {
 
   return ret;
 }
+
+
+
+
 
 
 
@@ -2937,7 +2840,7 @@ Value *NewDictExprAST::codegen(Value *scope_struct) {
      
     if (key_type!="str")
     {
-      LogError(parser_struct.line, "Dictionary key must be of type string");
+      LogErrorS(parser_struct.line, "Dictionary key must be of type string");
       return const_float(0);
     } 
     Value *key = Keys[i]->codegen(scope_struct);
@@ -3053,6 +2956,9 @@ Value *NewExprAST::codegen(Value *scope_struct) {
 
     if(!Check_ArgsV_Count(Callee, ArgsV, parser_struct, 1))
         return const_float(0);
+
+    if(in_str(Callee, vararg_methods))
+      ArgsV.push_back(const_int(TERMINATE_VARARG));
 
     return callret(Callee, ArgsV);
 }
@@ -3255,7 +3161,7 @@ Value *NestedStrExprAST::codegen(Value *scope_struct) {
     return load_alloca(Name, var_type, parser_struct.function_name);    
   }
   else {
-    LogError(parser_struct.line, "uncaught");
+    LogErrorS(parser_struct.line, "uncaught");
   }
 }
 
@@ -3328,11 +3234,11 @@ Value *NameableLLVMIRCall::codegen(Value *scope_struct) {
 
 
   if (Callee=="pow"&&target_args_size!=2) {
-    LogError(parser_struct.line, "Function pow expected 2 arguments, but got " + std::to_string(target_args_size));
+    LogErrorS(parser_struct.line, "Function pow expected 2 arguments, but got " + std::to_string(target_args_size));
     return const_float(0);
   }
   if (Callee=="sqrt"&&target_args_size!=1) {
-    LogError(parser_struct.line, "Function sqrt expected 1 argument, but got " + std::to_string(target_args_size));
+    LogErrorS(parser_struct.line, "Function sqrt expected 1 argument, but got " + std::to_string(target_args_size));
     return const_float(0);
   }
 
@@ -3362,12 +3268,12 @@ Value *NameableLLVMIRCall::codegen(Value *scope_struct) {
 
     ret = Builder->CreateUnaryIntrinsic(Intrinsic::sqrt, x_value);
   } else
-    LogError(-1, "LLVM IR Function " + Callee + " not implemented");
+    LogErrorS(-1, "LLVM IR Function " + Callee + " not implemented");
 
 
 
   if(ReturnType=="void_ptr")
-    LogError(-1, "return " + Callee);  
+    LogErrorS(-1, "return " + Callee);  
 
   return ret;
 }
@@ -3377,17 +3283,14 @@ Value *NameableLLVMIRCall::codegen(Value *scope_struct) {
 Value *NestedCallExprAST::codegen(Value *scope_struct) {
   return const_float(0);
 }
-
-
 Value *NameableRoot::codegen(Value *scope_struct) {
-
   return const_float(0);
 }
 
 
-
-
 Value *Nameable::codegen(Value *scope_struct) {
+  if (!ShallCodegen)
+      return const_float(0.0f);
   Data_Tree dt = GetDataTree();
   std::string type = dt.Type;
 
@@ -3395,11 +3298,6 @@ Value *Nameable::codegen(Value *scope_struct) {
   {
     if(Name=="self")
       return get_scope_obj(scope_struct); 
-
-    if (function_values[parser_struct.function_name].count(Name)==0) {
-        LogError(parser_struct.line, "Variable " + Name + " not found.");
-        return const_float(0.0f);
-    }
     return function_values[parser_struct.function_name][Name];
   }
 
@@ -3670,6 +3568,10 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
     if (inner_dt.Type=="array")
     {
+        if (elem_type=="float"&&Args[0]->GetDataTree().Type=="int")
+          appended_val = Builder->CreateSIToFP(appended_val, floatTy, "lfp");
+
+
         StructType *st = struct_types["scope_struct"];
         llvm::Type *elemTy;
         Value *vec = Load_Array(parser_struct.function_name, loaded_var);
@@ -3822,7 +3724,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
   //   when it is void
 
   if(ReturnType=="void_ptr")
-    LogError(-1, "return " + Callee);
+    LogErrorS(-1, "return " + Callee);
 
 
   return ret;

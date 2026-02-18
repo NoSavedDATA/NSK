@@ -313,6 +313,12 @@ UnkVarExprAST::UnkVarExprAST(
       dt = dt.Nested_Data[0];
     }
         
+    if (Object_toClass[parser_struct.function_name].count(VarName)>0\
+      ||data_typeVars[parser_struct.function_name].count(VarName)>0) {
+        LogErrorS(parser_struct.line, "Redefinition of " + VarName);
+        continue;
+    }
+
     data_typeVars[parser_struct.function_name][VarName] = dt;
   }
 }
@@ -395,10 +401,29 @@ DataExprAST::DataExprAST(
   for (unsigned i = 0, e = this->VarNames.size(); i != e; ++i) {
     if(this->isSelf)
       continue;    
+
     const std::string &VarName = this->VarNames[i].first;  
+    ExprAST *Init = this->VarNames[i].second.get();
+
+    Data_Tree init_dt = Init->GetDataTree();
+    std::string init_type = init_dt.Type;
+
+    
+    Check_Is_Compatible_Data_Type(data_type, init_dt, parser_struct);
+
+    if (!HasNotes&&\
+        (Object_toClass[parser_struct.function_name].count(VarName)>0||\
+         data_typeVars[parser_struct.function_name].count(VarName)>0)) {
+        LogErrorS(parser_struct.line, "Redefinition of " +  VarName);
+        continue;
+    }
     data_typeVars[parser_struct.function_name][VarName] = data_type;
+    typeVars[parser_struct.function_name][IdentifierStr] = data_type.Type;
   }
 }
+
+
+
 
 bool DataExprAST::GetNeedGCSafePoint() {
     return true;
@@ -406,7 +431,7 @@ bool DataExprAST::GetNeedGCSafePoint() {
 
 Data_Tree NewExprAST::GetDataTree(bool from_assignment) {
     if (functions_return_data_type.count(Callee)==0)
-        LogError(parser_struct.line, "Could not find data type " + DataName);
+        LogErrorS(parser_struct.line, "Could not find data type " + DataName);
     Data_Tree new_dt = functions_return_data_type[Callee];
     data_type = new_dt;
     return new_dt;
@@ -459,7 +484,7 @@ LibImportExprAST::LibImportExprAST(std::string LibName, bool IsDefault, Parser_S
 
 
     if(!(has_nk||has_so_lib))
-      LogError(parser_struct.line, "Failed to import library: " + LibName + ".\n\t    Could not find .nk or lib.so file.");
+      LogErrorS(parser_struct.line, "Failed to import library: " + LibName + ".\n\t    Could not find .nk or lib.so file.");
     else
       imported_libs.push_back(LibName);
   }
@@ -487,23 +512,53 @@ bool UnaryExprAST::GetNeedGCSafePoint() {
 }
   
 
+// --Deprecated
+std::string BinaryExprAST::GetType(bool from_assignment) {
+  std::string type = Type;
+  if (type=="None")
+  {
+    std::string LType = LHS->GetDataTree().Type, RType = RHS->GetDataTree().Type;
+    if ((LType=="list"||RType=="list") && Op!='=')
+      LogErrorS(parser_struct.line, "Tuple elements type are unknown during parsing type. Please load the element into a static type variable first.");
+    
+    Elements = LType + "_" + RType;    
+    
+    std::string operation = op_map[Op];
+    Operation = Elements + "_" + operation;
+    
+
+    std::string type;
+    if (Operation=="int_int_div")
+      type = "float";
+    if (elements_type_return.count(Operation)>0)
+    {
+      type = elements_type_return[Operation];
+      std::cout << "found " << type << " for " << Operation << ".\n";
+    }
+    if (elements_type_return.count(Elements)>0)
+      type = elements_type_return[Elements];
+    SetType(type);
+
+  }
+  return type;
+}
 
 
 Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
+  L_dt = LHS->GetDataTree();
+  R_dt = RHS->GetDataTree();
 
-  // std::string LType = LHS->GetDataTree().Type, RType = RHS->GetDataTree().Type;
-  std::string LType = UnmangleVec(LHS->GetDataTree()), RType = UnmangleVec(RHS->GetDataTree());
+  std::string LType = UnmangleVec(L_dt), RType = UnmangleVec(R_dt);
   if(ends_with(LType, "channel"))
     LType = "channel";
   if(ends_with(RType, "channel"))
     RType = "channel";
 
   if ((LType=="list"||RType=="list") && Op!='=')
-    LogError(parser_struct.line, "Tuple elements type are unknown during parsing type. Please load the element into a static type variable first.");
+    LogErrorS(parser_struct.line, "Tuple elements type are unknown during parsing type. Please load the element into a static type variable first.");
 
 
   Elements = LType + "_" + RType;    
-
 
   if (Elements=="int_float") {
     Elements = "float_float"; 
@@ -540,31 +595,107 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   return Data_Tree(type);
 }
 
+
+bool BinaryExprAST::GetNeedGCSafePoint() {
+    return (LHS->GetNeedGCSafePoint()||RHS->GetNeedGCSafePoint());
+}
   
   /// binaryexprAST - Expression class for a binary operator.
 BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
               std::unique_ptr<ExprAST> RHS, Parser_Struct parser_struct)
-    : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)), parser_struct(parser_struct) {}
+    : Op(Op), LHS(std::move(LHS)), RHS(std::move(RHS)), parser_struct(parser_struct) {
+
+  GetDataTree();
+
+  std::string LType = L_dt.Type;
+  std::string Lname = this->LHS->GetName();
+
+  std::string RType = R_dt.Type;
+
+
+
+  // --- Handle store --- //
+  if (Op == '=' || (Op==tok_arrow&&!begins_with(Elements, "channel"))) {
+
+
+    // ch <-
+    if(Op==tok_arrow) {
+      if(ChannelDirections[parser_struct.function_name].count(this->RHS->GetName())==0)
+        LogErrorS(parser_struct.line, "Could not find channel " + this->RHS->GetName());
+      if(ChannelDirections[parser_struct.function_name][this->RHS->GetName()]==ch_receiver)
+        LogErrorS(parser_struct.line, "Trying to unpack data from a receiver only channel.");
+      
+      // todo: test this
+      // if (!in_str(LType, primary_data_tokens) && !is_high_lvl_obj) {
+      //     std::string copy_fn = LType + "_Copy";
+      //     Function *F = TheModule->getFunction(copy_fn);
+      //     if (!F) 
+      //         return LogErrorV(parser_struct.line, "Tried to use channel operation for " + \
+      //                                               LType + ", but this data type has no Copy implementation.");
+      // }
+    }
+
+    else if(auto *LHSV = dynamic_cast<NameableIdx *>(this->LHS.get())) {
+
+        Data_Tree dt = LHSV->GetDataTree(true);
+        LType = dt.Type;
+
+        // map["x"] = y
+        if(LType=="map") {
+            Data_Tree map_dt = dt;
+            Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+            std::string key_type = map_dt.Nested_Data[0].Type;
+            std::string query_type = LHSV->Idx->GetDataTree().Type;
+
+
+            if (!(query_type=="int"&&key_type=="float")&&\
+                  query_type!=key_type)
+                    LogErrorS(parser_struct.line, "Querying " + key_type + " map with " + LHSV->Idx->GetDataTree().Type);
+        }
+
+        // arr[x] = y
+        if (LType=="array")
+          Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+    }
+
+    // is_alloca
+    else if(!this->LHS->GetSelf()&&!this->LHS->GetIsAttribute()) {
+      Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+
+      if (data_typeVars[parser_struct.function_name].count(Lname)==0)
+          LogErrorS(parser_struct.line, "Variable " + Lname + " not yet declared");
+      
+    } else
+        Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+    return;
+  }
+
+
+  // --- Handle operation --- //
   
-  
-  
-bool BinaryExprAST::GetNeedGCSafePoint() {
-    return (LHS->GetNeedGCSafePoint()||RHS->GetNeedGCSafePoint());
+  CheckIsSenderChannel(Elements, parser_struct, Lname);
+
+  if(L_dt.Type=="channel"||R_dt.Type=="channel")
+    Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+
+  if (!in_str(Elements, {"int_int", "float_float"})&&\
+      TheModule->getFunction(Operation)==nullptr)
+      LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }
+  
+  
+  
 
 
+
+
+
   
   
   
   
   
-  
-  
-  
-  
-  
-  
-  
+ 
   
 CallExprAST::CallExprAST(std::unique_ptr<ExprAST> NameSolver,
             const std::string &Callee, const std::string &Name,
@@ -586,11 +717,21 @@ CallExprAST::CallExprAST(std::unique_ptr<ExprAST> NameSolver,
 
 
 
-  
+
 
 
 RetExprAST::RetExprAST(std::vector<std::unique_ptr<ExprAST>> Vars, Parser_Struct parser_struct)
-    : Vars(std::move(Vars)), parser_struct(parser_struct) {}
+    : Vars(std::move(Vars)), parser_struct(parser_struct) {
+
+    return_expected_type = functions_return_data_type[parser_struct.function_name];
+
+    if (this->Vars.size()==1) {
+        returning_type = this->Vars[0]->GetDataTree();
+
+        if (!Check_Is_Compatible_Data_Type(return_expected_type, returning_type, parser_struct))
+            std::cout << "*Incompatible return type" << ".\n\n\n";
+    }
+}
     
   
 fn_descriptor::fn_descriptor(const std::string &Name, const std::string &Return) : Name(Name), Return(Return) {}
@@ -687,6 +828,7 @@ Data_Tree IndexExprAST::GetDataTree(bool from_assignment) {
   
 
 
+ExitCheckExprAST::ExitCheckExprAST() {}
 
 ChannelExprAST::ChannelExprAST(Parser_Struct parser_struct, Data_Tree data_type, std::string Name, int BufferSize, bool isSelf) : parser_struct(parser_struct), BufferSize(BufferSize) {
   this->data_type = data_type;
@@ -739,8 +881,6 @@ LockExprAST::LockExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies,
         : Bodies(std::move(Bodies)), Name(Name) {}
 
   
-NoGradExprAST::NoGradExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies)
-        : Bodies(std::move(Bodies)) {}
   
   
   
@@ -795,18 +935,18 @@ std::string Nameable::GetLibCallee() {
 
 Data_Tree NameableIdx::GetDataTree(bool from_assignment) {
   Data_Tree inner_dt = Inner->GetDataTree();
-
   std::string compound_type = inner_dt.Type;
 
-  
+ 
   if(Idx_Fn_Return.count(compound_type+"_Idx")) {
+      std::cout <<"1\n";
     Data_Tree idx_data_tree = Data_Tree(Idx_Fn_Return[compound_type+"_Idx"]);
 
     return Data_Tree(Idx_Fn_Return[compound_type+"_Idx"]);
   }
   
 
-  if (from_assignment || !in_str(compound_type, {"vec", "list", "dict", "tuple", "array"}))
+  if (from_assignment || !in_str(compound_type, {"vec", "map", "list", "dict", "tuple", "array"}))
     return inner_dt; //e.g: for list_Store_Idx
 
   if(compound_type=="tuple") {
@@ -814,16 +954,19 @@ Data_Tree NameableIdx::GetDataTree(bool from_assignment) {
 
       int idx = expr->Val;
       if (idx>=inner_dt.Nested_Data.size())
-        LogError(parser_struct.line, "Tuple index out of range. Index at: " + std::to_string(idx) + ", but the tuple size is " + std::to_string(inner_dt.Nested_Data.size()));
+        LogErrorS(parser_struct.line, "Tuple index out of range. Index at: " + std::to_string(idx) + ", but the tuple size is " + std::to_string(inner_dt.Nested_Data.size()));
 
       return Data_Tree(inner_dt.Nested_Data[idx].Type);
     } else
-      LogError(parser_struct.line, "Can only index tuple with a constant integer.");
+      LogErrorS(parser_struct.line, "Can only index tuple with a constant integer.");
   } 
 
   if(compound_type=="list" && inner_dt.Nested_Data.size()==0)
       return Data_Tree("any");
 
+  if(compound_type=="map")
+    return inner_dt.Nested_Data[1];
+  
   return inner_dt.Nested_Data[0];
 }
 
@@ -926,21 +1069,30 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
 
 
 Data_Tree Nameable::GetDataTree(bool from_assignment) {  
+    if (data_type.Type!="")
+        return data_type;
+
   if(Depth==1) {
     if(Name=="self")
-      return Data_Tree(parser_struct.class_name);
+        data_type = Data_Tree(parser_struct.class_name);
     else if(data_typeVars[parser_struct.function_name].find(Name)!=data_typeVars[parser_struct.function_name].end())
-        return data_typeVars[parser_struct.function_name][Name];
-    else
-      LogError(parser_struct.line, "Could not find variable " + Name + " on scope " + parser_struct.function_name + ".");
+        data_type = data_typeVars[parser_struct.function_name][Name];
+    else {
+        LogErrorS(parser_struct.line, "Could not find variable " + Name + " on scope " + parser_struct.function_name + ".");
+        data_type = Data_Tree("any"); // this allows to proceed with error checking
+    }
+    return data_type;
   }
   
   std::string scope = Inner->GetDataTree().Type;
 
   if(data_typeVars[scope].find(Name)!=data_typeVars[scope].end())
-    return data_typeVars[scope][Name];
-  else
-    LogError(parser_struct.line, "Could not find variable " + Name + " on scope " + scope+". Depth: " + std::to_string(Depth));
+    data_type = data_typeVars[scope][Name];
+  else {
+    LogErrorS(parser_struct.line, "Could not find variable " + Name + " on scope " + scope+". Depth: " + std::to_string(Depth));
+    data_type = Data_Tree("any");
+  }
+  return data_type;
 }
 
 
@@ -952,6 +1104,7 @@ Nameable::Nameable(Parser_Struct parser_struct, std::string Name, int Depth) : p
   this->isAttribute = Depth>1;
   this->isSelf = (Depth==1&&Name=="self");
 }
+
 
 NameableIdx::NameableIdx(Parser_Struct parser_struct, std::unique_ptr<Nameable> Inner, std::unique_ptr<IndexExprAST> Idx) : Nameable(parser_struct), Idx(std::move(Idx)) {
   this->Inner = std::move(Inner); 
@@ -980,6 +1133,15 @@ NameableAppend::NameableAppend(Parser_Struct parser_struct, std::unique_ptr<Name
     Callee = this->inner_dt.Type + "_" + this->Inner->Name;
     
     this->Inner = std::move(this->Inner->Inner);
+
+
+    if (this->inner_dt.Type=="array") {
+        std::string appended_type = this->Args[0]->GetDataTree().Type;
+        std::string elem_type = inner_dt.Nested_Data[0].Type;
+        
+        if(!(elem_type=="float"&&appended_type=="int") && appended_type!=elem_type)
+            LogErrorS(parser_struct.line, "Tried to append " + appended_type + " into a " + elem_type + " array.");
+    }
 }
 
 NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable> Inner, std::vector<std::unique_ptr<ExprAST>> Args) : Nameable(parser_struct), Args(std::move(Args)) {
@@ -1031,7 +1193,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
     Callee = "list_append_float";
     
   // if(functions_return_data_type.count(Callee)==0)
-  //     LogError(parser_struct.line, "Function " + Callee + " not found.");
+  //     LogErrorS(parser_struct.line, "Function " + Callee + " not found.");
 
   if (in_str(Callee, vararg_methods))
   {
@@ -1047,7 +1209,11 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
           this->Args.push_back(std::make_unique<StringExprAST>("TERMINATE_VARARG"));
     }
   }
+
+  if (functions_return_data_type.count(Callee)==0)
+      LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
 }
+
 
 bool NameableCall::GetNeedGCSafePoint() {
     return true;
