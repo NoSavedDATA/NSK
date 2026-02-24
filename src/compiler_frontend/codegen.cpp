@@ -35,8 +35,8 @@ std::string current_codegen_function;
 
 std::vector<Value *> thread_pointers;
 
-PointerType *floatPtrTy, *int8PtrTy;
-llvm::Type *floatTy, *intTy, *boolTy;
+PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
+llvm::Type *floatTy, *intTy, *int8Ty, *int64Ty, *boolTy, *voidTy;
 
 Value *stack_top_value;
 
@@ -676,8 +676,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
   for (i = 0, e = Args.size(); i != e; ++i) {
     if (dynamic_cast<PositionalArgExprAST*>(Args[i].get()))
         break;
-    
-    
+     
     Value *arg = Args[i]->codegen(scope_struct);
  
     Data_Tree data_type = Args[i]->GetDataTree();
@@ -693,21 +692,21 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     
     int tgt_arg = i + arg_offset;
     Data_Tree expected_data_type = Function_Arg_DataTypes[fn_name][Function_Arg_Names[fn_name][tgt_arg]];
-    if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
-    { 
-      if (Function_Arg_Types.count(fn_name)>0)
-      {   
-        int differences = expected_data_type.Compare(data_type);
-        if (differences>0) { 
-          LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name);
-          std::cout << "Expected\n   ";
-          expected_data_type.Print();
-          std::cout << "\nPassed\n   ";
-          data_type.Print();
-          std::cout << "\n\n";
-        } 
-      }
-    }
+    // if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
+    // { 
+    //   if (Function_Arg_Types.count(fn_name)>0)
+    //   {   
+    //     int differences = expected_data_type.Compare(data_type);
+    //     if (differences>0) { 
+    //       LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name);
+    //       std::cout << "Expected\n   ";
+    //       expected_data_type.Print();
+    //       std::cout << "\nPassed\n   ";
+    //       data_type.Print();
+    //       std::cout << "\n\n";
+    //     } 
+    //   }
+    // }
 
     
     if(type=="int"&&expected_data_type.Type=="float")
@@ -795,6 +794,155 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
 
 
 
+Value *DT_file_create(std::string type, Data_Tree data_type,
+                      Value *scope_struct, Value *initial_value,
+                      std::vector<Value*> ArgsV) {
+    StructType *st = struct_types["DT_file"];
+
+    // file descriptor
+    Value *fd = callret("open", {ArgsV[1], const_int(0)});
+
+    Value *file_fd_gep = Builder->CreateStructGEP(st, initial_value, 0); 
+    Builder->CreateStore(fd, file_fd_gep);
+
+    // line counter
+    Value *line_counter_gep = Builder->CreateStructGEP(st, initial_value, 2); 
+    Builder->CreateStore(const_int(0), line_counter_gep);
+
+
+    // bytes read
+    Value *bytes_read_gep = Builder->CreateStructGEP(st, initial_value, 3); 
+    Builder->CreateStore(const_int(0), bytes_read_gep);
+
+    // bytes remaining
+    Value *bytes_batch_gep = Builder->CreateStructGEP(st, initial_value, 4); 
+    Builder->CreateStore(const_int(-1), bytes_batch_gep);
+      
+    return initial_value;
+}
+
+
+Value *file_read(std::string Callee, Data_Tree data_type, Value *scope_struct,
+                 std::vector<Value*> ArgsV, Function *TheFunction) {
+    Value *file_value = ArgsV[1];
+
+    StructType *st = struct_types["DT_file"];
+
+    Value *bytes_read_gep = Builder->CreateStructGEP(st, file_value, 3);
+    Value *bytes_read = Builder->CreateLoad(intTy, bytes_read_gep);
+
+    Value *bytes_batch_gep = Builder->CreateStructGEP(st, file_value, 4); 
+    Value *bytes_batch = Builder->CreateLoad(intTy, bytes_batch_gep);
+
+    
+    Value *buffer_gep = Builder->CreateStructGEP(st, file_value, 1);
+    Value *buffer = Builder->CreateGEP(ArrayType::get(int8Ty, 1024),
+                                       buffer_gep, {const_int(0), const_int(0)});
+
+    call("print_int", {bytes_read});
+    call("print_int", {bytes_batch});
+
+    BasicBlock *BufferReadBB = BasicBlock::Create(*TheContext, "file_read.read_buffer", TheFunction);
+    BasicBlock *ReadBB  = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
+    BasicBlock *AfterBB  = BasicBlock::Create(*TheContext, "file_read.after", TheFunction);
+
+    BasicBlock *ReadCondBB = BasicBlock::Create(*TheContext, "file_read.read_line.cond", TheFunction);
+    BasicBlock *ReadLoopBB = BasicBlock::Create(*TheContext, "file_read.read_line.loop", TheFunction);
+
+
+    Builder->CreateCondBr(Builder->CreateICmpSGE(bytes_read, bytes_batch),
+                      BufferReadBB,
+                      ReadBB);
+    Builder->SetInsertPoint(BufferReadBB);
+
+    // Buffer Read
+    Value *fd_gep = Builder->CreateStructGEP(st, file_value, 0);
+    Value *fd = Builder->CreateLoad(intTy, fd_gep);
+
+
+
+    Value *bytes = callret("read", {fd, buffer, const_int(1024)}); 
+    bytes_batch = Builder->CreateTrunc(bytes, intTy);
+
+    Builder->CreateStore(bytes_batch, bytes_batch_gep);
+    Builder->CreateStore(const_int(0), bytes_read_gep);
+
+    
+    Builder->CreateBr(ReadBB);
+    Builder->SetInsertPoint(ReadBB);
+
+    // Line Read
+      
+    Value *ret = callret("allocate_void", {scope_struct,
+                              const_int(512),
+                              global_str("str")});
+
+    bytes_read = Builder->CreateLoad(intTy, bytes_read_gep);
+    bytes_batch = Builder->CreateLoad(intTy, bytes_batch_gep);
+
+    Builder->CreateBr(ReadLoopBB);
+
+    
+    // read loop
+    Builder->SetInsertPoint(ReadLoopBB);
+    PHINode *loop_i = Builder->CreatePHI(intTy, 2);
+    PHINode *loop_b = Builder->CreatePHI(intTy, 2); // current byte
+    loop_i->addIncoming(const_int(0), ReadBB); 
+    loop_b->addIncoming(bytes_read,   ReadBB); 
+
+
+
+    Value *buffer_b = Builder->CreateGEP(ArrayType::get(int8Ty, 1024),
+                                       buffer_gep, {const_int(0), loop_b});
+    Value *character_found = Builder->CreateLoad(int8Ty, buffer_b);
+
+    Value *str_gep = Builder->CreateGEP(int8Ty, ret, loop_i);
+    Builder->CreateStore(character_found, str_gep);
+
+    loop_i->addIncoming(Builder->CreateAdd(loop_i, const_int(1)), ReadLoopBB);
+    loop_b->addIncoming(Builder->CreateAdd(loop_b, const_int(1)), ReadLoopBB);
+    Builder->CreateBr(ReadCondBB);
+
+
+    // read cond
+    Builder->SetInsertPoint(ReadCondBB);
+    Value *overflow_cond = Builder->CreateICmpSLT(loop_b, bytes_batch);
+    Value *endline_cond  = Builder->CreateICmpNE(character_found, const_int8(10)); 
+    
+
+    Builder->CreateCondBr(Builder->CreateAnd(overflow_cond, endline_cond),
+                          ReadLoopBB, AfterBB);
+
+
+    // After
+    Builder->SetInsertPoint(AfterBB);
+
+    str_gep = Builder->CreateGEP(int8Ty, ret, loop_i);
+    Builder->CreateStore(const_int8(0), str_gep);
+
+    Builder->CreateStore(Builder->CreateAdd(loop_b, const_int(1)),
+                         bytes_read_gep);
+     
+    return ret;
+}
+
+
+Value *file_opened(std::string Callee, Data_Tree data_type, Value *scope_struct,
+                 std::vector<Value*> ArgsV, Function *TheFunction) {
+    Value *file_value = ArgsV[1];
+    StructType *st = struct_types["DT_file"];
+
+    Value *bytes_read_gep = Builder->CreateStructGEP(st, file_value, 3); 
+    Value *bytes_read = Builder->CreateLoad(intTy, bytes_read_gep);
+
+    Value *bytes_batch_gep = Builder->CreateStructGEP(st, file_value, 4); 
+    Value *bytes_batch = Builder->CreateLoad(intTy, bytes_batch_gep);
+
+    Value *buffer_cut_cond = Builder->CreateICmpNE(bytes_batch, bytes_read);
+    Value *buffer_end_cond = Builder->CreateICmpNE(bytes_batch, const_int(0));
+
+    return Builder->CreateAnd(buffer_end_cond, buffer_cut_cond);
+}
 
 
 
@@ -845,59 +993,13 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
 
     Value *var_name, *scopeless_name;
-
-    // --- Name Solving --- //
-    // var_name = callret("CopyString", {scope_struct, global_str(VarName)});
-    // scopeless_name = callret("CopyString", {scope_struct, var_name});
-    // Value *notes_vector;
-    // if (HasNotes) {
-    //   notes_vector = callret("CreateNotesVector", {});
-    //   // --- Notes --- //
-    //   for (int j=0; j<Notes.size(); j++)
-    //   {
-    //     ExprAST *note = Notes[j].get();
-    //     if (NumberExprAST* numExpr = dynamic_cast<NumberExprAST*>(note)) 
-    //       notes_vector = callret("Add_To_NotesVector_float", {notes_vector, note->codegen(scope_struct)});
-    //     else if (IntExprAST* numExpr = dynamic_cast<IntExprAST*>(note))
-    //       notes_vector = callret("Add_To_NotesVector_int", {notes_vector, note->codegen(scope_struct)});
-    //     else if (StringExprAST* expr = dynamic_cast<StringExprAST*>(note)) {
-    //       Value *str_val = callret("CopyString", {scope_struct, note->codegen(scope_struct)});
-    //       notes_vector = callret("Add_To_NotesVector_str", {notes_vector, str_val});
-    //     }
-    //     else if (Nameable* expr = dynamic_cast<Nameable*>(note)) {   
-    //       if(expr->Depth==1&&data_typeVars[parser_struct.function_name].count(expr->Name)==0)
-    //       { 
-    //         Value *_str = callret("CopyString", {scope_struct, global_str(expr->Name)});
-    //         Value *str_val = callret("CopyString", {scope_struct, _str});
-    //         notes_vector = callret("Add_To_NotesVector_str", {notes_vector, str_val});
-    //       } else {
-    //         std::string type = expr->GetDataTree().Type;
-    //         notes_vector = callret("Add_To_NotesVector_"+type, {notes_vector, note->codegen(scope_struct)});
-    //       }   
-    //     }
-    //     else {
-    //       std::cout << "Could not find the data type of a note in DataExpr of " << VarName << " \n";
-    //     }
-    //   }
-    // } else
-    //   notes_vector = callret("nullptr_get", {});
         
       
     if(!IsStruct||Type=="list"||Type=="array"||Type=="map") {
       if (auto *null_stmt = dynamic_cast<NullPtrExprAST*>(VarNames[i].second.get())) {
-          std::string create_fn = Type;
-          create_fn = (create_fn=="tuple") ? "list" : create_fn;
-          create_fn = create_fn + "_Create";
           if(Check_Required_Args_Count(create_fn, Notes.size(), parser_struct)) {
 
               std::vector<Value *> ArgsV = {scope_struct};
-              // if (HasNotes) {
-              //     for (int j=0; j<Notes.size(); j++) {
-              //         ExprAST *note = Notes[j].get();
-              //         ArgsV.push_back(note->codegen(scope_struct));
-              //     }
-              // }
-
 
               if (create_fn=="array_Create" || create_fn=="map_Create")
                   ArgsV.push_back(VoidPtr_toValue(&data_type));
@@ -907,7 +1009,18 @@ Value *DataExprAST::codegen(Value *scope_struct) {
                       ArgsV.push_back(const_int(TERMINATE_VARARG));
                   
               }
-              initial_value = callret(create_fn, ArgsV);
+
+
+              if(struct_create_fn.count(dt_type)>0) {
+                initial_value = struct_create_fn[dt_type](Type, data_type,
+                                scope_struct, 
+                                callret("allocate_void", {scope_struct,
+                                                          const_int(struct_type_size[dt_type]),
+                                                          global_str(Type)}),
+                                std::move(ArgsV));
+              }
+              else
+                initial_value = callret(create_fn, ArgsV);
           }
       }
     }
@@ -928,13 +1041,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         if (parser_struct.loop_depth==0&&Type=="array")
             Cache_Array(parser_struct.function_name, initial_value);
            
-    }      
-
-    // if(HasNotes)
-    //   call("Dispose_NotesVector", {notes_vector, scopeless_name});
-    // else
-    //   call("str_Delete", {scopeless_name});
-    // call("str_Delete", {var_name});
+    }     
   }
 
 
@@ -3632,8 +3739,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
   Function *TheFunction = Builder->GetInsertBlock()->getParent();
 
-  int arg_type_check_offset=1, target_args_size=Args.size()+1;
-  bool is_nsk_fn = in_str(Callee, native_methods);
+  int target_args_size=Args.size()+1;
 
   Value *previous_obj, *previous_stack_top;
   
@@ -3678,7 +3784,6 @@ Value *NameableCall::codegen(Value *scope_struct) {
     }
     else{
         ArgsV.push_back(obj_ptr);
-        arg_type_check_offset++;
         target_args_size++;
 
         BasicBlock *GotNullBB = BasicBlock::Create(*TheContext, "nested_call.bad.bb", TheFunction);
@@ -3709,8 +3814,13 @@ Value *NameableCall::codegen(Value *scope_struct) {
   ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Args), scope_struct,\
                                 Callee, is_nsk_fn, arg_type_check_offset);
 
+
   
-  Value *ret = callret(Callee, ArgsV);
+  Value *ret;
+  if (llvm_callee.count(Callee)>0)
+    ret = llvm_callee[Callee](Callee, data_type, scope_struct, std::move(ArgsV), TheFunction);
+  else
+    ret = callret(Callee, ArgsV);
 
   if (has_obj_overwrite) // Retrieve previous object
     set_scope_obj(scope_struct, previous_obj);

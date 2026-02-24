@@ -123,6 +123,78 @@ bool ExprAST::GetNeedGCSafePoint() {
 //   return j;
 // }
  
+
+
+
+
+
+
+
+
+
+inline void Semantic_Arguments_Check(Parser_Struct parser_struct,
+                                                  std::vector<std::unique_ptr<ExprAST>> &Args,
+                                                  std::string fn_name,
+                                                  bool is_nsk_fn, int arg_offset=1)
+{
+
+  // -- Required Arguments -- //
+  unsigned i, e;
+  for (i = 0, e = Args.size(); i != e; ++i) {
+    if (dynamic_cast<PositionalArgExprAST*>(Args[i].get()))
+        break;
+    
+    Data_Tree data_type = Args[i]->GetDataTree();
+    
+    int tgt_arg = i + arg_offset;
+
+
+    if(Function_Arg_Names.count(fn_name)==0) {
+        LogErrorS(parser_struct.line, "Function " + fn_name + " does not require arguments.");
+        return;
+    }
+    if(tgt_arg>=Function_Arg_Names[fn_name].size()) {
+        LogErrorS(parser_struct.line, "Extrapolated " + fn_name + " arguments count.");
+        return;
+    }
+
+    
+
+
+    if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
+    { 
+      if (Function_Arg_DataTypes.count(fn_name)>0)
+      {   
+        Data_Tree expected_data_type = Function_Arg_DataTypes[fn_name][Function_Arg_Names[fn_name][tgt_arg]];
+
+        int differences = expected_data_type.Compare(data_type);
+        if (differences>0) { 
+          LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name + ".");
+          std::cout << "Expected\n   ";
+          expected_data_type.Print();
+          std::cout << "\nPassed\n   ";
+          data_type.Print();
+          std::cout << "\n\n";
+        } 
+      }
+    }
+  }
+
+
+  i = i + arg_offset-1;
+  // -- Add Default Arguments -- //
+  if (Function_Arg_Count.count(fn_name)>0&&!in_str(fn_name, vararg_methods)) {    
+      for (; i<Args.size(); ++i) { // Positional Arguments
+          auto PosArg = dynamic_cast<PositionalArgExprAST*>(Args[i].get());
+          if(!PosArg)
+            LogErrorS(parser_struct.line, "Standard argument followed by positional argument.");
+      }
+  }
+}
+
+
+
+
   
 NameSolverAST::NameSolverAST(std::vector<std::tuple<std::string, int, std::vector<std::unique_ptr<ExprAST>>>> Names)
                 : Names(std::move(Names)) {} 
@@ -397,7 +469,8 @@ DataExprAST::DataExprAST(
   std::vector<std::unique_ptr<ExprAST>> Notes)
   : parser_struct(parser_struct), VarExprAST(std::move(VarNames), std::move(Type)), data_type(data_type), HasNotes(HasNotes), IsStruct(IsStruct),
                 Notes(std::move(Notes))
-{  
+{   
+  dt_type = "DT_"+data_type.Type;  
   for (unsigned i = 0, e = this->VarNames.size(); i != e; ++i) {
     if(this->isSelf)
       continue;    
@@ -419,6 +492,20 @@ DataExprAST::DataExprAST(
     }
     data_typeVars[parser_struct.function_name][VarName] = data_type;
     typeVars[parser_struct.function_name][IdentifierStr] = data_type.Type;
+
+
+
+
+    if(!IsStruct||this->Type=="list"||this->Type=="array"||this->Type=="map") {
+      if (auto *null_stmt = dynamic_cast<NullPtrExprAST*>(this->VarNames[i].second.get())) {
+            create_fn = this->Type;
+            create_fn = (create_fn=="tuple") ? "list" : create_fn;
+            create_fn = create_fn + "_Create";
+
+            if (!(create_fn=="array_Create" || create_fn=="map_Create"))
+              Semantic_Arguments_Check(parser_struct, this->Notes, create_fn, true, 1);
+      }
+    }
   }
 }
 
@@ -1151,18 +1238,17 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
   
   Depth = this->Inner->Depth;
-
   Callee = this->Inner->Name;
 
 
-  if (Callee=="pow")
   
   if (Depth==1 && lib_function_remaps.count(Callee)>0)
     Callee = lib_function_remaps[Callee];
 
+
+  // methods/lib callee
   if(Depth>1) {    
     std::string inner_most_name = this->Inner->InnerMost()->Name;
-
 
     if (in_str(inner_most_name, imported_libs))
     {
@@ -1177,24 +1263,30 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
         this->Inner = std::move(this->Inner->Inner);
         Callee = UnmangleVec(inner_dt) + "_" + Callee;
       }
-    }
-
-    
-    // LogBlue("Callee is " + Callee);
+    } 
   }
 
 
+  // specify array type
   if(Callee=="array_print")
     Callee = Callee + "_" + this->Inner->GetDataTree().Nested_Data[0].Type; 
 
+  // specify list type
   if(Callee=="list_append" && this->Args[0]->GetDataTree().Type=="int")
     Callee = "list_append_int";
   if(Callee=="list_append" && this->Args[0]->GetDataTree().Type=="float")
     Callee = "list_append_float";
-    
-  // if(functions_return_data_type.count(Callee)==0)
-  //     LogErrorS(parser_struct.line, "Function " + Callee + " not found.");
 
+
+
+  // check if exists
+  if (functions_return_data_type.count(Callee)==0) {
+      LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
+      return;
+  }
+    
+
+  // vararg
   if (in_str(Callee, vararg_methods))
   {
     if (Callee=="zip") {
@@ -1209,9 +1301,17 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
           this->Args.push_back(std::make_unique<StringExprAST>("TERMINATE_VARARG"));
     }
   }
+ 
 
-  if (functions_return_data_type.count(Callee)==0)
-      LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
+ 
+
+
+  
+  is_nsk_fn = in_str(Callee, native_methods);
+  if(Depth>1&&!FromLib&&is_nsk_fn)
+      arg_type_check_offset++;
+
+  Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, arg_type_check_offset);
 }
 
 

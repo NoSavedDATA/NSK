@@ -70,3 +70,10 @@ Value *Load_Stack(Value *scope_struct, const std::string &function_name, const s
 
 
 void Cache_Array(std::string &fn, Value *var);
+
+
+Value *DT_file_create(std::string, Data_Tree, Value *, Value *, std::vector<Value*>);
+Value *file_read(std::string Callee, Data_Tree data_type,
+                 Value *scope_struct, std::vector<Value*> ArgsV, Function*);
+Value *file_opened(std::string Callee, Data_Tree data_type, Value *scope_struct,
+                 std::vector<Value*> ArgsV, Function *TheFunction);

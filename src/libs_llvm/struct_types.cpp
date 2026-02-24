@@ -1,6 +1,3 @@
-#include "llvm/IR/Value.h"
-#include "llvm/IR/IRBuilder.h"
-#include "llvm/IR/Module.h"
 #include "llvm/IR/LLVMContext.h"
 
 
@@ -9,10 +6,16 @@
 
 
 std::map<std::string, StructType*> struct_types;
+std::unordered_map<std::string, int> struct_type_size;
+
+std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
+
+std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree, Value*, std::vector<Value*>, Function *)>> llvm_callee;
 
 void Generate_Struct_Types() {
     // Get llvm types
     llvm::Type *int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
+    llvm::Type *int8Ty = Type::getInt8Ty(*TheContext);
     llvm::Type *boolTy = Type::getInt1Ty(*TheContext);
     llvm::Type *floatTy = Type::getFloatTy(*TheContext);
     llvm::Type *longTy   = Type::getInt64Ty(*TheContext);
@@ -79,4 +82,13 @@ void Generate_Struct_Types() {
     );
     struct_types["GC"] = GC_Struct_Type;
     struct_types["scope_struct"] = Scope_Struct_Type;
+
+
+    StructType *File_Struct_Type = StructType::create(
+            *TheContext,
+            {intTy, ArrayType::get(int8Ty, 1024), intTy, intTy, intTy, int8PtrTy},
+            "file"
+        );
+    struct_types["DT_file"] = File_Struct_Type;
+    struct_type_size["DT_file"] = 1040;
 }

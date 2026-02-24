@@ -14,6 +14,10 @@ extern "C" void print_int(int x) {
     std::cout << "GOT INT: " << x << ".\n";
 }
 
+extern "C" void print_int64(int64_t x) {
+    std::cout << "GOT INT 64: " << x << ".\n";
+}
+
 extern "C" void print_uint64(uint64_t x) {
     std::cout << "GOT U INT 64: " << x << ".\n";
 }

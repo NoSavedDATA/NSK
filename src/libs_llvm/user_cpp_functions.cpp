@@ -36,7 +36,7 @@ void set_user_functions() {
 		"scope_struct_Alloc_GC", 
 		"str_Create", "str_Copy", "str_CopyArg", "str_str_add", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
 		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
-		"print", "print_void_ptr", "print_int", "print_uint64", 
+		"print", "print_void_ptr", "print_int", "print_int64", "print_uint64", 
 		"dir_exists", "path_exists", 
 		"allocate_void", 
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 

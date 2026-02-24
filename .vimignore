@@ -2,3 +2,14 @@
 assets/
 include/
 lsp/
+*.d
+*.a
+*.swp
+*.o
+lib/cuda-12.2
+lib/eigen3
+lib/ogre_game
+lib_parser/parsed_libs/
+*.png
+*.so
+*.xz

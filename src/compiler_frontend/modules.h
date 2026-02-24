@@ -30,9 +30,22 @@ extern std::unique_ptr<Module> GlobalModule;
 
 
 extern std::map<std::string, StructType*> struct_types;
+extern std::unordered_map<std::string, int> struct_type_size;
 
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
+extern std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree,
+                                                       Value*, Value*,
+                                                       std::vector<Value*>)>> struct_create_fn;
+
+extern std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree,
+                                                       Value*, std::vector<Value*>, Function*)>> llvm_callee;
+
+
+
+inline Value *const_int8(int8_t val) {
+    return ConstantInt::get(Type::getInt8Ty(*TheContext), val);
+}
 inline Value *const_int(int val) {
     return ConstantInt::get(Type::getInt32Ty(*TheContext), val);
 }

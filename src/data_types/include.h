@@ -11,6 +11,7 @@
 #include "codegen_notes.h"
 #include "data_tree.h"
 #include "dict.h"
+#include "file.h"
 #include "float.h"
 #include "float_vec.h"
 #include "int.h"

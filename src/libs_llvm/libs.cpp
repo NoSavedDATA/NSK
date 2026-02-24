@@ -1197,6 +1197,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("print_int", print_intTy);
 
+	FunctionType *print_int64Ty= FunctionType::get(
+		int8PtrTy,
+		{Type::getInt64Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_int64", print_int64Ty);
+
 	FunctionType *print_uint64Ty= FunctionType::get(
 		int8PtrTy,
 		{Type::getInt64Ty(*TheContext)},

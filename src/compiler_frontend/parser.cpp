@@ -555,6 +555,7 @@ std::unique_ptr<ExprAST> ParseIdxExpr(Parser_Struct parser_struct, std::unique_p
 
 std::unique_ptr<ExprAST> ParseCallExpr(Parser_Struct parser_struct, std::unique_ptr<Nameable> inner, std::string class_name, int depth) {
 
+
   auto Args = Parse_Arguments(parser_struct, class_name);
   if (!Args)
     return nullptr;
@@ -1977,8 +1978,7 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
 ///   ::= unary binoprhs
 ///
 std::unique_ptr<ExprAST> ParseExpression(Parser_Struct parser_struct, std::string class_name, bool can_be_list) {
-  parser_struct.line = LineCounter;
-  
+  parser_struct.line = LineCounter; 
 
   int pre_tabs = SeenTabs;
   

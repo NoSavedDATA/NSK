@@ -1,4 +1,3 @@
-
 #include "llvm/ADT/APFloat.h"
 #include "llvm/ADT/STLExtras.h"
 #include "llvm/IR/BasicBlock.h"
@@ -15,9 +14,6 @@
 #include "llvm/Target/TargetMachine.h"
 
 #include "src/KaleidoscopeJIT.h"
-
-
-
 
 #include <algorithm>
 #include <cstdarg>
@@ -49,26 +45,11 @@
 #include <stdlib.h>
 #include <iostream>
 
-
-
-
-
-
 #include "src/include.h"
-
-
-
-
 
 
 using namespace llvm;
 using namespace llvm::orc;
-
-
-
-
-
-
 
 
 std::map<std::string, int> NotatorsMap = {
@@ -79,14 +60,7 @@ std::map<std::string, int> NotatorsMap = {
 };
 
 
-
-
-
 LCG rng(generate_custom_seed());
-
-
-
-
 
 
   // Error Colors
@@ -95,15 +69,6 @@ LCG rng(generate_custom_seed());
 // \033[33m yellow
 // \033[34m blue
 // \033[95m purple
-
-
-
-
-
-
-
-
-
 
 
 //===----------------------------------------------------------------------===//
@@ -135,19 +100,9 @@ std::vector<char *> glob_str_files;
 
 
 
-// Handle Class self with phantom argument
-
-
-
-
-
-
 //===----------------------------------------------------------------------===//
 // Top-Level parsing and JIT Driver
 //===----------------------------------------------------------------------===//
-
-
-  
 
 static void HandleImport() {
     Parser_Struct parser_struct;
@@ -240,10 +195,9 @@ static void HandleTopLevelExpression() {
   
   Parser_Struct parser_struct;
   parser_struct.function_name = "__anon_expr";
-  if (std::unique_ptr<FunctionAST> FnAST = ParseTopLevelExpr(parser_struct)) {
-    CodegenTopLevelExpression(std::ref(FnAST));
 
-	
+  if (std::unique_ptr<FunctionAST> FnAST = ParseTopLevelExpr(parser_struct)) {
+    CodegenTopLevelExpression(std::ref(FnAST));	
   
   } else {
     // Skip token for error recovery.
@@ -302,10 +256,8 @@ static void MainLoop() {
             LogErrorNextBlock(LineCounter, "Constructor has no class associated.");
             break;
         default:
-            
             // std::cout << "Wait top level" <<  ".\n";
             // std::cout << "reading token: " << CurTok << "/" << ReverseToken(CurTok) << "\n";
-
             HandleTopLevelExpression(); 
             // std::cout << "Finished top level" <<  ".\n";
             break;
@@ -380,6 +332,24 @@ int main(int argc, char* argv[]) {
   BinopPrecedence[tok_int_div] = 40;
   BinopPrecedence['^'] = 50;
   BinopPrecedence['@'] = 60;
+
+
+
+  // DT_file
+  struct_create_fn["DT_file"] = DT_file_create;
+
+  Function_Arg_DataTypes["file_Create"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["file_Create"]["1"] = Data_Tree("str");
+  Function_Arg_Names["file_Create"] = {"0", "1"};
+
+  // file_read
+  functions_return_data_type["file_read"] = Data_Tree("str");
+  llvm_callee["file_read"] = file_read;
+
+  // file_opened
+  functions_return_data_type["file_opened"] = Data_Tree("bool");
+  llvm_callee["file_opened"] = file_opened;
+
 
 
   floatFunctions["log"] = "logE";
@@ -458,7 +428,8 @@ int main(int argc, char* argv[]) {
 
   // tensor + string + ...
   // e.g: x.view(), str.split()
-  native_methods = {"split", "split_idx", "str_vec_print"};
+  native_methods = {"split", "split_idx", "str_vec_print", "file_read", "file_close", "file_open",
+                    "file_opened"};
   native_methods = concat_str_vec(native_methods, return_tensor_methods);
   native_methods = concat_str_vec(native_methods, user_cpp_functions);
 

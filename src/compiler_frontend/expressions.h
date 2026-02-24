@@ -330,6 +330,7 @@ class DataExprAST : public VarExprAST {
     Data_Tree data_type;
     Parser_Struct parser_struct;
     bool HasNotes, IsStruct;
+    std::string dt_type, create_fn; 
 
     DataExprAST(
       Parser_Struct,
@@ -471,7 +472,8 @@ class NameableLLVMIRCall : public Nameable {
 
 class NameableCall : public Nameable {
   public:
-  bool FromLib=false;
+  bool FromLib=false, is_nsk_fn=false;
+  int arg_type_check_offset=1; 
   std::vector<std::unique_ptr<ExprAST>> Args;
   std::string Callee, ReturnType="";
 

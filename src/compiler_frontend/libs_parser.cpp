@@ -465,6 +465,7 @@ bool LibParser::TryParseFnDataType() {
         getNextToken();
         if(CurTok==tok_space)
             getNextToken();
+        
 
 
         tokenizer.can_see_space=false;
@@ -477,23 +478,20 @@ bool LibParser::TryParseFnDataType() {
             getNextToken(); // eat identifier
 
             if (CurTok!='=') {
-                LogError(-1, "Expected \"=\" for arg init.");
+                LogError(-1, "(C++ Library Parse Error) Expected \"=\" for arg init.");
                 std::exit(0);
             }
             // std::cout << "-=\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
             getNextToken(); // eat =
             // std::cout << "-E\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
             auto arg = ParseExpression(parser_struct, "");
-
             ArgsInit[fn_name].emplace(arg_name, std::move(arg));
             // std::cout << "-$\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
         }
         tokenizer.can_see_space=true;
+        tokenizer.has_lib_file=false;
 
         // std::cout << "-post \t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
-
-                
-        tokenizer.has_lib_file=false;
         file = std::move(tokenizer.lib_file);
         CurTok = PreCurTok;
 
@@ -526,7 +524,7 @@ int LibParser::_getTok() {
                 LastChar = _getCh();
 
             if (LastChar=='$' && TryParseFnDataType())
-                return tok_lib_dt;    
+                return tok_lib_dt;
 
             while(LastChar!=10 && LastChar!=tok_eof && LastChar!=tok_finish)
                 LastChar = _getCh();

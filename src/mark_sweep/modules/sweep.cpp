@@ -158,7 +158,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
     check_roots_worklist(scope_struct, root_nodes);
 
-    for (void * node_ptr : root_nodes) {
+    for (void *node_ptr : root_nodes) {
 
         char *p = static_cast<char*>(node_ptr);
         // int arena =  arena_offset / GC_arena_size;

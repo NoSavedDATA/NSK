@@ -37,9 +37,12 @@ void InitializeModule() {
 
   floatPtrTy = Type::getFloatTy(*TheContext)->getPointerTo();
   int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
+  int8Ty = Type::getInt8Ty(*TheContext);
   intTy = Type::getInt32Ty(*TheContext);
+  int64Ty = Type::getInt64Ty(*TheContext);
   floatTy = Type::getFloatTy(*TheContext);
   boolTy = Type::getInt1Ty(*TheContext);
+  voidTy = Type::getVoidTy(*TheContext);
   ShallCodegen = true;
   seen_var_attr = false;
 
@@ -433,14 +436,44 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("shuffle_str", shuffle_strTy);
 
+
+  //===----------------------------------------------------------------------===//
+  // DT_file
+  //===----------------------------------------------------------------------===//
+
+  //
+  FunctionType *openTy = FunctionType::get(
+      intTy,
+      {int8PtrTy, intTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("open", openTy);
+
+  //
+  FunctionType *readTy = FunctionType::get(
+      int64Ty,
+      {intTy, int8PtrTy, intTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("read", readTy);
+
+  //
+  FunctionType *closeTy = FunctionType::get(
+      voidTy,
+      {intTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("close", closeTy);
+
+
+
   //===----------------------------------------------------------------------===//
   // Other Ops
   //===----------------------------------------------------------------------===//
-
-  
+ 
 
   //
-  FunctionType * GetEmptyCharTy = FunctionType::get(
+  FunctionType *GetEmptyCharTy = FunctionType::get(
       int8PtrTy,
       {},
       false 
