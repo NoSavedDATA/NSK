@@ -1,4 +1,4 @@
-1821-09-25 14:36:12
+1822-02-26 18:31:47
 
 	FunctionType *read_intTy= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
@@ -13,3 +13,10 @@
 		false
 	);
 	TheModule->getOrInsertFunction("int_to_str", int_to_strTy);
+
+	FunctionType *int_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_to_str_buffer", int_to_str_bufferTy);

@@ -149,7 +149,6 @@ bool unprotect_pool_addr(Scope_Struct *scope_struct, void *addr) {
 
 // //---------------------------------------------------------//
 
-MarkSweep_Node::MarkSweep_Node(std::string type, bool marked) : type(type), marked(marked) {}
 GC_Node::GC_Node(void *ptr, std::string type) : ptr(ptr), type(type) {}
 
 

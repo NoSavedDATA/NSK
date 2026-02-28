@@ -1,0 +1,13 @@
+
+	
+	Function_Arg_Types["bool_to_str_buffer"]["0"] = "Scope_Struct";
+	Function_Arg_Types["bool_to_str_buffer"]["1"] = "bool";
+	Function_Arg_Types["bool_to_str_buffer"]["2"] = "str";
+	
+	Function_Arg_DataTypes["bool_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["bool_to_str_buffer"]["1"] = Data_Tree("bool");
+	Function_Arg_DataTypes["bool_to_str_buffer"]["2"] = Data_Tree("str");
+	
+	Function_Arg_Names["bool_to_str_buffer"].push_back("0");
+	Function_Arg_Names["bool_to_str_buffer"].push_back("1");
+	Function_Arg_Names["bool_to_str_buffer"].push_back("2");

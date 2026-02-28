@@ -72,8 +72,8 @@ Value *Load_Stack(Value *scope_struct, const std::string &function_name, const s
 void Cache_Array(std::string &fn, Value *var);
 
 
-Value *DT_file_create(std::string, Data_Tree, Value *, Value *, std::vector<Value*>);
-Value *file_read(std::string Callee, Data_Tree data_type,
-                 Value *scope_struct, std::vector<Value*> ArgsV, Function*);
-Value *file_opened(std::string Callee, Data_Tree data_type, Value *scope_struct,
-                 std::vector<Value*> ArgsV, Function *TheFunction);
+Value *DT_file_create(Parser_Struct, Function*, std::string, Data_Tree, Value *, Value *, std::vector<Value*>);
+
+Value *file_read(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
+Value *file_opened(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
+Value *print(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);

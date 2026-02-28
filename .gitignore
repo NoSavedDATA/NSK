@@ -23,9 +23,13 @@ a.out
 foo.nk
 update_submodules.sh
 *.bz2
+*.csv
 *.zip
 *.cu
 *.swp
+*.txt
+*.yaml
 *.o
+*.py
 *backup
 mall.sh

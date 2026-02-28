@@ -1,4 +1,4 @@
-1821-10-21 20:46:39
+1822-02-26 18:39:21
 
 	FunctionType *read_floatTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
@@ -13,6 +13,13 @@
 		false
 	);
 	TheModule->getOrInsertFunction("float_to_str", float_to_strTy);
+
+	FunctionType *float_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getFloatTy(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("float_to_str_buffer", float_to_str_bufferTy);
 
 	FunctionType *nsk_powTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),

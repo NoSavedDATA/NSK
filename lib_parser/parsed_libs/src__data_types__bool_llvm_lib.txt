@@ -1,4 +1,4 @@
-1821-09-11 19:17:31
+1822-02-26 18:49:54
 
 	FunctionType *bool_to_strTy= FunctionType::get(
 		int8PtrTy,
@@ -6,3 +6,10 @@
 		false
 	);
 	TheModule->getOrInsertFunction("bool_to_str", bool_to_strTy);
+
+	FunctionType *bool_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getInt1Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("bool_to_str_buffer", bool_to_str_bufferTy);

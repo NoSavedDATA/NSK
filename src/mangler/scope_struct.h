@@ -9,6 +9,7 @@
 
 
 constexpr int ContextStackSize = 4096;
+constexpr int PrintBufferSize = 2048;
 
 struct Scope_Struct { 
     int code_line=0;
@@ -17,6 +18,9 @@ struct Scope_Struct {
     int stack_top=0;
     void *object_ptr = nullptr;
     GC *gc=nullptr;
+
+    char print_buffer[PrintBufferSize];
+
     std::vector<GC_Node> root_nodes;
 
 
@@ -28,7 +32,6 @@ struct Scope_Struct {
 
     Scope_Struct *inner_most = nullptr;
 
-    // GarbageCollector gc;
     
     int has_grad=1;
 

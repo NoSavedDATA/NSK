@@ -465,6 +465,37 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("close", closeTy);
 
+  //
+  FunctionType *fexistsTy = FunctionType::get(
+      boolTy,
+      {int8PtrTy, int8PtrTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("fexists", fexistsTy);
+
+  //
+  FunctionType *writeTy = FunctionType::get(
+      voidTy,
+      {intTy, int8PtrTy, int64Ty},
+      false 
+  );
+  TheModule->getOrInsertFunction("write", writeTy);
+
+  //
+  FunctionType *strlenTy = FunctionType::get(
+      int64Ty,
+      {int8PtrTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("strlen", strlenTy);
+  
+
+  FunctionType *memcpyTy = FunctionType::get(
+      voidTy,
+      {int8PtrTy, int8PtrTy, intTy},
+      false 
+  );
+  TheModule->getOrInsertFunction("memcpy", memcpyTy);
 
 
   //===----------------------------------------------------------------------===//
@@ -580,11 +611,18 @@ void InitializeModule() {
 
   //
   FunctionType *printTy = FunctionType::get(
-      Type::getFloatTy(*TheContext),
-      {int8PtrTy, int8PtrTy}, 
-      false 
+      voidTy,
+      {int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy}, 
+      true 
   );
   TheModule->getOrInsertFunction("print", printTy);
+
+  FunctionType *printfTy = FunctionType::get(
+      intTy,
+      int8PtrTy, 
+      true 
+  );
+  TheModule->getOrInsertFunction("printf", printfTy);
   
 
 }

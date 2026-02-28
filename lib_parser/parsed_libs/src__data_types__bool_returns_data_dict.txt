@@ -1,1 +1,2 @@
 	functions_return_data_type["bool_to_str"] = Data_Tree("str");
+	functions_return_data_type["bool_to_str_buffer"] = Data_Tree("int64_t");

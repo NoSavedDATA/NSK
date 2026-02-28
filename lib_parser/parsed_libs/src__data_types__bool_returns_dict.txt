@@ -1,1 +1,1 @@
-{"bool_to_str", "str"}, 
+{"bool_to_str", "str"}, {"bool_to_str_buffer", "int64_t"}, 

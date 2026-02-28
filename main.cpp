@@ -352,6 +352,22 @@ int main(int argc, char* argv[]) {
 
 
 
+  // print
+  functions_return_data_type["print"] = Data_Tree("void");
+  llvm_callee["print"] = print;
+
+  Function_Arg_DataTypes["print"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["print"]["1"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["2"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["3"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["4"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["5"] = Data_Tree("str");
+  Function_Arg_Names["print"] = {"0", "1", "2", "3", "4", "5"};
+
+
+
+
+
   floatFunctions["log"] = "logE";
   floatFunctions["log2"] = "logE2";
   floatFunctions["log2f"] = "logE2f";

@@ -85,12 +85,6 @@ struct GC {
 
 //---------------------------------------------------------//
 
-struct MarkSweep_Node {
-    std::string type;
-    bool marked;
-
-    MarkSweep_Node(std::string, bool);
-};
 
 struct GC_Node{
     void *ptr;
@@ -100,14 +94,6 @@ struct GC_Node{
 };
 
 
-struct GarbageCollector {
-    int size_occupied=0, allocations=0;
-    std::vector<GC_Node> root_nodes;
-    std::vector<GC_Node> pointer_nodes;
-
-    void MergeNodes();
-    void sweep(Scope_Struct *);
-};
 
 
 void protect_pool_addr(Scope_Struct *scope_struct, void *addr);

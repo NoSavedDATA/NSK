@@ -234,6 +234,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("float_to_str", float_to_strTy);
 
+	FunctionType *float_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getFloatTy(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("float_to_str_buffer", float_to_str_bufferTy);
+
 	FunctionType *nsk_powTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy, Type::getFloatTy(*TheContext), Type::getFloatTy(*TheContext)},
@@ -429,6 +436,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("bool_to_str", bool_to_strTy);
+
+	FunctionType *bool_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getInt1Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("bool_to_str_buffer", bool_to_str_bufferTy);
 
 	FunctionType *get_barrierTy= FunctionType::get(
 		int8PtrTy,
@@ -1176,6 +1190,13 @@ void Generate_LLVM_Functions() {
 
 
 
+	FunctionType *fexistsTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("fexists", fexistsTy);
+
 	FunctionType *printTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy, int8PtrTy},
@@ -1567,5 +1588,12 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("int_to_str", int_to_strTy);
+
+	FunctionType *int_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int_to_str_buffer", int_to_str_bufferTy);
 
 }

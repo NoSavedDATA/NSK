@@ -235,7 +235,7 @@ extern "C" void scope_struct_Sweep(Scope_Struct *scope_struct) {
 extern "C" void scope_struct_Delete(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
 
-    std::cout << "***sweep " << "\n";
+    // std::cout << "***sweep " << "\n";
 
     gc->Sweep(scope_struct);
 

@@ -60,6 +60,17 @@ inline std::vector<fs::path> get_lib_files(std::string lib_dir)
   return files;
 }
 
+inline void recognize_data_type(std::string type) {
+    std::string nsk_type = remove_substring(type, "DT_");
+
+    if(!in_str(nsk_type, data_tokens))
+        data_tokens.push_back(nsk_type);
+
+    if (data_name_to_type.count(nsk_type)==0) {
+        data_name_to_type[nsk_type] = data_type_count;
+        data_type_to_name[data_type_count++] = nsk_type;
+    }
+}
 
 
 LibFunction::LibFunction(std::string ReturnType, bool IsPointer, std::string Name, std::vector<std::string> ArgTypes, std::vector<std::string> ArgNames, std::vector<int> ArgIsPointer, bool IsVarArg, bool HasRetOverwrite, std::string LibType, Data_Tree LibDT, int DefaultArgsCount)
@@ -84,6 +95,13 @@ void LibFunction::Print() {
 
     std::cout << ")\n\n";
 }
+void LibParser::PrintFunctions() {
+    for (auto pair : Functions) {
+        for (auto fn : pair.second)
+            fn->Print();
+    }
+}
+
 
 void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
     if(!has_main)
@@ -119,19 +137,7 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
     }
     else if(begins_with(ReturnType, "DT_")) {
         fn_return_type = int8PtrTy;
-        fn_return_type_str = remove_substring(ReturnType, "DT_");
-
-        if (data_name_to_type.count(fn_return_type_str)==0) {
-            data_name_to_type[fn_return_type_str] = data_type_count;
-            data_type_to_name[data_type_count++] = fn_return_type_str;
-        }
-        // if (data_name_to_size.count(ReturnType)==0) {
-        //     using size_fn = int (*)();
-        //     std::string size_fn_str = ReturnType+"_size";
-        //     auto fn = reinterpret_cast<size_fn>(dlsym(handle, size_fn_str.c_str()));
-        //     int data_size = fn();
-        //     data_name_to_size[fn_return_type_str] = data_size;
-        // }
+        recognize_data_type(ReturnType);
     }
     else {
         fn_return_type = int8PtrTy;
@@ -268,9 +274,7 @@ void LibFunction::Add_to_Nsk_Dicts(void *func_ptr, std::string lib_name, bool is
         if(begins_with(ReturnType, "DT_"))
         { 
             nsk_data_type.erase(0, 3);
-
-            if(!in_str(nsk_data_type, data_tokens))
-                data_tokens.push_back(nsk_data_type);
+            recognize_data_type(nsk_data_type);
         }
         if (Name=="_glob_b_")
             nsk_data_type = "str_vec";
@@ -342,6 +346,7 @@ void LibFunction::Add_to_Nsk_Dicts(void *func_ptr, std::string lib_name, bool is
         if (pos != std::string::npos) {
             nsk_type.replace(pos, 9, "");
         }
+        recognize_data_type(nsk_type);
 
         using CleanupFunc = void(*)(void*);
         CleanupFunc casted_func_ptr = reinterpret_cast<CleanupFunc>(func_ptr);
@@ -441,6 +446,7 @@ bool LibParser::TryParseFnDataType() {
         LastChar = _getCh();
     }
 
+
     lib_dt = Data_Tree(lib_type);
 
     if (LastChar=='<')
@@ -451,6 +457,7 @@ bool LibParser::TryParseFnDataType() {
         LastChar = _getCh();
 
 
+    // Try parse arguments as well
     if (LastChar=='$') {
         LastChar=_getCh();
         Parser_Struct parser_struct;
@@ -460,7 +467,6 @@ bool LibParser::TryParseFnDataType() {
         tokenizer.has_lib_file=true;
         tokenizer.lib_file = std::move(file);
         CurTok = tok_identifier;
-        // std::cout << "-\t" << LastChar << ".\n";
 
         getNextToken();
         if(CurTok==tok_space)
@@ -469,36 +475,41 @@ bool LibParser::TryParseFnDataType() {
 
 
         tokenizer.can_see_space=false;
-        while (CurTok==tok_identifier) {
+        while (CurTok==tok_identifier||CurTok==tok_data) {
 
-            // std::cout << "-\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c << ".\n";
+            bool is_data = CurTok==tok_data;
 
-            CurDefaultArgs++;
             std::string arg_name = IdentifierStr;
             getNextToken(); // eat identifier
 
-            if (CurTok!='=') {
-                LogError(-1, "(C++ Library Parse Error) Expected \"=\" for arg init.");
+            if (CurTok=='='&&is_data) {
+                LogError(-1, "(C++ Library Parse Error) Tried to set a data type as a default argument");
                 std::exit(0);
             }
-            // std::cout << "-=\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
+            else if (CurTok!='='&&!is_llvm) {
+                LogError(-1, "(C++ Library Parse Error) Expected \"=\" for arg init.");
+                std::exit(0);
+            } else {
+                LLVMFunction_Args.push_back(Data_Tree(arg_name));
+                continue;
+            }
+
             getNextToken(); // eat =
-            // std::cout << "-E\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
+
             auto arg = ParseExpression(parser_struct, "");
             ArgsInit[fn_name].emplace(arg_name, std::move(arg));
-            // std::cout << "-$\t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
+            CurDefaultArgs++;
         }
         tokenizer.can_see_space=true;
         tokenizer.has_lib_file=false;
 
-        // std::cout << "-post \t\t" << CurTok << "/" << ReverseToken(CurTok) << "\t|\t" << tokenizer.cur_c <<".\n";
         file = std::move(tokenizer.lib_file);
         CurTok = PreCurTok;
-
     }
     
     while(LastChar!=10 && LastChar!=tok_eof && LastChar!=tok_finish)
         LastChar = _getCh();
+
 
     return true;
 }
@@ -508,6 +519,10 @@ int LibParser::_getTok() {
     bool consume_no_ret=false;
 
     while (LastChar==10||LastChar==13||LastChar==tok_space||LastChar==tok_tab||LastChar==32) { // skip blanks
+        if(LastChar==9||LastChar==32)
+            seen_spaces++;
+        if(LastChar==10)
+            seen_spaces=0;
         LastChar = _getCh();
         consume_no_ret=true;
     }
@@ -525,14 +540,16 @@ int LibParser::_getTok() {
 
             if (LastChar=='$' && TryParseFnDataType())
                 return tok_lib_dt;
+            
 
             while(LastChar!=10 && LastChar!=tok_eof && LastChar!=tok_finish)
                 LastChar = _getCh();
+            if(LastChar==10)
+                seen_spaces=0;
             
             return tok_commentary;
-        } else {
-            return LastChar;
-        }
+        } else
+            return LastChar; 
     }
 
 
@@ -577,6 +594,10 @@ int LibParser::_getTok() {
     }
 
     while (LastChar==10||LastChar==tok_space||LastChar==tok_tab||LastChar==32||LastChar==13) { // skip blanks
+        if(LastChar==9||LastChar==32)
+            seen_spaces++;
+        if(LastChar==10)
+            seen_spaces=0;
         LastChar = _getCh();  
         consume_no_ret=true;
     }
@@ -600,6 +621,7 @@ int LibParser::_getToken() {
 
 
 void LibParser::ParseExtern() {
+    is_llvm=false;
     std::string file_name = files[file_idx].string();
 
     _getToken(); // eat extern
@@ -607,7 +629,10 @@ void LibParser::ParseExtern() {
     if (token!=tok_str)
       return;
     _getToken(); // eat "C"
+                 
 
+    if (running_string=="Value")
+        ParseLLVMFunction();
 
     std::string return_type = running_string;
     _getToken(); // eat return type
@@ -721,34 +746,111 @@ void LibParser::ParseExtern() {
 
     }
 
-
-    LibFunction *lib_fn = new LibFunction(return_type, is_pointer, fn_name, arg_types, arg_names, arg_is_pointer, is_var_arg,
+    LibFunction *lib_fn = new LibFunction(return_type, is_pointer, fn_name, arg_types, arg_names,
+                                          arg_is_pointer, is_var_arg,
                                           has_ret_overwrite, lib_type, lib_dt, CurDefaultArgs);
     Functions[file_name].push_back(lib_fn);
     // std::cout << "\n\n";
 }
 
+LLVMFunction::LLVMFunction(std::string Name, Data_Tree ReturnType, std::vector<Data_Tree> ArgTypes, std::vector<std::string> ArgNames, bool IsDtCreate) : Name(Name), ReturnType(ReturnType), ArgNames(std::move(ArgNames)), ArgTypes(std::move(ArgTypes)), IsDtCreate(IsDtCreate) {}
+
+
+// std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
+
+// std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&)>> llvm_callee;
+
+void LLVMFunction::HandleCreate(void *func) {
+
+    using CreateFn = Value*(*)(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>);
+ 
+    CreateFn fn = reinterpret_cast<CreateFn>(func);
+
+    std::string dtype = remove_substring(Name, "_Create");
+    struct_create_fn[dtype] = fn;
+}
+void LLVMFunction::HandleStandard(void *func) {
+    functions_return_data_type[Name] = ReturnType;
+    native_methods.push_back(Name);
+
+
+    using CalleeFn = Value*(*)(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&); 
+    CalleeFn fn = reinterpret_cast<CalleeFn>(func);
+    llvm_callee[Name] = fn;
+
+}
+
+void LLVMFunction::Process(void *func) {
+
+    if(IsDtCreate) {
+        HandleCreate(func);
+        Name = remove_substring(Name, "DT_");
+    } else
+        HandleStandard(func); 
+
+    Function_Arg_Names[Name].push_back("0");
+    Function_Arg_DataTypes[Name]["0"] = Data_Tree("Scope_Struct");
+
+    int i=0;
+    for (auto &arg_type : ArgTypes) {
+        std::string arg_name = ArgNames[i++];
+
+        Function_Arg_Names[Name].push_back(arg_name);
+        Function_Arg_DataTypes[Name][arg_name] = arg_type;
+    }
+    Function_Required_Arg_Count[Name] = ArgTypes.size();
+}
+
+void LibParser::ParseLLVMFunction() { 
+    is_llvm=true;
+    std::string file_name = files[file_idx].string();
+
+    token = _getToken(); // eat Value
+    token = _getToken(); // eat *
+    fn_name = running_string;
+
+    bool is_dt_create=(begins_with(fn_name, "DT_") && ends_with(fn_name, "_Create")); 
+
+    CurDefaultArgs=0;
+
+    while(token!='{')
+        token = _getToken();
+
+    while(token!=tok_lib_dt)
+        token = _getToken();
+    token = _getToken(); 
+
+
+
+    std::vector<std::string> arg_names;
+
+    int arg_idx = 1;
+    for (const auto &arg : LLVMFunction_Args)
+        arg_names.push_back(std::to_string(arg_idx++));
+
+    LLVMFunction *lib_fn = new LLVMFunction(fn_name, lib_dt,
+                                        std::move(LLVMFunction_Args), std::move(arg_names),
+                                        is_dt_create);
+    LLVMFunctions[file_name].push_back(lib_fn);
+    LLVMFunction_Args.clear();
+}
+
 
 void LibParser::ParseLibs() {
-    
     token = _getToken();    
 
     while(file_idx<files.size())
     {  
       if (token==tok_extern)
         ParseExtern();
-
+      // else if (running_string == "Value" && seen_spaces==0) {
+      //     token = _getToken();
+      //     if (token='*')
+      //         ParseLLVMFunction();
+      // }
       token = _getToken();
     }
 }
-
-void LibParser::PrintFunctions() {
-    for (auto pair : Functions) {
-        for (auto fn : pair.second)
-            fn->Print();
-    }
-}
-
 
 void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool is_default) {
 
@@ -779,8 +881,6 @@ void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool i
     for (auto pair : Functions) {  // std::map<std::string, std::vector<LibFunction*>>
         for (auto fn : pair.second) // std::vector<LibFunction*>>
         {
-            // std::cout << "Importing function:" << "\n";
-            // fn->Print();
             dlerror(); // Clear any existing error
             void* func_ptr = dlsym(handle, fn->Name.c_str());
             const char *dlsym_error = dlerror();
@@ -804,6 +904,20 @@ void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool i
             fn->Add_to_Nsk_Dicts(func_ptr, lib_name, is_default);
         }
     }
+    for (auto pair : LLVMFunctions) {  // std::map<std::string, std::vector<LLVMFunction*>>
+        for (auto fn : pair.second) {  // std::vector<LLVMFunction*>>
+            dlerror(); // Clear any existing error
+            void* func_ptr = dlsym(handle, fn->Name.c_str());
+            const char *dlsym_error = dlerror();
+            if (dlsym_error) {
+                LogError(-1, "Cannot load symbol " + fn->Name + ": " + dlsym_error + ". Please, compile the .so again");
+                has_error=true;
+                continue;
+            }
+            fn->Process(func_ptr);
+        }
+    }
+
     if (has_error)
         std::exit(0);
 }

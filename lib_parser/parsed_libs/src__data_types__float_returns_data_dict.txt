@@ -1,4 +1,5 @@
 	functions_return_data_type["read_float"] = Data_Tree("float");
 	functions_return_data_type["float_to_str"] = Data_Tree("str");
+	functions_return_data_type["float_to_str_buffer"] = Data_Tree("int64_t");
 	functions_return_data_type["nsk_pow"] = Data_Tree("float");
 	functions_return_data_type["nsk_sqrt"] = Data_Tree("float");

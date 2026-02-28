@@ -1,7 +1,3 @@
-#clang++-19 -g -O3 -rdynamic toy.cu `llvm-config --cxxflags --ldflags --system-libs --libs core orcjit native` --cuda-path="/usr/local/cuda-12.1" --cuda-gpu-arch=sm_89
-#-L"/usr/local/cuda-12.1/lib64" -I"/usr/local/cuda-12.1/include" -I/usr/include/eigen3 -lcudart_static -lcublas -lcublasLt -ldl -lrt -pthread
-#-D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -lcudnn -lopencv_imgcodecs -lopencv_imgproc -lopencv_core -w -o bin/nsk
-
 CXX := clang++-19 -std=c++17
 CXXFLAGS := -O3 -rdynamic -march=native -fno-exceptions
 # CXXFLAGS := -O0 -g -rdynamic
@@ -16,16 +12,16 @@ LLVM_LDFLAGS := $(shell $(LLVM_CONFIG) --ldflags)
 LLVM_SYSTEM_LIBS := $(shell $(LLVM_CONFIG) --system-libs)
 LLVM_LIBS := $(shell $(LLVM_CONFIG) --libs core orcjit native)
 
-# SYS_LIBS += -Wl,-rpath,'$$ORIGIN/../sys_lib'
-SYS_LIBS += -Wl,--disable-new-dtags \
-           -Wl,-rpath,'$$ORIGIN/../sys_lib'
 
 # Combine all flags
 CXXFLAGS += $(LLVM_CXXFLAGS) -mavx -w
 LDFLAGS := $(LLVM_LDFLAGS) -static-libstdc++ -static-libgcc
-LDFLAGS += $(SYS_LIBS)
 LIBS := $(LLVM_LIBS) $(LLVM_SYSTEM_LIBS) $(SYSTEM_LIBS)
 
+# SYS_LIBS += -Wl,-rpath,'$$ORIGIN/../sys_lib'
+SYS_LIBS += -Wl,--disable-new-dtags \
+           -Wl,-rpath,'$$ORIGIN/../sys_lib'
+LDFLAGS += $(SYS_LIBS)
 
 
 # Directories

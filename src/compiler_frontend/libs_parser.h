@@ -35,13 +35,29 @@ struct LibFunction {
   void Print(); 
 };
 
+struct LLVMFunction {
+  std::string Name;
+  std::vector<Data_Tree> ArgTypes;
+  std::vector<std::string> ArgNames;
+  bool IsDtCreate;
+
+  Data_Tree ReturnType;
+
+  LLVMFunction(std::string, Data_Tree, std::vector<Data_Tree>, std::vector<std::string>, bool);
+  void Process(void*);
+  void HandleStandard(void*);
+  void HandleCreate(void*);
+};
+
+
 
 struct LibParser {
-  int file_idx=-1, CurDefaultArgs=0;
+  int file_idx=-1, CurDefaultArgs=0, seen_spaces;
   std::string running_string="";
   std::string lib_type="";
   std::string fn_name;
   Data_Tree lib_dt;
+  bool is_llvm=false;
 
   int token;
   char LastChar = ' ';
@@ -51,8 +67,11 @@ struct LibParser {
   std::vector<fs::path> files;
   std::vector<std::string> function_names;
   std::vector<std::string> Initialize_Functions;
+
   
   std::map<std::string, std::vector<LibFunction*>> Functions;
+  std::vector<Data_Tree> LLVMFunction_Args;
+  std::map<std::string, std::vector<LLVMFunction*>> LLVMFunctions;
 
   LibParser(std::string lib_dir); 
 
@@ -64,6 +83,7 @@ struct LibParser {
   void ParseDT(Data_Tree &);
   bool TryParseFnDataType();
   void ParseExtern(); 
+  void ParseLLVMFunction(); 
 
   void ParseLibs(); 
 

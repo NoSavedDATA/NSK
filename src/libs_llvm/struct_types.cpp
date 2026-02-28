@@ -8,9 +8,9 @@
 std::map<std::string, StructType*> struct_types;
 std::unordered_map<std::string, int> struct_type_size;
 
-std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
+std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
 
-std::unordered_map<std::string, std::function<Value*(std::string, Data_Tree, Value*, std::vector<Value*>, Function *)>> llvm_callee;
+std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&)>> llvm_callee;
 
 void Generate_Struct_Types() {
     // Get llvm types
@@ -77,7 +77,9 @@ void Generate_Struct_Types() {
     StructType *Scope_Struct_Type = StructType::create(
         *TheContext,
         // {intTy, intTy, GC_Struct_Type},
-        {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize), intTy, int8PtrTy, GC_Struct_Type},
+        {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize),
+         intTy, int8PtrTy, GC_Struct_Type,
+         ArrayType::get(int8Ty, PrintBufferSize)},
         "GC"
     );
     struct_types["GC"] = GC_Struct_Type;
@@ -86,9 +88,9 @@ void Generate_Struct_Types() {
 
     StructType *File_Struct_Type = StructType::create(
             *TheContext,
-            {intTy, ArrayType::get(int8Ty, 1024), intTy, intTy, intTy, int8PtrTy},
+            {intTy, ArrayType::get(int8Ty, FileBufferSize), intTy, intTy, intTy, int8PtrTy},
             "file"
         );
     struct_types["DT_file"] = File_Struct_Type;
-    struct_type_size["DT_file"] = 1040;
+    struct_type_size["file"] = FileBufferSize + 4*4 + 8 + 8;
 }

@@ -45,6 +45,7 @@ extern "C" char *CopyString(Scope_Struct *scope_struct, char *in_str)
   char *copied = allocate<char>(scope_struct, length, "str");
 
   memcpy(copied, in_str, length);
+  copied[length] = '\0';
 
   return copied;
 }

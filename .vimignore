@@ -6,6 +6,7 @@ lsp/
 *.a
 *.swp
 *.o
+*backup*
 lib/cuda-12.2
 lib/eigen3
 lib/ogre_game
