@@ -510,9 +510,10 @@ int main(int argc, char* argv[]) {
         while (c<GC_obj_sizes-1 && gc_sizes[c]<size)
             c++;
         GC_size_to_class[i] = gc_sizes[c];
+        GC_size_to_c[i] = c;
     }
     for (int i=0; i<GC_obj_sizes; ++i)
-        GC_span_traits_vec.emplace(gc_sizes[i], new GC_span_traits(gc_sizes[i]));
+        GC_span_traits_vec[i] = new GC_span_traits(gc_sizes[i]);
         
 
 

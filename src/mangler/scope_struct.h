@@ -7,6 +7,7 @@
 
 #include "../mark_sweep/include.h" 
 
+struct GC;
 
 constexpr int ContextStackSize = 4096;
 constexpr int PrintBufferSize = 2048;
@@ -57,11 +58,10 @@ struct Scope_Struct {
     void Print();
     void Print_Stack();
 
-    void *Allocate(int, int);
-    // inline void *Allocate(int size) {
-    //     // std::cout << "Allcoate " << size << " on " << _gc << ".\n";
-    //     return nullptr;
-    // }
+    void *Allocate(int size, int type_id) {
+        void *ret = gc->Allocate(size, type_id, thread_id); 
+        return ret;
+    }
 };
 
 

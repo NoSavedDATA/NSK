@@ -66,10 +66,6 @@ void Scope_Struct::Copy(Scope_Struct *scope_to_copy)
 }
 
 
-void *Scope_Struct::Allocate(int size, int type_id) {
-    void *ret = gc->Allocate(size, type_id, thread_id); 
-    return ret;
-}
 
 void Scope_Struct::Print() {
     std::cout << "Scope struct:" << "\n\tThread id: " << thread_id << ".\n\n";
@@ -232,13 +228,14 @@ extern "C" void scope_struct_Sweep(Scope_Struct *scope_struct) {
 extern "C" void scope_struct_Delete(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
 
-    // std::cout << "***sweep " << "\n";
+    std::cout << "***sweep " << "\n";
+    std::exit(0);
 
     gc->Sweep(scope_struct);
 
     for (auto arena : gc->arenas) {        
-        for (auto span_vec_pair : arena->Spans) {
-            for (auto span : span_vec_pair.second) {
+        for (int span_group=0; span_group<arena->Spans.size(); span_group++) {
+            for (const auto &span : arena->Spans[span_group]) {
                 // free(span->mark_bits);
                 // free(span->type_metadata);
                 // free(span);

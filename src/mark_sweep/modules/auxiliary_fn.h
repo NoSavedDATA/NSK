@@ -7,13 +7,9 @@
 #include <string>
 #include <unordered_map>
 
-#include "../../compiler_frontend/global_vars.h"
-#include "../../compiler_frontend/logging_v.h"
-#include "../../clean_up/clean_up.h"
-#include "../../data_types/list.h"
 #include "../../mangler/scope_struct.h"
-#include "../../pool/pool.h"
-#include "../include.h"
 
+
+struct Scope_Struct;
 
 std::string get_pool_obj_type(Scope_Struct *, void *);

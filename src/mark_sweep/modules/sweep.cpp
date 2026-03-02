@@ -26,8 +26,8 @@
 
 void Reset_Pools(const std::vector<GC_Arena *> &arenas) {
     for (const auto &arena : arenas) {
-        for (const auto &span_pair : arena->Spans) {
-            for (const auto &span : span_pair.second) {
+        for (int span_group=0; span_group<arena->Spans.size(); span_group++) {
+            for (const auto &span : arena->Spans[span_group]) {
                 GC_span_traits *traits = span->traits;
                 
                 for (int i=0; i<traits->N; ++i) {
@@ -99,7 +99,7 @@ void mark_worklist_pointers(std::vector<GC_Node> &work_list, std::vector<void *>
     for (int i=0; i<work_list.size(); ++i) {
         GC_Node &node = work_list[i];
         root_nodes.push_back(node.ptr);
-        // std::cout << "push obj attr of type: " << node.type << "/" << node.ptr << ".\n";
+        std::cout << "push obj attr of type: " << node.type << "/" << node.ptr << ".\n";
 
         if (ClassPointers.count(node.type)>0) {
             for (int j=0; j<ClassPointers[node.type].size(); ++j) {
@@ -125,10 +125,10 @@ void check_roots_worklist(Scope_Struct *scope_struct, std::vector<void *> &root_
         void *root_ptr = scope_struct->pointers_stack[i];
         root_nodes.push_back(root_ptr);
 
-        // std::cout << "PUSH BACK ROOT: " << i << "/" << scope_struct->stack_top << "/" <<  root_ptr << ".\n";
+        std::cout << "PUSH BACK ROOT: " << i << "/" << scope_struct->stack_top << "/" <<  root_ptr << ".\n";
 
         std::string root_type = get_pool_obj_type(scope_struct, root_ptr);
-        // std::cout << "PUSH BACK ROOT: " << root_type << "/" << root_ptr << ".\n";
+        std::cout << "PUSH BACK ROOT: " << root_type << "/" << root_ptr << ".\n";
         
         if (ClassPointers.count(root_type)>0) {
             for (int i=0; i<ClassPointers[root_type].size(); ++i) {
@@ -173,6 +173,8 @@ void GC::Sweep(Scope_Struct *scope_struct) {
             // arena =  arena_offset / GC_arena_size;
         } while(!in_bounds&&arena_id<arena_base_addr[tid].size()-1);
 
+        std::cout << "" << node_ptr << "\n";
+
         if (!in_bounds) {
             std::cout << "Variable of type " << node_ptr << " address does not reside in any memory pool..\n";
             std::cout << node_ptr << ".\n";
@@ -201,8 +203,8 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 void GC::CleanUp_Unused() {
     
     for (const auto &arena : arenas) {
-        for (const auto &span_pair : arena->Spans) {
-            for (GC_Span *span : span_pair.second) {
+        for (int span_group=0; span_group<arena->Spans.size(); span_group++) {
+            for (const auto &span : arena->Spans[span_group]) {
                 GC_span_traits *traits = span->traits;
                 int free_idx = find_free_16_l2(span->type_metadata, span->type_words);
 

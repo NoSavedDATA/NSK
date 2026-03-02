@@ -10,7 +10,10 @@
 
 #include "pool.h"
 
-extern std::unordered_map<int, std::unordered_map<int, std::vector<void*>>> memory_cache;
+// extern std::unordered_map<int, std::unordered_map<int, std::vector<void*>>> memory_cache;
+extern std::array<std::array<std::vector<void*>, 40>, 100> memory_cache;
+
+
 
 template<typename T>
 T *allocate(Scope_Struct *scope_struct, int size, std::string type) {
@@ -65,24 +68,30 @@ T *newT(Scope_Struct *scope_struct, std::string type) {
     return ptr;
 }
 
+
+inline uint32_t round_up_pow2(uint32_t v) {
+    if (v <= 1) return 1;
+    return 1u << (32 - __builtin_clz(v - 1));
+}
+inline uint32_t round_up_pow2_exp(uint32_t v) {
+    if (v <= 1) return 0;          // 2^0 = 1
+    return 32 - __builtin_clz(v - 1);
+}
+
 inline void *cache_pop(int size, int tid) {
-    int obj_size = GC_size_to_class[(size+7)/8];
-
-    auto& bucket = memory_cache[tid][obj_size];
-
+    int exp = round_up_pow2_exp(size);
+    auto& bucket = memory_cache[tid][exp];
     if (bucket.empty())
-        return malloc(size);
-    
-
+        return malloc(round_up_pow2(size));
     void* ptr = bucket.back();
     bucket.pop_back();
     return ptr;
 }
 
 inline void cache_push(void* ptr, int size, int tid) {
-    int obj_size = GC_size_to_class[(size + 7) / 8];
+    int exp = round_up_pow2_exp(size);
 
-    auto& bucket = memory_cache[tid][obj_size];
+    auto& bucket = memory_cache[tid][exp];
 
     bucket.push_back(ptr);
 }

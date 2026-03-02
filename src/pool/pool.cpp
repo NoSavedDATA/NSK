@@ -10,7 +10,7 @@
 #include "../mark_sweep/include.h"
 
 
-std::unordered_map<int, std::unordered_map<int, std::vector<void*>>> memory_cache;
+std::array<std::array<std::vector<void*>, 40>, 100> memory_cache;
 
 
 bool check_initialized_field(void *ptr) {

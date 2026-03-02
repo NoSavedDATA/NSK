@@ -18,8 +18,8 @@ void DT_array::New(int size, int elem_size, int tid, std::string type) {
     size = ((size + 7) / 8)*8;
     this->size = size;
     
-    // data = (void*)malloc(size*elem_size);
-    data = cache_pop(size*elem_size, tid);
+    data = (void*)malloc(size*elem_size);
+    // data = cache_pop(size*elem_size, tid);
 }
 
 void DT_array::New(int size, int tid, std::string type) {
@@ -31,8 +31,8 @@ void DT_array::New(int size, int tid, std::string type) {
     this->size = size;
 
     
-    // data = (void*)malloc(size*8);
-    data = cache_pop(size*elem_size, tid);
+    data = (void*)malloc(size*8);
+    // data = cache_pop(size*elem_size, tid);
 }
 
 
@@ -47,7 +47,7 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, Data_Tree *dt)
 
 
   DT_array *vec = newT<DT_array>(scope_struct, "array");
-  vec->New(8, elem_size, scope_struct->thread_id, elem_type);
+  // vec->New(8, elem_size, scope_struct->thread_id, elem_type);
   vec->virtual_size = 0;
   return vec;
 }
