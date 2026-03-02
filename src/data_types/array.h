@@ -8,8 +8,8 @@ class DT_array {
         std::string type;
 
     DT_array();
+    void New(int, int, int, std::string);
     void New(int, int, std::string);
-    void New(int, std::string);
 };
 
 

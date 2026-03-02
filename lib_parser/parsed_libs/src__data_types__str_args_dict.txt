@@ -126,6 +126,15 @@
 	Function_Arg_Names["str_split_idx"].push_back("2");
 	Function_Arg_Names["str_split_idx"].push_back("3");
 	
+	Function_Arg_Types["can_convert_to_float"]["0"] = "Scope_Struct";
+	Function_Arg_Types["can_convert_to_float"]["1"] = "str";
+	
+	Function_Arg_DataTypes["can_convert_to_float"]["0"] = Data_Tree("Scope_Struct");
+	Function_Arg_DataTypes["can_convert_to_float"]["1"] = Data_Tree("str");
+	
+	Function_Arg_Names["can_convert_to_float"].push_back("0");
+	Function_Arg_Names["can_convert_to_float"].push_back("1");
+	
 	Function_Arg_Types["str_to_float"]["0"] = "Scope_Struct";
 	Function_Arg_Types["str_to_float"]["1"] = "str";
 	

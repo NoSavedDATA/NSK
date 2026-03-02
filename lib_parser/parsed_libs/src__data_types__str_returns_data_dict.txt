@@ -11,6 +11,7 @@
 	functions_return_data_type["PrintStr"] = Data_Tree("float");
 	functions_return_data_type["cat_str_float"] = Data_Tree("str");
 	functions_return_data_type["str_split_idx"] = Data_Tree("str");
+	functions_return_data_type["can_convert_to_float"] = Data_Tree("bool");
 	functions_return_data_type["str_to_float"] = Data_Tree("float");
 	functions_return_data_type["str_str_different"] = Data_Tree("bool");
 	functions_return_data_type["str_str_equal"] = Data_Tree("bool");

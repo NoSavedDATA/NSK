@@ -112,9 +112,9 @@ class NameSolverAST : public ExprAST {
   
 /// NumberExprAST - Expression class for numeric literals like "1.0".
 class NumberExprAST : public ExprAST {
-  float Val;
 
   public:
+    float Val;
     NumberExprAST(float Val); 
 
   Value *codegen(Value *scope_struct) override;
@@ -472,7 +472,7 @@ class NameableLLVMIRCall : public Nameable {
 
 class NameableCall : public Nameable {
   public:
-  bool FromLib=false, is_nsk_fn=false;
+  bool FromLib=false, is_nsk_fn=false, has_obj_overwrite;
   int arg_type_check_offset=1; 
   std::vector<std::unique_ptr<ExprAST>> Args;
   std::string Callee, ReturnType="";

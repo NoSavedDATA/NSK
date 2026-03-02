@@ -214,25 +214,27 @@ extern std::vector<std::string> LLVM_IR_Functions = {"pow", "sqrt"};
 
 std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec", "MHSA", "LSTM", "Linear", "tuple", "file",
 										"list", "map", "array",
-                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec"};
+                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "int16", "int64", "int8"};
 std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map"};
-std::vector<std::string> primary_data_tokens = {"int", "float", "bool", "foreach_control_var"};
+std::vector<std::string> primary_data_tokens = {"int", "float", "bool", "foreach_control_var", "int64", "int8", "char"};
 
 
-std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}};
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 8}};
 
 std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"str", 5}, {"list", 6},
                                                                {"tuple", 7}, {"map", 8}, {"channel", 9}, {"int_vec", 10},
                                                                {"float_vec", 11}, {"array", 12}, {"map_node", 13},
-                                                               {"file", 14}};
+                                                               {"file", 14}, {"char", 15},  {"charv", 16},
+                                                               {"int64", 17}, {"int8", 18}};
 
 std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "float"}, {4, "bool"}, {5, "str"},
                                                                {6, "list"},
                                                                {7, "tuple"}, {8, "map"}, {9, "channel"}, {10, "int_vec"},
                                                                {11, "float_vec"}, {12, "array"}, {13, "map_node"},
-                                                               {14, "file"}};
+                                                               {14, "file"}, {15, "char"}, {16, "charv"},
+                                                               {17, "int64"}, {18, "int8"}};
+uint16_t data_type_count=19;
 
-uint16_t data_type_count=15;
 
 
 std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self}, {"def", tok_def}, {"ctor", tok_constructor}, {"class", tok_class}, {"extern", tok_extern},

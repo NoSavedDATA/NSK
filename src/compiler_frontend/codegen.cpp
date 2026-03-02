@@ -112,41 +112,59 @@ Value *float_llvm_hash(Value *float_value) {
     return x; // i32
 }
 
+extern "C" bool is_null_terminated(char* str) {
+    if (!str) return false;
+
+    for (std::size_t i = 0; i < 256; ++i) {
+        if (str[i] == '\0') {
+            std::cout << "null terminated" << "\n";
+            return true;
+        }
+    }
+
+    std::cout << "FALSE" << "\n";
+    return false; // no null found within max_len
+}
+
 Value *str_llvm_hash(Value *str_value, Function *F) {
-    Type *i8  = Builder->getInt8Ty();
-    Type *i32 = Builder->getInt32Ty();
 
-    Value *initHash = Builder->getInt32(2166136261u); // FNV offset basis
-    Value *initPtr  = str_value;
-
-    BasicBlock *preBB  = Builder->GetInsertBlock();
+    BasicBlock *startBB = BasicBlock::Create(*TheContext, "hash.start", F);
     BasicBlock *loopBB = BasicBlock::Create(*TheContext, "hash.loop", F);
     BasicBlock *exitBB = BasicBlock::Create(*TheContext, "hash.exit", F);
     BasicBlock *bodyBB = BasicBlock::Create(*TheContext, "hash.body", F);
 
+
+    Builder->CreateBr(startBB);
+    Builder->SetInsertPoint(startBB);
+
+    Value *initHash = const_int(2166136261u); // FNV offset basis
+    Value *initPtr  = str_value;
+
+
     Builder->CreateBr(loopBB);
     Builder->SetInsertPoint(loopBB);
 
-    PHINode *phiHash = Builder->CreatePHI(i32, 2);
+    PHINode *phiHash = Builder->CreatePHI(intTy, 2);
     PHINode *phiPtr  = Builder->CreatePHI(int8PtrTy, 2);
 
-    phiHash->addIncoming(initHash, preBB);
-    phiPtr->addIncoming(initPtr,  preBB);
+    phiHash->addIncoming(initHash, startBB);
+    phiPtr->addIncoming(initPtr,  startBB);
 
-    Value *ch     = Builder->CreateLoad(i8, phiPtr);
+    Value *ch     = Builder->CreateLoad(int8Ty, phiPtr);
     Value *isZero = Builder->CreateICmpEQ(ch, Builder->getInt8(0));
     Builder->CreateCondBr(isZero, exitBB, bodyBB);
 
     /* ---- body ---- */
     Builder->SetInsertPoint(bodyBB);
 
-    Value *ch32 = Builder->CreateZExt(ch, i32);
+    Value *ch32 = Builder->CreateZExt(ch, intTy);
     Value *h1   = Builder->CreateXor(phiHash, ch32);
-    Value *h2   = Builder->CreateMul(h1, Builder->getInt32(16777619u));
-    Value *nextPtr = Builder->CreateGEP(i8, phiPtr, Builder->getInt32(1));
+    Value *h2   = Builder->CreateMul(h1, const_int(16777619u));
+    Value *nextPtr = Builder->CreateGEP(int8Ty, phiPtr, const_int(1));
 
     phiHash->addIncoming(h2, bodyBB);
     phiPtr->addIncoming(nextPtr, bodyBB);
+
 
     Builder->CreateBr(loopBB);
 
@@ -310,17 +328,43 @@ Value *VarExprAST::codegen(Value *scope_struct) {
 }
 
 
-llvm::Type *get_type_from_str(std::string type)
-{
+llvm::Type *get_type_from_str(std::string type) {
   llvm::Type *llvm_type;
   if (type=="float")
     llvm_type = floatTy;
   else if (type=="int")
     llvm_type = intTy;
+  else if (type=="int64")
+    llvm_type = int64Ty;
   else if (type=="bool")
     llvm_type = boolTy;
   else
     llvm_type = int8PtrTy;
+  return llvm_type;
+}
+
+bool is_type_array(Data_Tree dt) {
+    return dt.Type=="charv";
+}
+
+llvm::Type *get_type_from_data(Data_Tree dt) {
+  std::string type = dt.Type;
+  llvm::Type *llvm_type;
+  if (type=="float")
+    llvm_type = floatTy;
+  else if (type=="int")
+    llvm_type = intTy;
+  else if (type=="int64")
+    llvm_type = int64Ty;
+  else if (type=="bool")
+    llvm_type = boolTy;
+  else if (type=="charv") {
+    int size = std::stoi(dt.Nested_Data[0].Type);
+    llvm_type = ArrayType::get(int8Ty, size);
+  }
+  else {
+    llvm_type = int8PtrTy;
+  }
   return llvm_type;
 }
 
@@ -381,20 +425,14 @@ inline bool Check_Required_Args_Count(const std::string &Callee, int sent_args,
   return true;
 }
 
-void Cache_Array(std::string &fn, Value *var) {
+void Cache_Array(Parser_Struct parser_struct, Value *var) {
     Value *vec_gep = Builder->CreateStructGEP(struct_types["vec"], var, 3);
-    Value *vec = Builder->CreateLoad(int8PtrTy, vec_gep);
-    function_vecs[fn][var] = vec;
+    function_vecs[parser_struct.function_name][var] = vec_gep;
 }
+
 inline Value *Load_Array(std::string &function_name, Value *var) {
-    Value *vec;
-    if (function_vecs[function_name].count(var)>0) {
-        vec = function_vecs[function_name][var];
-    } else {
-        Value *vec_gep = Builder->CreateStructGEP(struct_types["vec"], var, 3);
-        vec = Builder->CreateLoad(int8PtrTy, vec_gep);
-    }
-    return vec;
+    Value *vec_gep = function_vecs[function_name][var];
+    return Builder->CreateLoad(int8PtrTy, vec_gep);
 }
 
 inline void Check_Is_Array_Inbounds(Parser_Struct &parser_struct, Value *var, Value *idx) {
@@ -438,10 +476,13 @@ inline void set_scope_obj(Value *scope_struct, Value *obj) {
 }
 
 inline Value *get_scope_obj(Value *scope_struct) {
-    StructType *st = struct_types["scope_struct"];
-    
+    StructType *st = struct_types["scope_struct"]; 
     Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
     return Builder->CreateLoad(int8PtrTy, obj_gep);
+}
+inline Value *get_scope_obj_gep(Value *scope_struct) {
+    return Builder->CreateStructGEP(struct_types["scope_struct"],
+                                    scope_struct, 4);
 }
 
 void check_scope_struct_sweep(Function *TheFunction, Value *scope_struct, const Parser_Struct &parser_struct) {
@@ -669,7 +710,7 @@ void Set_Pointer_Stack(Value *scope_struct, std::string function_name, std::stri
 
 
 inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, std::vector<Value *> ArgsV,
-                                                  std::vector<std::unique_ptr<ExprAST>> Args,
+                                                  std::vector<std::unique_ptr<ExprAST>> &Args,
                                                   std::vector<Data_Tree> &ArgTypes,
                                                   Value *scope_struct, std::string fn_name,
                                                   bool is_nsk_fn, int arg_offset=1)
@@ -711,6 +752,10 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     
     if(type=="int"&&expected_data_type.Type=="float")
       arg = Builder->CreateSIToFP(arg, floatTy, "lfp");
+    if (type=="int64"&&expected_data_type.Type=="int")
+      arg = Builder->CreateTrunc(arg, intTy, "int64_to_int");
+    if (type=="int"&&expected_data_type.Type=="int64")
+        arg = Builder->CreateIntCast(arg, int64Ty, /*isSigned=*/true);
 
 
     std::string copy_fn = type+"_CopyArg";
@@ -793,16 +838,37 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
 }
 
 
+Value *DT_charv_create(Parser_Struct parser_struct, Function *TheFunction,
+                      std::string name, std::string type, Data_Tree data_type,
+                      Value *scope_struct, Value *initial_value,
+                      std::vector<std::unique_ptr<ExprAST>> &Args,
+                      std::vector<Value*> &ArgsV) { 
+    int size;
+    if (auto num_expr = dynamic_cast<IntExprAST*>(Args[0].get()))
+        size = num_expr->Val;
+
+    llvm::Type *charTy = ArrayType::get(int8Ty, size);
+    AllocaInst *charv = CreateEntryBlockAlloca(TheFunction, "charv", charTy);
+
+    function_allocas[parser_struct.function_name][name] = charv;
+    
+    // return Builder->CreateLoad(charTy, charv);
+    return Builder->CreateInBoundsGEP(
+        charTy,
+        charv,
+        {const_int(0), const_int(0)}
+    );
+}
 
 Value *DT_file_create(Parser_Struct parser_struct, Function *TheFunction,
-                      std::string type, Data_Tree data_type,
+                      std::string name, std::string type, Data_Tree data_type,
                       Value *scope_struct, Value *initial_value,
-                      std::vector<Value*> ArgsV) {
+                      std::vector<std::unique_ptr<ExprAST>> &Args,
+                      std::vector<Value*> &ArgsV) {
     StructType *st = struct_types["DT_file"];
 
     BasicBlock *ErrBB = BasicBlock::Create(*TheContext, "file_read.good", TheFunction);
     BasicBlock *GoodBB = BasicBlock::Create(*TheContext, "file_read.no_file", TheFunction);
-
 
     Value *does_fexist = callret("fexists", {scope_struct, ArgsV[1]});
 
@@ -842,10 +908,164 @@ Value *DT_file_create(Parser_Struct parser_struct, Function *TheFunction,
                               const_int(FileLineSize),
                               global_str("str")});
     Builder->CreateStore(line, line_gep);
+
+    call("print_int", {fd});
       
     return initial_value;
 }
 
+
+Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+
+    BasicBlock *ErrBB = BasicBlock::Create(*TheContext, "file_read.good", TheFunction);
+    BasicBlock *GoodBB = BasicBlock::Create(*TheContext, "file_read.no_file", TheFunction);
+
+    Value *does_fexist = callret("fexists", {scope_struct, ArgsV[1]});
+
+    Builder->CreateCondBr(does_fexist, GoodBB, ErrBB);
+
+    Builder->SetInsertPoint(ErrBB);
+    Value *err_msg = callret("ConcatStr", {scope_struct, global_str("File "), ArgsV[1]});
+    err_msg = callret("ConcatStr", {scope_struct, err_msg, global_str(" not found.")});
+    call("LogErrorCall", {const_int(parser_struct.line), err_msg});
+    Builder->CreateUnreachable();
+
+    Builder->SetInsertPoint(GoodBB);
+    
+    return callret("open", {ArgsV[1], const_int(0)});
+}
+
+Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    return callret("read", {ArgsV[1], ArgsV[2], ArgsV[3]});
+}
+
+Value *malloc_str(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    return callret("malloc", {ArgsV[1]});
+}
+
+Value *alloc_pool(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    return callret("allocate_void", {scope_struct, ArgsV[1], ArgsV[2]});
+}
+
+Value *c_strlen(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    return callret("strlen", {ArgsV[1]});
+}
+
+Value *c_memcpy(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    Builder->CreateMemCpy(ArgsV[1], Align(1), ArgsV[2], Align(1), ArgsV[3]);
+    // Value *last_c_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[1], ArgsV[3]);
+    // Builder->CreateStore(const_int8('\0'), last_c_gep);
+    return const_int(0);
+}
+
+Value *str_set(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    Value *last_c_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[1], ArgsV[2]);
+    Builder->CreateStore(Builder->CreateTrunc(ArgsV[3], int8Ty), last_c_gep);
+    return const_int(0);
+}
+
+Value *str_offset(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    return Builder->CreateGEP(int8Ty, ArgsV[1], ArgsV[2]);
+}
+
+Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+    Value *buf = ArgsV[1];
+    Value* newlineVal = ArgsV[2];
+    // Value *split_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[2], {const_int(0), const_int(0)});
+    // Value *newlineVal = Builder->CreateZExt(Builder->CreateLoad(int8Ty, split_gep), intTy);
+    Value *len = ArgsV[3];
+
+    Value* pos = callret("memchr", { buf, newlineVal, len });
+    Value* isNotNull = Builder->CreateICmpNE(
+        pos,
+        ConstantPointerNull::get(cast<PointerType>(int8PtrTy))
+    );
+
+    Value* posInt = Builder->CreatePtrToInt(pos, int64Ty);
+    Value* bufInt = Builder->CreatePtrToInt(buf, int64Ty);
+
+    Value* diff = Builder->CreateSub(posInt, bufInt);
+
+    Value* ret = Builder->CreateSelect(
+        isNotNull,
+        diff,
+        len
+    );
+    return ret;
+}
+
+Value *err(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+
+    call("LogErrorCall", {const_int(parser_struct.line), ArgsV[1]});
+    call("_quit_", {});
+    
+    return const_int(0);
+}
+
+Value *file_open(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+
+    Value *file_value = ArgsV[1];
+    StructType *st = struct_types["DT_file"];
+
+    BasicBlock *ErrBB = BasicBlock::Create(*TheContext, "file_read.good", TheFunction);
+    BasicBlock *GoodBB = BasicBlock::Create(*TheContext, "file_read.no_file", TheFunction);
+
+    Value *does_fexist = callret("fexists", {scope_struct, ArgsV[2]});
+
+    Builder->CreateCondBr(does_fexist, GoodBB, ErrBB);
+
+    Builder->SetInsertPoint(ErrBB);
+    Value *err_msg = callret("ConcatStr", {scope_struct, global_str("File "), ArgsV[2]});
+    err_msg = callret("ConcatStr", {scope_struct, err_msg, global_str(" not found.")});
+    call("LogErrorCall", {const_int(parser_struct.line), err_msg});
+    Builder->CreateUnreachable();
+
+
+    Builder->SetInsertPoint(GoodBB);
+
+    // file descriptor
+    Value *fd = callret("open", {ArgsV[2], const_int(0)});
+
+    Value *file_fd_gep = Builder->CreateStructGEP(st, file_value, 0); 
+    Builder->CreateStore(fd, file_fd_gep);
+
+    // line counter
+    Value *line_counter_gep = Builder->CreateStructGEP(st, file_value, 2); 
+    Builder->CreateStore(const_int(0), line_counter_gep);
+
+
+    // bytes read
+    Value *bytes_read_gep = Builder->CreateStructGEP(st, file_value, 3); 
+    Builder->CreateStore(const_int(0), bytes_read_gep);
+
+    // bytes remaining
+    Value *bytes_batch_gep = Builder->CreateStructGEP(st, file_value, 4); 
+    Builder->CreateStore(const_int(-1), bytes_batch_gep);
+    
+    return nullptr;
+}
 
 Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
@@ -869,12 +1089,16 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
 
 
     BasicBlock *BufferReadBB = BasicBlock::Create(*TheContext, "file_read.read_buffer", TheFunction);
-    BasicBlock *MallocLineBB  = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
-    BasicBlock *ReadBB  = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
+    BasicBlock *BufferReadBB2 = BasicBlock::Create(*TheContext, "file_read.read_buffer", TheFunction);
+    BasicBlock *MallocLineBB = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
+    BasicBlock *ReadBB = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
+    BasicBlock *ReadBB2 = BasicBlock::Create(*TheContext, "file_read.read_line", TheFunction);
 
     BasicBlock *ReadCondBB = BasicBlock::Create(*TheContext, "file_read.read_line.cond", TheFunction);
     BasicBlock *ReadOverflowBB = BasicBlock::Create(*TheContext, "file_read.read_line.cond", TheFunction);
     BasicBlock *ReadLoopBB = BasicBlock::Create(*TheContext, "file_read.read_line.loop", TheFunction);
+    BasicBlock *ReadLoopBB2 = BasicBlock::Create(*TheContext, "file_read.read_line.loop", TheFunction);
+    BasicBlock *ReadCondBB2 = BasicBlock::Create(*TheContext, "file_read.read_line.cond", TheFunction);
 
 
     BasicBlock *ReadFinishBB  = BasicBlock::Create(*TheContext, "file_read.read_finish", TheFunction);
@@ -888,9 +1112,6 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
                       MallocLineBB);
     // Buffer Read
     Builder->SetInsertPoint(BufferReadBB);
-    PHINode *from_read_phi = Builder->CreatePHI(boolTy, 2);
-    from_read_phi->addIncoming(const_bool(false), curBB);
-    from_read_phi->addIncoming(const_bool(true),  ReadOverflowBB);
 
     Value *fd_gep = Builder->CreateStructGEP(st, file_value, 0);
     Value *fd = Builder->CreateLoad(intTy, fd_gep);
@@ -903,7 +1124,7 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
     Builder->CreateStore(bytes_batch, bytes_batch_gep);
     Builder->CreateStore(const_int(0), bytes_read_gep);
 
-    Builder->CreateCondBr(from_read_phi, ReadBB, MallocLineBB);
+    Builder->CreateBr(MallocLineBB);
 
 
     // Malloc
@@ -915,7 +1136,6 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
     Builder->SetInsertPoint(ReadBB);
     bytes_read = Builder->CreateLoad(intTy, bytes_read_gep);
     bytes_batch = Builder->CreateLoad(intTy, bytes_batch_gep);
-
     Builder->CreateCondBr(Builder->CreateICmpNE(bytes_batch, const_int(0)),
                           ReadLoopBB, FileFinishBB);
 
@@ -927,26 +1147,21 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
     PHINode *loop_b = Builder->CreatePHI(intTy, 2); // current byte
     loop_i->addIncoming(const_int(0), ReadBB); 
     loop_b->addIncoming(bytes_read,   ReadBB); 
-
-
-
     Value *buffer_b = Builder->CreateGEP(ArrayType::get(int8Ty, FileBufferSize),
                                        buffer_gep, {const_int(0), loop_b});
     Value *character_found = Builder->CreateLoad(int8Ty, buffer_b);
-
     Value *str_gep = Builder->CreateGEP(int8Ty, ret, loop_i);
     Builder->CreateStore(character_found, str_gep);
-
     loop_i->addIncoming(Builder->CreateAdd(loop_i, const_int(1)), ReadCondBB);
     loop_b->addIncoming(Builder->CreateAdd(loop_b, const_int(1)), ReadCondBB);
     Builder->CreateBr(ReadOverflowBB);
 
 
 
-    // read cond
     Builder->SetInsertPoint(ReadOverflowBB);
     Value *overflow_cond = Builder->CreateICmpSLT(loop_b, bytes_batch);
-    Builder->CreateCondBr(overflow_cond, ReadCondBB, BufferReadBB);
+    Builder->CreateCondBr(overflow_cond, ReadCondBB, BufferReadBB2);
+
 
     Builder->SetInsertPoint(ReadCondBB);
     Value *endline_cond  = Builder->CreateICmpNE(character_found, const_int8(10)); 
@@ -959,12 +1174,52 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
     Builder->CreateStore(const_int8(0), str_gep); // insert \0
     Builder->CreateBr(AfterBB);
 
+    // Buffer Read 2
+    Builder->SetInsertPoint(BufferReadBB2);
+    fd_gep = Builder->CreateStructGEP(st, file_value, 0);
+    fd = Builder->CreateLoad(intTy, fd_gep);
+    bytes = callret("read", {fd, buffer, const_int(FileBufferSize)}); 
+    bytes_batch = Builder->CreateTrunc(bytes, intTy);
+    Builder->CreateStore(bytes_batch, bytes_batch_gep);
+    Builder->CreateStore(const_int(0), bytes_read_gep);
+    Builder->CreateBr(ReadBB2);
+
+    
+    Builder->SetInsertPoint(ReadBB2);
+    bytes_read = Builder->CreateLoad(intTy, bytes_read_gep);
+    bytes_batch = Builder->CreateLoad(intTy, bytes_batch_gep);
+    Value *loop_readbb_2 = loop_i;
+    Builder->CreateCondBr(Builder->CreateICmpNE(bytes_batch, const_int(0)),
+                          ReadLoopBB2, ReadFinishBB);
+
+
+    Builder->SetInsertPoint(ReadLoopBB2);
+    PHINode *loop_i2 = Builder->CreatePHI(intTy, 2);
+    PHINode *loop_b2 = Builder->CreatePHI(intTy, 2); // current byte
+    loop_i2->addIncoming(loop_readbb_2, ReadBB2); 
+    loop_b2->addIncoming(bytes_read,    ReadBB2); 
+    buffer_b = Builder->CreateGEP(ArrayType::get(int8Ty, FileBufferSize),
+                                       buffer_gep, {const_int(0), loop_b2});
+    character_found = Builder->CreateLoad(int8Ty, buffer_b);
+    str_gep = Builder->CreateGEP(int8Ty, ret, loop_i2);
+    Builder->CreateStore(character_found, str_gep);
+    Builder->CreateBr(ReadCondBB2);
+
+    Builder->SetInsertPoint(ReadCondBB2);
+    endline_cond = Builder->CreateICmpNE(character_found, const_int8(10)); 
+    loop_i2->addIncoming(Builder->CreateAdd(loop_i2, const_int(1)), ReadCondBB2);
+    loop_b2->addIncoming(Builder->CreateAdd(loop_b2, const_int(1)), ReadCondBB2);
+    Builder->CreateCondBr(endline_cond,
+            ReadLoopBB2, ReadFinishBB);
+
 
     Builder->SetInsertPoint(ReadFinishBB);
-
-    str_gep = Builder->CreateGEP(int8Ty, ret, loop_i); 
+    PHINode *loop_i_final = Builder->CreatePHI(intTy, 3);
+    loop_i_final->addIncoming(loop_i, ReadCondBB);
+    loop_i_final->addIncoming(loop_readbb_2, ReadBB2);
+    loop_i_final->addIncoming(loop_i2, ReadCondBB2);
+    str_gep = Builder->CreateGEP(int8Ty, ret, loop_i_final); 
     Builder->CreateStore(const_int8(0), str_gep); // insert \0
-
     Builder->CreateStore(Builder->CreateAdd(loop_b, const_int(1)),
             bytes_read_gep);
     Builder->CreateBr(AfterBB);
@@ -1040,6 +1295,8 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         { 
             if (Type=="float"&&init_dt.Type=="int")
                 initial_value = Builder->CreateSIToFP(initial_value, floatTy, "int_to_float");
+            if (Type=="int64"&&init_dt.Type=="int")
+                initial_value = Builder->CreateTrunc(initial_value, intTy, "int64_to_int");
             function_values[parser_struct.function_name][VarName] = initial_value;
             continue;
         }
@@ -1054,24 +1311,36 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
                     std::vector<Value *> ArgsV = {scope_struct};
 
-                    if (create_fn=="array_Create" || create_fn=="map_Create")
-                        ArgsV.push_back(VoidPtr_toValue(&data_type));
+                    if (create_fn=="array_Create" || create_fn=="map_Create") {
+
+                        Data_Tree *dt = new Data_Tree(data_type.Type);
+                        dt->Nested_Data.push_back(data_type.Nested_Data[0]);
+                        if(create_fn=="map_Create")
+                            dt->Nested_Data.push_back(data_type.Nested_Data[1]);
+                        
+                        ArgsV.push_back(VoidPtr_toValue(dt));
+                    }
                     else {
                         std::vector<Data_Tree> ArgTypes;
-                        ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Notes), ArgTypes, scope_struct, create_fn, true, 1);
+                        ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Notes, ArgTypes, scope_struct, create_fn, true, 1);
                         if(in_str(create_fn, vararg_methods))
                             ArgsV.push_back(const_int(TERMINATE_VARARG));
 
                     }
 
 
-                    if(struct_create_fn.count(dt_type)>0)
-                        initial_value = struct_create_fn[dt_type](parser_struct, TheFunction, Type, data_type,
-                                scope_struct, 
-                                callret("allocate_void", {scope_struct,
+
+                    if(struct_create_fn.count(dt_type)>0) {
+                        initial_value = (struct_type_size.count(Type)>0) ? callret("allocate_void", {scope_struct,
                                     const_int(struct_type_size[Type]),
-                                    global_str(Type)}),
-                                std::move(ArgsV)); 
+                                    global_str(Type)}) : nullptr;
+                        initial_value = struct_create_fn[dt_type](parser_struct, TheFunction,
+                                VarName, Type, data_type,
+                                scope_struct, 
+                                initial_value,
+                                Notes,
+                                ArgsV); 
+                    }
                     else
                         initial_value = callret(create_fn, ArgsV);
                 }
@@ -1091,8 +1360,8 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         else { 
             Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, initial_value); 
             function_values[parser_struct.function_name][VarName] = initial_value;
-            if (parser_struct.loop_depth==0&&Type=="array")
-                Cache_Array(parser_struct.function_name, initial_value);
+            if (Type=="array")
+                Cache_Array(parser_struct, initial_value);
 
         }     
     }
@@ -1414,6 +1683,7 @@ Value *ForExprAST::codegen(Value *scope_struct) {
     auto old_function_values = function_values[parser_struct.function_name];
     std::map<std::string, PHINode*> function_phi_values;
     for (const auto &name : assigned_vars) {
+
         if (name!=VarName && old_function_values.count(name)>0) {
             changed_vars.push_back(name);
             Value *val = old_function_values[name];
@@ -1765,6 +2035,9 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
     if (cast_R_to=="int_to_float")
         R = Builder->CreateSIToFP(R, floatTy, "lfp");
 
+    if (cast_R_to=="int64_to_int")
+        R = Builder->CreateTrunc(R, intTy);
+
 
     if (Op == '=' || (Op==tok_arrow&&!begins_with(Elements, "channel"))) {
         seen_var_attr=true;
@@ -1925,6 +2198,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     Value *float_ptr = callret("malloc", {const_int(4)});
                     Builder->CreateStore(Val, float_ptr);
                     Builder->CreateStore(float_ptr, new_node_value_gep);
+                } else if (value_type=="str") {
+                    Builder->CreateStore(callret("CopyString", {scope_struct, Val}), new_node_value_gep);
                 } else
                     Builder->CreateStore(Val, new_node_value_gep);
 
@@ -1941,8 +2216,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 Value *expand_at_gep = Builder->CreateStructGEP(st, vec_ptr, 2);
                 Value *map_expand_at = Builder->CreateLoad(intTy, expand_at_gep);
 
-                Value *nodes_gep = Builder->CreateStructGEP(st, vec_ptr, 5);
-                Value *nodes = Builder->CreateLoad(int8PtrTy->getPointerTo(), nodes_gep);
 
 
                 // Check for expansion
@@ -1964,7 +2237,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
                 Builder->SetInsertPoint(MapInsertBB);
-
+                Value *nodes_gep = Builder->CreateStructGEP(st, vec_ptr, 5);
+                Value *nodes = Builder->CreateLoad(int8PtrTy->getPointerTo(), nodes_gep);
 
 
                 BasicBlock *CheckFirstKeyBB = BasicBlock::Create(*TheContext, "map.check_first_key.bb", TheFunction);
@@ -1987,8 +2261,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     query_hash = query;
                 Value *hash_pos = Builder->CreateURem(query_hash, map_capacity);
 
-                // call("print_str", {query});
-                // call("print_int", {hash_pos});
 
                 Value *node_gep = Builder->CreateGEP(int8PtrTy->getPointerTo(), nodes, hash_pos);
                 Value *node = Builder->CreateLoad(int8PtrTy, node_gep);
@@ -2168,8 +2440,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
 
-            if (parser_struct.loop_depth==0&&LType=="array")
-                Cache_Array(parser_struct.function_name, Val);
+            if (LType=="array")
+                Cache_Array(parser_struct, Val);
 
 
             if(!in_str(LType, primary_data_tokens)) {
@@ -2185,16 +2457,17 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
                 LType = L_dt.Type;
 
-
                 LHSV->Load_Last=false;
 
 
                 Value *obj_ptr = LHSV->codegen(scope_struct);
 
-                if(in_str(LType, primary_data_tokens))
-                    call("object_Attr_"+LType, {obj_ptr, Val});
-                else
-                    call("tie_object_to_object", {obj_ptr, Val});
+                // if(in_str(LType, primary_data_tokens))
+                //     call("object_Attr_"+LType, {obj_ptr, Val});
+                // else {
+                //     call("tie_object_to_object", {obj_ptr, Val});
+                // }
+                Builder->CreateStore(Val, obj_ptr);
             } else {}
 
 
@@ -2218,6 +2491,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
     if (cast_L_to=="int_to_float")
         L = Builder->CreateSIToFP(L, Type::getFloatTy(*TheContext), "lfp");
+    if (cast_L_to=="int64_to_int")
+        L = Builder->CreateTrunc(L, intTy);
 
     if (Operation=="tensor_int_div") {
         Operation = "tensor_float_div";
@@ -2240,6 +2515,17 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 return Builder->CreateAnd(L, R, "booland");
             case tok_or:
                 return Builder->CreateOr(L, R, "boolor");
+        }
+    }
+
+
+    if (Elements=="charv_int64"||Elements=="charv_int") {
+        if(Elements=="charv_int64")
+            R = Builder->CreateTrunc(R, intTy, "int64_to_int");
+
+        if(Op=='+') {
+            llvm::Type *arrTy = get_type_from_data(L_dt);
+            return Builder->CreateInBoundsGEP(int8Ty, L, R);
         }
     }
 
@@ -2280,7 +2566,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 break;
         }
 
-    } else if (Elements=="int_int") {
+    } else if (Elements=="int_int"||Elements=="int64_int64") {
         switch (Op) {
             case '+':
                 return Builder->CreateAdd(L, R, "addtmp");
@@ -3084,7 +3370,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
 
                 std::string Callee = ClassName + "___init__";
                 std::vector<Data_Tree> ArgTypes;
-                ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Args[i]), ArgTypes, scope_struct, \
+                ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args[i], ArgTypes, scope_struct, \
                         Callee, false, arg_type_check_offset); 
                 Set_Stack_Top(scope_struct, parser_struct.function_name);
                 call(Callee, ArgsV);
@@ -3111,7 +3397,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
 
     if (Args.size()>0) {
         std::vector<Data_Tree> ArgTypes;
-        ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Args), ArgTypes, scope_struct, \
+        ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct, \
                 Callee, true, 1);
     }
 
@@ -3455,28 +3741,34 @@ Value *Nameable::codegen(Value *scope_struct) {
     Data_Tree dt = GetDataTree();
     std::string type = dt.Type;
 
-    if(Depth==1)
-    {
-        if(Name=="self")
-            return get_scope_obj(scope_struct); 
+    if(Depth==1) {
+        if(Name=="self") {
+            Value *s = get_scope_obj(scope_struct);
+            // call("print_void_ptr", {s});
+            return s;
+        }
         return function_values[parser_struct.function_name][Name];
     }
 
     std::string scope = Inner->GetDataTree().Type;
     Value *obj_ptr = Inner->codegen(scope_struct);
 
+    StructType *st = struct_types["class_"+scope]; 
+
+    Data_Tree attr_type = data_typeVars[scope][Name];
     int offset = ClassVariables[scope][Name];
+    int attr_idx = ClassAttrs[scope][Name];
 
+    // std::cout << scope << "|" << Name << ": "  << attr_idx << "/" << offset << "\n";
 
-    obj_ptr = callret("offset_object_ptr", {obj_ptr, const_int(offset)});
+    obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
+    if(Load_Last||!IsLeaf) {
+        llvm::Type *Ty = get_type_from_data(attr_type);
 
-
-    if(!in_str(type, primary_data_tokens) && (!IsLeaf||Load_Last))
-        obj_ptr = callret("object_Load_slot", {obj_ptr});
-    if (Load_Last&&in_str(type, primary_data_tokens))
-        return callret("object_Load_"+type, {obj_ptr});
-
-
+        obj_ptr = (!is_type_array(attr_type)) \
+                    ? Builder->CreateLoad(Ty, obj_ptr) \
+                    : Builder->CreateInBoundsGEP(Ty, obj_ptr, {const_int(0), const_int(0)}); //&arr[0]
+    }
     return obj_ptr;
 }
 
@@ -3546,22 +3838,26 @@ Value *NameableIdx::codegen(Value *scope_struct) {
         Value *nodes = Builder->CreateLoad(int8PtrTy->getPointerTo(), nodes_gep);
 
         Function *TheFunction = Builder->GetInsertBlock()->getParent();
-        BasicBlock *LoadValBB = BasicBlock::Create(*TheContext, "map.get_val.bb", TheFunction);
+
         BasicBlock *LoopBB = BasicBlock::Create(*TheContext, "map.loop.bb", TheFunction);
         BasicBlock *NextPtrBB = BasicBlock::Create(*TheContext, "map.next_ptr.bb", TheFunction);
         BasicBlock *FromNullBB = BasicBlock::Create(*TheContext, "map.from_null.bb", TheFunction);
         BasicBlock *GetKeyBB = BasicBlock::Create(*TheContext, "map.get_key.bb", TheFunction);
+        BasicBlock *LoadValBB = BasicBlock::Create(*TheContext, "map.get_val.bb", TheFunction);
+
+
 
 
         Value *query_hash;
         if (key_type=="str")
-            query_hash = str_llvm_hash(query, TheFunction);        
+            query_hash = str_llvm_hash(query, TheFunction); 
         if (key_type=="float")
             query_hash = float_llvm_hash(query);
         if (key_type=="int")
             query_hash = query;
-        Value *hash_pos = Builder->CreateURem(query_hash, map_capacity);
 
+
+        Value *hash_pos = Builder->CreateURem(query_hash, map_capacity);
 
         Value *node_gep = Builder->CreateGEP(int8PtrTy, nodes, hash_pos);
         Value *node = Builder->CreateLoad(int8PtrTy, node_gep);
@@ -3627,6 +3923,7 @@ Value *NameableIdx::codegen(Value *scope_struct) {
             value = Builder->CreateLoad(floatTy, value_float_ptr);
         } else
             value = Builder->CreateLoad(int8PtrTy, value_gep);
+
 
         return value;
     }
@@ -3757,27 +4054,20 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
         //good size
         Builder->SetInsertPoint(good_sizeBB);
-
-
         Value *elem_gep = Builder->CreateGEP(elemTy, vec, vsize); 
         Builder->CreateStore(appended_val, elem_gep);
         Value *next_vsize = Builder->CreateAdd(vsize, const_int(1));
         Builder->CreateStore(next_vsize, vsize_gep);
-
         Builder->CreateBr(postBB);
 
 
         //bad size (thus double array size)
         Builder->SetInsertPoint(bad_sizeBB);
-
         Value *new_size = Builder->CreateMul(size, const_int(2));
-        call("array_double_size", {loaded_var, new_size}); //does vsize++
-                                                           // if(parser_struct.loop_depth==0)
-                                                           //     Cache_Array(parser_struct.function_name, loaded_var);
-
+        call("array_double_size", {loaded_var, new_size}); 
+        vec = Load_Array(parser_struct.function_name, loaded_var);
         elem_gep = Builder->CreateGEP(elemTy, vec, vsize); 
         Builder->CreateStore(appended_val, elem_gep);
-
         Builder->CreateBr(postBB);
 
 
@@ -3854,7 +4144,6 @@ Value *NameableCall::codegen(Value *scope_struct) {
     std::vector<Value*> ArgsV = {scope_struct};
 
 
-    bool has_obj_overwrite = (Depth>1&&!FromLib&&!is_nsk_fn);
     if(Depth>1&&!FromLib) {
         if (ends_with(Callee, "__init__")&&isSelf)
         {
@@ -3863,6 +4152,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
         }
 
         Value *obj_ptr = Inner->codegen(scope_struct);
+
 
         if(!is_nsk_fn)
         {
@@ -3909,7 +4199,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
         GetDataTree();
 
     std::vector<Data_Tree> ArgTypes;
-    ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), std::move(Args), ArgTypes, scope_struct,\
+    ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct,\
             Callee, is_nsk_fn, arg_type_check_offset);
 
 

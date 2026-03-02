@@ -7,7 +7,9 @@
 	functions_return_data_type["ones_int"] = Data_Tree("array");
 	functions_return_data_type["array_int_add"] = Data_Tree("array");
 	functions_return_data_type["randfloat_array"] = Data_Tree("array");
+	functions_return_data_type["array_print_float"] = Data_Tree("int");
 	functions_return_data_type["arange_float"] = Data_Tree("array");
 	functions_return_data_type["zeros_float"] = Data_Tree("array");
 	functions_return_data_type["ones_float"] = Data_Tree("array");
 	functions_return_data_type["array_Split_Parallel"] = Data_Tree("array");
+	functions_return_data_type["array_print_str"] = Data_Tree("int");

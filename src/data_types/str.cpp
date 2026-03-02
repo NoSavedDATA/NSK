@@ -49,7 +49,7 @@ extern "C" char *str_Copy(Scope_Struct *scope_struct, char *str) {
 
 
 extern "C" char *str_CopyArg(Scope_Struct *scope_struct, char *str, char *argname) {
-  // std::cout << "Copying string: " << str << ".\n";
+  // std::cout << "Copying arg string: " << str << ".\n";
   char *ret = CopyString(scope_struct, str);
   return ret;
 }
@@ -288,11 +288,77 @@ extern "C" char *str_split_idx(Scope_Struct *scope_struct, char *self, char *pat
 }
 
 
+// extern "C" DT_array *str_split(Scope_Struct *scope_struct, char *self, char *pattern) {
+//     if (!self || !pattern) return nullptr;
+
+//     size_t pat_len = strlen(pattern);
+//     if (pat_len == 0) return nullptr;
+
+//     std::vector<char*> tokens;
+
+//     char *start = self;
+//     char *pos;
+
+//     while ((pos = strstr(start, pattern)) != nullptr) {
+//         size_t len = pos - start;
+
+//         char *out = allocate<char>(scope_struct, len + 1, "str");
+//         memcpy(out, start, len);
+//         out[len] = '\0';
+
+//         tokens.push_back(out);
+
+//         start = pos + pat_len;
+//     }
+
+//     // last token
+//     if (*start) {
+//         size_t len = strlen(start);
+//         char *out = allocate<char>(scope_struct, len + 1, "str");
+//         memcpy(out, start, len + 1);
+//         tokens.push_back(out);
+//     }
+
+//     if (tokens.size() <= 1)
+//         return nullptr;
+
+//     DT_array *ret = newT<DT_array>(scope_struct, "array");
+//     ret->New(tokens.size(), "str");
+
+//     char **data = static_cast<char**>(ret->data);
+//     for (size_t i = 0; i < tokens.size(); ++i)
+//         data[i] = tokens[i];
+
+//     return ret;
+// }
+
+
+extern "C" bool can_convert_to_float(Scope_Struct *scope_struct, char* str) {
+    if (!str) return false;
+
+    char* endptr;
+    errno = 0;
+
+    std::strtof(str, &endptr);
+
+    // No conversion performed
+    if (endptr == str)
+        return false;
+
+    // Overflow / underflow
+    if (errno == ERANGE)
+        return false;
+
+    // Skip trailing whitespace
+    while (std::isspace(static_cast<unsigned char>(*endptr)))
+        ++endptr;
+
+    // If anything remains, it's invalid
+    return *endptr == '\0';
+}
+
 extern "C" float str_to_float(Scope_Struct *scope_struct, char *in_str)
 {
-  // std::cout << "Execution: str_to_float" << ".\n";
-  // std::cout << "\n\nstr to float of " << in_str << "\n\n\n";
-
   char *copied = (char*)malloc(strlen(in_str) + 1);
   strcpy(copied, in_str);
   char *end;
@@ -300,7 +366,6 @@ extern "C" float str_to_float(Scope_Struct *scope_struct, char *in_str)
   float ret = std::strtof(copied, &end);
 
   free(copied);
-  // std::cout << "return from to float: " << ret << ".\n";
 
   return ret;
 }

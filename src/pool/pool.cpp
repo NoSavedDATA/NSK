@@ -10,6 +10,7 @@
 #include "../mark_sweep/include.h"
 
 
+std::unordered_map<int, std::unordered_map<int, std::vector<void*>>> memory_cache;
 
 
 bool check_initialized_field(void *ptr) {
@@ -37,6 +38,7 @@ extern "C" void *allocate_void(Scope_Struct *scope_struct, int size, const char 
 
     scope_struct->gc->size_occupied += size;
     scope_struct->gc->allocations++;
+    // std::cout << "alloc size: " << size << "\n";
     
     return ptr;
 }

@@ -8,6 +8,7 @@
 #include "any_map.h"
 #include "array.h"
 #include "bool.h"
+#include "charv.h"
 #include "codegen_notes.h"
 #include "data_tree.h"
 #include "dict.h"

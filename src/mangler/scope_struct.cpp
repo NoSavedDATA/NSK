@@ -68,9 +68,6 @@ void Scope_Struct::Copy(Scope_Struct *scope_to_copy)
 
 void *Scope_Struct::Allocate(int size, int type_id) {
     void *ret = gc->Allocate(size, type_id, thread_id); 
-    // if(thread_id!=0) {
-    //     std::cout << " --> Allocating: " << ret << ".\n";
-    // }
     return ret;
 }
 

@@ -67,7 +67,7 @@ void InitializeModule() {
 
   FunctionType *mallocType = FunctionType::get(
         int8PtrTy, 
-        {Type::getInt64Ty(*TheContext)}, 
+        {int64Ty}, 
         false
   );
   TheModule->getOrInsertFunction("malloc", mallocType);
@@ -489,13 +489,21 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("strlen", strlenTy);
   
-
   FunctionType *memcpyTy = FunctionType::get(
-      voidTy,
-      {int8PtrTy, int8PtrTy, intTy},
+      int8PtrTy,
+      {int8PtrTy, int8PtrTy, int64Ty},
       false 
   );
   TheModule->getOrInsertFunction("memcpy", memcpyTy);
+
+  FunctionCallee memchrFn = TheModule->getOrInsertFunction(
+    "memchr",
+    FunctionType::get(
+        int8PtrTy,
+        { int8PtrTy, intTy, int64Ty },
+        false
+    )
+  );
 
 
   //===----------------------------------------------------------------------===//
@@ -721,6 +729,8 @@ Function *FunctionAST::codegen() {
   int i = 0;
   int args_count = P.Args.size();
   auto it = TheFunction->arg_begin();
+  Parser_Struct parser_struct;
+  parser_struct.function_name = current_codegen_function;
   for (int i=0; i<args_count; ++i, ++it) {
     llvm::Argument &Arg = *it;
 
@@ -744,7 +754,7 @@ Function *FunctionAST::codegen() {
 
         function_values[current_codegen_function][arg_name] = &Arg;
         if(type=="array")
-            Cache_Array(current_codegen_function, &Arg);
+            Cache_Array(parser_struct, &Arg);
    }
   }
   

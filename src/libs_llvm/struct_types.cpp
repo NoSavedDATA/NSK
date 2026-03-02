@@ -8,7 +8,7 @@
 std::map<std::string, StructType*> struct_types;
 std::unordered_map<std::string, int> struct_type_size;
 
-std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
+std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, std::string, Data_Tree, Value*, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&)>> struct_create_fn;
 
 std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&)>> llvm_callee;
 
@@ -19,8 +19,24 @@ void Generate_Struct_Types() {
     llvm::Type *boolTy = Type::getInt1Ty(*TheContext);
     llvm::Type *floatTy = Type::getFloatTy(*TheContext);
     llvm::Type *longTy   = Type::getInt64Ty(*TheContext);
+    llvm::Type *int64Ty   = Type::getInt64Ty(*TheContext);
     llvm::Type *intTy = Type::getInt32Ty(*TheContext);
     llvm::Type *intPtrTy = Type::getInt32Ty(*TheContext)->getPointerTo();
+
+
+    // high-level classes
+    for (auto &class_pair : ClassSize) {
+        std::vector<llvm::Type*> types;
+        for (auto &attr : ClassAttrsName[class_pair.first]) {
+            Data_Tree dt = data_typeVars[class_pair.first][attr];
+            types.push_back(get_type_from_data(dt));
+        }
+        struct_types["class_"+class_pair.first] = StructType::create(
+            *TheContext,
+            types,
+            "class_"+class_pair.first
+        );
+    }
 
 
     // std::vector<void*>

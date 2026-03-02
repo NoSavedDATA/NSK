@@ -1,4 +1,4 @@
-1822-01-20 23:02:19
+1822-03-01 22:38:20
 
 	FunctionType *array_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -78,7 +78,7 @@
 	TheModule->getOrInsertFunction("randfloat_array", randfloat_arrayTy);
 
 	FunctionType *array_print_floatTy= FunctionType::get(
-		int8PtrTy,
+		Type::getInt32Ty(*TheContext),
 		{int8PtrTy, int8PtrTy},
 		false
 	);
@@ -105,16 +105,16 @@
 	);
 	TheModule->getOrInsertFunction("ones_float", ones_floatTy);
 
-	FunctionType *array_print_strTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
-
 	FunctionType *array_Split_ParallelTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("array_Split_Parallel", array_Split_ParallelTy);
+
+	FunctionType *array_print_strTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);

@@ -762,7 +762,7 @@ LLVMFunction::LLVMFunction(std::string Name, Data_Tree ReturnType, std::vector<D
 
 void LLVMFunction::HandleCreate(void *func) {
 
-    using CreateFn = Value*(*)(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>);
+    using CreateFn = Value*(*)(Parser_Struct, Function*, std::string, std::string, Data_Tree, Value*, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&);
  
     CreateFn fn = reinterpret_cast<CreateFn>(func);
 

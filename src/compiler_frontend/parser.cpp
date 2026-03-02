@@ -37,8 +37,8 @@ void print_caller() {
 
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
-// std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"float", {"int"}}, {"int", {"float"}}};
-std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float"}}};
+std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float", "int64"}},
+                                                                    {"int64", {"int"}}};
 
 std::map<std::string, int> Function_Arg_Count;
 std::map<std::string, int> Function_Required_Arg_Count;
@@ -66,6 +66,8 @@ std::map<std::string, std::map<std::string, Data_Tree>> data_typeVars;
 std::map<std::string, std::map<std::string, std::string>> typeVars;
 
 std::map<std::string, std::map<std::string, int>> ClassVariables;
+std::map<std::string, std::map<std::string, int>> ClassAttrs;
+std::map<std::string, std::vector<std::string>> ClassAttrsName;
 std::map<std::string, int> ClassSize;
 std::unordered_map<std::string, std::vector<int>> ClassPointers;
 std::unordered_map<std::string, std::vector<std::string>> ClassPointersType;
@@ -2387,12 +2389,9 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
 
   if(CurTok==tok_space)
     getNextToken();
-
-
   
 
-  int last_offset=0;
-  std::vector<llvm::Type *> llvm_types;
+  int last_offset=0, last_attr_idx=0;
   while(CurTok==tok_data||CurTok==tok_identifier||CurTok==tok_struct)
   { 
     std::string data_type = IdentifierStr;
@@ -2400,6 +2399,18 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
     bool is_channel=false;
     
     Data_Tree data_tree = ParseDataTree(data_type, in_str(data_type, compound_tokens), parser_struct);
+
+    if (CurTok=='[') {
+        if(data_type!="charv") {
+            LogErrorNextBlock(parser_struct.line, data_type + " requires size information.");
+            return nullptr;
+        }
+        getNextToken(); // eat [
+        getNextToken(); // eat val
+        int size = NumVal;
+        getNextToken(); // eat ]
+        data_tree.Nested_Data.push_back(std::to_string(size));
+    }
     
     // LogBlue("data type is: " + data_type);
     
@@ -2420,25 +2431,30 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
     {
       if (CurTok!=tok_identifier)
         LogError(parser_struct.line, "Class " + Name + " variables definition requires simple non-attribute names.");
-
+      
       if (is_object) {
         Object_toClass[Name][IdentifierStr] = Data_Tree(data_type);
       }
       typeVars[Name][IdentifierStr] = data_type; 
       data_typeVars[Name][IdentifierStr] = data_tree; 
       ClassVariables[Name][IdentifierStr] = last_offset;
+      ClassAttrs[Name][IdentifierStr] = last_attr_idx++;
+      ClassAttrsName[Name].push_back(IdentifierStr);
+
       
       if (data_type=="float"||data_type=="int") {
-        llvm_types.push_back(Type::getInt32Ty(*TheContext));
         last_offset+=4;
+      } else if(data_type=="int64") {
+        last_offset+=8;
       } else if(data_type=="bool") {
-        llvm_types.push_back(Type::getInt1Ty(*TheContext));
         last_offset+=1;
+      } else if(data_type=="charv") {
+        int size = std::stoi(data_tree.Nested_Data[0].Type);
+        llvm::Type *arrTy = ArrayType::get(int8Ty, size);
+        last_offset+=TheModule->getDataLayout().getTypeAllocSize(arrTy);
       } else {
         ClassPointers[Name].push_back(last_offset);
         ClassPointersType[Name].push_back(data_type);
-        // LogBlue("push class pointer type " + data_type + " for class " + Name + " on offset " + std::to_string(last_offset) + " for " + IdentifierStr);
-        llvm_types.push_back(int8PtrTy);
         last_offset+=8;
       }
 

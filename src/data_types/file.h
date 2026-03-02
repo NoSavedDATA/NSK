@@ -4,11 +4,11 @@
 
 
 constexpr int FileBufferSize = 8192;
-constexpr int FileLineSize = 1024;
+constexpr int FileLineSize = 4096;
 
 struct DT_file {
     int fd;
-    char buffer[1024];
+    char buffer[FileBufferSize];
     int line_counter, bytes_read, bytes_remaining;
 };
 

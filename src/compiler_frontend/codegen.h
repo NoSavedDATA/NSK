@@ -51,6 +51,7 @@ Value *load_alloca(std::string name, std::string type, std::string from_function
 
 
 Type *get_type_from_str(std::string type);
+llvm::Type *get_type_from_data(Data_Tree);
 
 std::string Get_Nested_Name(std::vector<std::string>, Parser_Struct, bool);
 
@@ -69,11 +70,49 @@ void Set_Pointer_Stack(Value *scope_struct, std::string function_name, std::stri
 Value *Load_Stack(Value *scope_struct, const std::string &function_name, const std::string &var_name, const std::string &type);
 
 
-void Cache_Array(std::string &fn, Value *var);
+void Cache_Array(Parser_Struct, Value *var);
 
 
-Value *DT_file_create(Parser_Struct, Function*, std::string, Data_Tree, Value *, Value *, std::vector<Value*>);
+Value *DT_file_create(Parser_Struct, Function*, std::string, std::string, Data_Tree, Value *, Value *, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&);
+Value *DT_charv_create(Parser_Struct parser_struct, Function *TheFunction,
+                      std::string, std::string type, Data_Tree data_type,
+                      Value *scope_struct, Value *initial_value,
+                      std::vector<std::unique_ptr<ExprAST>> &Args,
+                      std::vector<Value*> &ArgsV);
 
+Value *file_open(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
 Value *file_read(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
 Value *file_opened(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
 Value *print(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<Value*>&);
+
+Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+
+Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *err(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *malloc_str(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *c_strlen(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *c_memcpy(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *str_set(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *str_offset(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);
+Value *alloc_pool(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<Value*> &ArgsV);

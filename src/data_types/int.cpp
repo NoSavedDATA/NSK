@@ -79,9 +79,41 @@ extern "C" char* int_to_str(Scope_Struct *scope_struct, int value)
 }
 
 
+extern "C" int64_t int64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, char *buffer)
+{
+    if (value == std::numeric_limits<int64_t>::min()) {
+        const char* min_str = "-9223372036854775808";
+        std::memcpy(buffer, min_str, 20);
+        return 20;
+    }
+
+    bool negative = (value < 0);
+    if (negative)
+        value = -value;
+
+    // Count digits
+    int64_t temp = value;
+    int digits = 1;
+    while (temp >= 10) {
+        temp /= 10;
+        ++digits;
+    }
+
+    int total_len = digits + (negative ? 1 : 0);
+
+    for (int i = 0; i < digits; ++i) {
+        buffer[total_len - 1 - i] = static_cast<char>('0' + (value % 10));
+        value /= 10;
+    }
+
+    if (negative)
+        buffer[0] = '-';
+
+    return total_len;
+}
+
 extern "C" int64_t int_to_str_buffer(Scope_Struct *scope_struct, int value, char *buffer)
 {
-    // Handle special case: minimum int
     if (value == std::numeric_limits<int>::min()) {
         const char* min_str = "-2147483648";
         std::memcpy(buffer, min_str, 12);
@@ -102,7 +134,6 @@ extern "C" int64_t int_to_str_buffer(Scope_Struct *scope_struct, int value, char
 
     int total_len = digits + (negative ? 1 : 0);
 
-    // Fill digits from end
     for (int i = 0; i < digits; ++i) {
         buffer[total_len - 1 - i] = '0' + (value % 10);
         value /= 10;

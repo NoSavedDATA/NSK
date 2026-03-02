@@ -108,6 +108,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("str_split_idx", str_split_idxTy);
 
+	FunctionType *can_convert_to_floatTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("can_convert_to_float", can_convert_to_floatTy);
+
 	FunctionType *str_to_floatTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy, int8PtrTy},
@@ -1387,7 +1394,7 @@ void Generate_LLVM_Functions() {
 	TheModule->getOrInsertFunction("randfloat_array", randfloat_arrayTy);
 
 	FunctionType *array_print_floatTy= FunctionType::get(
-		int8PtrTy,
+		Type::getInt32Ty(*TheContext),
 		{int8PtrTy, int8PtrTy},
 		false
 	);
@@ -1414,19 +1421,19 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("ones_float", ones_floatTy);
 
-	FunctionType *array_print_strTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
-
 	FunctionType *array_Split_ParallelTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("array_Split_Parallel", array_Split_ParallelTy);
+
+	FunctionType *array_print_strTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
 
 	FunctionType *nullptr_getTy= FunctionType::get(
 		int8PtrTy,
@@ -1490,6 +1497,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("end_timer", end_timerTy);
+
+	FunctionType *is_null_terminatedTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("is_null_terminated", is_null_terminatedTy);
 
 	FunctionType *float_vec_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -1575,6 +1589,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("float_vec_size", float_vec_sizeTy);
 
+	FunctionType *charv_printTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("charv_print", charv_printTy);
+
 	FunctionType *read_intTy= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
 		{int8PtrTy},
@@ -1588,6 +1609,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("int_to_str", int_to_strTy);
+
+	FunctionType *int64_to_str_bufferTy= FunctionType::get(
+		Type::getInt64Ty(*TheContext),
+		{int8PtrTy, Type::getInt64Ty(*TheContext), int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("int64_to_str_buffer", int64_to_str_bufferTy);
 
 	FunctionType *int_to_str_bufferTy= FunctionType::get(
 		Type::getInt64Ty(*TheContext),

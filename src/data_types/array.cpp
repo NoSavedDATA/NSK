@@ -9,7 +9,8 @@
 
 DT_array::DT_array() {}
 
-void DT_array::New(int size, int elem_size, std::string type) {
+
+void DT_array::New(int size, int elem_size, int tid, std::string type) {
     this->virtual_size = size;
     this->elem_size = elem_size;
     this->type = type;
@@ -17,24 +18,27 @@ void DT_array::New(int size, int elem_size, std::string type) {
     size = ((size + 7) / 8)*8;
     this->size = size;
     
-    data = (void*)malloc(size*elem_size);
+    // data = (void*)malloc(size*elem_size);
+    data = cache_pop(size*elem_size, tid);
 }
 
-void DT_array::New(int size, std::string type) {
+void DT_array::New(int size, int tid, std::string type) {
     this->virtual_size = size;
     this->elem_size = 8;
     this->type = type;
 
     size = ((size + 7) / 8)*8;
     this->size = size;
+
     
-    data = (void*)malloc(size*8);
+    // data = (void*)malloc(size*8);
+    data = cache_pop(size*elem_size, tid);
 }
 
 
-extern "C" DT_array *array_Create(Scope_Struct *scope_struct, Data_Tree dt)
-{
-  std::string elem_type = dt.Nested_Data[0].Type;
+extern "C" DT_array *array_Create(Scope_Struct *scope_struct, Data_Tree *dt)
+{ 
+  std::string elem_type = dt->Nested_Data[0].Type;
   int elem_size;
   if(data_name_to_size.count(elem_type)>0)
       elem_size = data_name_to_size[elem_type];
@@ -43,9 +47,8 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, Data_Tree dt)
 
 
   DT_array *vec = newT<DT_array>(scope_struct, "array");
-  vec->New(8, elem_size, elem_type);
+  vec->New(8, elem_size, scope_struct->thread_id, elem_type);
   vec->virtual_size = 0;
-
   return vec;
 }
 
@@ -69,13 +72,16 @@ extern "C" int array_bad_idx(int line, int idx, int size) {
 
 extern "C" void array_double_size(DT_array *vec, int new_size) {
     // vec->data 
-    int vec_size = new_size*vec->elem_size;
+    int old_size = vec->virtual_size*vec->elem_size;
+    int vec_size = new_size         *vec->elem_size;
 
-    void *new_data = malloc(vec_size);
-    memcpy(new_data, vec->data, vec_size);
+    void *new_data = (void*)malloc(vec_size);
+    memcpy(new_data, vec->data, old_size);
 
-    vec->virtual_size++;
+    free(vec->data);
+    vec->data = new_data;
     vec->size = new_size;
+    vec->virtual_size++;
 }
 
 extern "C" void array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
@@ -91,7 +97,7 @@ extern "C" void array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
 
 extern "C" DT_array *arange_int(Scope_Struct *scope_struct, int begin, int end) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(end-begin, 4, "int");
+    vec->New(end-begin, 4, scope_struct->thread_id, "int");
 
     int *ptr = static_cast<int*>(vec->data);
     
@@ -108,7 +114,7 @@ extern "C" DT_array *arange_int(Scope_Struct *scope_struct, int begin, int end) 
 
 extern "C" DT_array *zeros_int(Scope_Struct *scope_struct, int N) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(N, 4, "int");
+    vec->New(N, 4, scope_struct->thread_id, "int");
 
     int *ptr = static_cast<int*>(vec->data);
     
@@ -126,7 +132,7 @@ extern "C" DT_array *zeros_int(Scope_Struct *scope_struct, int N) {
 
 extern "C" DT_array *randint_array(Scope_Struct *scope_struct, int size, int min_val, int max_val) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(size,4, "int");
+    vec->New(size,4, scope_struct->thread_id, "int");
 
     std::uniform_int_distribution<int> dist(min_val, max_val);
 
@@ -146,7 +152,7 @@ extern "C" DT_array *randint_array(Scope_Struct *scope_struct, int size, int min
 
 extern "C" DT_array *ones_int(Scope_Struct *scope_struct, int N) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(N, 4, "int");
+    vec->New(N, 4, scope_struct->thread_id, "int");
 
     int *ptr = static_cast<int*>(vec->data);
     
@@ -162,7 +168,7 @@ extern "C" DT_array *ones_int(Scope_Struct *scope_struct, int N) {
 
 extern "C" DT_array *array_int_add(Scope_Struct *scope_struct, DT_array *array, int x) {
     DT_array *new_array = newT<DT_array>(scope_struct, "array");
-    new_array->New(array->virtual_size, 4, "int");
+    new_array->New(array->virtual_size, 4, scope_struct->thread_id, "int");
     
     int *data = static_cast<int *>(array->data);
     int *new_data = static_cast<int *>(new_array->data);
@@ -177,7 +183,7 @@ extern "C" DT_array *array_int_add(Scope_Struct *scope_struct, DT_array *array, 
 
 extern "C" DT_array *randfloat_array(Scope_Struct *scope_struct, int size, float min_val, float max_val) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(size,4,"float");
+    vec->New(size,4, scope_struct->thread_id,"float");
 
     std::uniform_real_distribution<float> dist(min_val, max_val);
 
@@ -194,7 +200,7 @@ extern "C" DT_array *randfloat_array(Scope_Struct *scope_struct, int size, float
     return vec;
 }
 
-extern "C" void array_print_float(Scope_Struct *scope_struct, DT_array *vec) {
+extern "C" int array_print_float(Scope_Struct *scope_struct, DT_array *vec) {
     float *ptr = static_cast<float*>(vec->data);
     int size = vec->virtual_size;
 
@@ -202,12 +208,13 @@ extern "C" void array_print_float(Scope_Struct *scope_struct, DT_array *vec) {
     for (int i=0; i<size-1; ++i)
         printf("%.3f, ",ptr[i]);
     printf("%.3f]\n",ptr[size-1]);
+    return 0;
 }
 
 
 extern "C" DT_array *arange_float(Scope_Struct *scope_struct, float begin, float end) {
     DT_array *vec = newT<DT_array>(scope_struct, "float_vec");
-    vec->New(end-begin, 4, "float");
+    vec->New(end-begin, 4, scope_struct->thread_id, "float");
 
     float *ptr = static_cast<float*>(vec->data);
     
@@ -223,7 +230,7 @@ extern "C" DT_array *arange_float(Scope_Struct *scope_struct, float begin, float
 
 extern "C" DT_array *zeros_float(Scope_Struct *scope_struct, int N) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(N, 4, "float");
+    vec->New(N, 4, scope_struct->thread_id, "float");
 
     float *ptr = static_cast<float*>(vec->data);
     
@@ -240,7 +247,7 @@ extern "C" DT_array *zeros_float(Scope_Struct *scope_struct, int N) {
 
 extern "C" DT_array *ones_float(Scope_Struct *scope_struct, int N) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(N, 4, "float");
+    vec->New(N, 4, scope_struct->thread_id, "float");
 
     float *ptr = static_cast<float*>(vec->data);
     
@@ -256,15 +263,6 @@ extern "C" DT_array *ones_float(Scope_Struct *scope_struct, int N) {
 
 
 
-extern "C" void array_print_str(Scope_Struct *scope_struct, DT_array *vec) {
-    char **ptr = static_cast<char**>(vec->data);
-    int size = vec->virtual_size;
-
-    std::cout << "[";
-    for (int i=0; i<size-1; ++i)
-        std::cout << ptr[i] << ",";
-    std::cout << ptr[size-1] << "]\n";
-}
 
 
 extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *vec) {
@@ -291,7 +289,7 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
 
 
     DT_array *out_vector = newT<DT_array>(scope_struct, "array");
-    out_vector->New(size, elem_size, vec->type);
+    out_vector->New(size, elem_size, scope_struct->thread_id, vec->type);
 
     
     memcpy(out_vector->data,
@@ -299,4 +297,17 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
            copy_size);
 
     return out_vector;
+}
+
+
+extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
+    char **data = static_cast<char**>(arr->data);
+    int len = arr->virtual_size;
+
+    std::cout << data[0];
+    for (int i=1; i<len; ++i)
+        std::cout << ", " << data[i];
+    std::cout << "\n";
+        
+    return 0;
 }

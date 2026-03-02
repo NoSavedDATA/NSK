@@ -180,17 +180,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["ones_float"].push_back("0");
 		Function_Arg_Names["ones_float"].push_back("1");
 		
-		Function_Arg_Types["array_print_str"]["0"] = "Scope_Struct";
-		Function_Arg_Types["array_print_str"]["1"] = "array";
-		
-		Function_Arg_DataTypes["array_print_str"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree array_print_str_1 = Data_Tree("array");
-		array_print_str_1.Nested_Data.push_back(Data_Tree("any"));
-		Function_Arg_DataTypes["array_print_str"]["1"] = array_print_str_1;
-		
-		Function_Arg_Names["array_print_str"].push_back("0");
-		Function_Arg_Names["array_print_str"].push_back("1");
-		
 		Function_Arg_Types["array_Split_Parallel"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_Split_Parallel"]["1"] = "array";
 		
@@ -201,6 +190,17 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["array_Split_Parallel"].push_back("0");
 		Function_Arg_Names["array_Split_Parallel"].push_back("1");
+		
+		Function_Arg_Types["array_print_str"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_print_str"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_print_str"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_print_str_1 = Data_Tree("array");
+		array_print_str_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_print_str"]["1"] = array_print_str_1;
+		
+		Function_Arg_Names["array_print_str"].push_back("0");
+		Function_Arg_Names["array_print_str"].push_back("1");
 	
 		
 		Function_Arg_Types["float_vec_Create"]["0"] = "Scope_Struct";
@@ -616,6 +616,15 @@ void set_functions_args_type() {
 		Function_Arg_Names["str_split_idx"].push_back("2");
 		Function_Arg_Names["str_split_idx"].push_back("3");
 		
+		Function_Arg_Types["can_convert_to_float"]["0"] = "Scope_Struct";
+		Function_Arg_Types["can_convert_to_float"]["1"] = "str";
+		
+		Function_Arg_DataTypes["can_convert_to_float"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["can_convert_to_float"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["can_convert_to_float"].push_back("0");
+		Function_Arg_Names["can_convert_to_float"].push_back("1");
+		
 		Function_Arg_Types["str_to_float"]["0"] = "Scope_Struct";
 		Function_Arg_Types["str_to_float"]["1"] = "str";
 		
@@ -670,6 +679,18 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["int_to_str"].push_back("0");
 		Function_Arg_Names["int_to_str"].push_back("1");
+		
+		Function_Arg_Types["int64_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int64_to_str_buffer"]["1"] = "int64_t";
+		Function_Arg_Types["int64_to_str_buffer"]["2"] = "str";
+		
+		Function_Arg_DataTypes["int64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int64_to_str_buffer"]["1"] = Data_Tree("int64_t");
+		Function_Arg_DataTypes["int64_to_str_buffer"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["int64_to_str_buffer"].push_back("0");
+		Function_Arg_Names["int64_to_str_buffer"].push_back("1");
+		Function_Arg_Names["int64_to_str_buffer"].push_back("2");
 		
 		Function_Arg_Types["int_to_str_buffer"]["0"] = "Scope_Struct";
 		Function_Arg_Types["int_to_str_buffer"]["1"] = "int";
@@ -1818,6 +1839,19 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["print"].push_back("0");
 		Function_Arg_Names["print"].push_back("1");
+	
+		
+		Function_Arg_Types["charv_print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["charv_print"]["1"] = "str";
+		Function_Arg_Types["charv_print"]["2"] = "int";
+		
+		Function_Arg_DataTypes["charv_print"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["charv_print"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["charv_print"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["charv_print"].push_back("0");
+		Function_Arg_Names["charv_print"].push_back("1");
+		Function_Arg_Names["charv_print"].push_back("2");
 	
 		
 		

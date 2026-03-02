@@ -1,1 +1,8 @@
-1822-02-27 22:50:12
+1822-03-01 22:06:57
+
+	FunctionType *is_null_terminatedTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("is_null_terminated", is_null_terminatedTy);

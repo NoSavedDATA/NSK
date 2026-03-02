@@ -105,7 +105,15 @@ int Data_Tree::Compare(Data_Tree other_tree) {
     if(!in_str(Type, primary_data_tokens) && other_tree.Type=="nullptr")
         return 0;
 
+    if(in_str(Type, primary_data_tokens) && in_str(other_tree.Type, primary_data_tokens) &&\
+         CheckIsEquivalent(Type, other_tree.Type))
+        return 0;
+    
+
     if(Type=="any"||other_tree.Type=="any")
+        return 0;
+
+    if(Type=="charv"||other_tree.Type=="charv")
         return 0;
 
     if(Type=="array"&&other_tree.Type=="array")

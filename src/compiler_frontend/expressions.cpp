@@ -167,6 +167,7 @@ inline void Semantic_Arguments_Check(Parser_Struct parser_struct,
       {   
         Data_Tree expected_data_type = Function_Arg_DataTypes[fn_name][Function_Arg_Names[fn_name][tgt_arg]];
 
+
         int differences = expected_data_type.Compare(data_type);
         if (differences>0) { 
           LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name + ".");
@@ -471,6 +472,19 @@ DataExprAST::DataExprAST(
                 Notes(std::move(Notes))
 {   
   dt_type = "DT_"+data_type.Type;  
+
+  if(data_type.Type=="charv") {      
+      int size;
+      if(this->Notes.size()<1)
+            LogErrorS(parser_struct.line, "charv requires size argument");
+      if (auto num_expr = dynamic_cast<IntExprAST*>(this->Notes[0].get()))
+            size = num_expr->Val;
+      else
+            LogErrorS(parser_struct.line, "charv size must be int");
+
+      data_type.Nested_Data.push_back(Data_Tree(std::to_string(size)));
+  }
+
   for (unsigned i = 0, e = this->VarNames.size(); i != e; ++i) {
     if(this->isSelf)
       continue;    
@@ -490,6 +504,7 @@ DataExprAST::DataExprAST(
         LogErrorS(parser_struct.line, "Redefinition of " +  VarName);
         continue;
     }
+
     data_typeVars[parser_struct.function_name][VarName] = data_type;
     typeVars[parser_struct.function_name][IdentifierStr] = data_type.Type;
 
@@ -647,6 +662,7 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   Elements = LType + "_" + RType;    
 
+  // casts
   if (Elements=="int_float") {
     Elements = "float_float"; 
     cast_L_to="int_to_float";
@@ -654,6 +670,14 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   if (Elements=="float_int") {
     Elements = "float_float"; 
     cast_R_to="int_to_float";
+  }
+  if (Elements=="int_int64") {
+    Elements = "int_int"; 
+    cast_R_to="int64_to_int";
+  }
+  if (Elements=="int64_int") {
+    Elements = "int_int"; 
+    cast_L_to="int64_to_int";
   }
   
   std::string operation = op_map[Op];
@@ -765,7 +789,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "float_float"})&&\
+  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_int64", "charv_int", "int64_int64"})&&\
       TheModule->getFunction(Operation)==nullptr)
       LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }
@@ -1134,6 +1158,13 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
     ret = return_dt;
   }
 
+  if(Callee=="map_keys") {
+    Data_Tree return_dt = Data_Tree("array");
+    return_dt.Nested_Data.push_back(Inner->GetDataTree().Nested_Data[0].Type);
+    ret = return_dt;
+  }
+    
+
   if(Callee=="zip") {
 
     Data_Tree return_dt = Data_Tree("list");
@@ -1246,6 +1277,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
     Callee = lib_function_remaps[Callee];
 
 
+
   // methods/lib callee
   if(Depth>1) {    
     std::string inner_most_name = this->Inner->InnerMost()->Name;
@@ -1305,11 +1337,23 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
  
 
-
-  
+ 
   is_nsk_fn = in_str(Callee, native_methods);
+
+  if(Depth>1 && !FromLib) {
+          std::string first_arg_dt = this->Inner->GetDataTree().Type; 
+          // check is data method
+          is_nsk_fn = is_nsk_fn ||\
+                       (ClassSize.count(first_arg_dt)==0&&begins_with(Callee, first_arg_dt) && !in_str(first_arg_dt, primary_data_tokens));        
+  }
+
+
+  has_obj_overwrite = (Depth>1&&!FromLib&&!is_nsk_fn);
+
   if(Depth>1&&!FromLib&&is_nsk_fn)
       arg_type_check_offset++;
+
+
 
   Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, arg_type_check_offset);
 }

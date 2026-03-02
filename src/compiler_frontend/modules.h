@@ -34,9 +34,10 @@ extern std::unordered_map<std::string, int> struct_type_size;
 
 extern std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
-extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, Data_Tree,
+extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, std::string, Data_Tree,
                                                        Value*, Value*,
-                                                       std::vector<Value*>)>> struct_create_fn;
+                                                       std::vector<std::unique_ptr<ExprAST>>&,
+                                                       std::vector<Value*>&)>> struct_create_fn;
 
 extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string,
                                                        Data_Tree,

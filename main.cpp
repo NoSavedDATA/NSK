@@ -335,9 +335,109 @@ int main(int argc, char* argv[]) {
 
 
 
+  // DT_charv
+  struct_create_fn["DT_charv"] = DT_charv_create;
+  Function_Arg_DataTypes["charv_Create"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["charv_Create"]["1"] = Data_Tree("int");
+  Function_Arg_Names["charv_Create"] = {"0", "1"};
+
+
+
+  // c_open
+  functions_return_data_type["c_open"] = Data_Tree("int");
+  llvm_callee["c_open"] = c_open;
+  Function_Arg_DataTypes["c_open"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["c_open"]["1"] = Data_Tree("str");
+  Function_Arg_Names["c_open"] = {"0", "1"};
+  Function_Required_Arg_Count["c_open"] = 1;
+
+  // c_read
+  functions_return_data_type["c_read"] = Data_Tree("int64");
+  llvm_callee["c_read"] = c_read;
+  Function_Arg_DataTypes["c_read"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["c_read"]["1"] = Data_Tree("int");
+  Function_Arg_DataTypes["c_read"]["2"] = Data_Tree("charv");
+  Function_Arg_DataTypes["c_read"]["3"] = Data_Tree("int");
+  Function_Arg_Names["c_read"] = {"0", "1", "2", "3"};
+  Function_Required_Arg_Count["c_read"] = 3;
+
+
+  // c_memchr
+  functions_return_data_type["c_memchr"] = Data_Tree("int64");
+  llvm_callee["c_memchr"] = c_memchr;
+  Function_Arg_DataTypes["c_memchr"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["c_memchr"]["1"] = Data_Tree("str");
+  Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("int");
+  Function_Arg_DataTypes["c_memchr"]["3"] = Data_Tree("int64");
+  Function_Arg_Names["c_memchr"] = {"0", "1", "2", "3"};
+  Function_Required_Arg_Count["c_memchr"] = 3;
+
+  // c_strlen
+  functions_return_data_type["c_strlen"] = Data_Tree("int64");
+  llvm_callee["c_strlen"] = c_strlen;
+  Function_Arg_DataTypes["c_strlen"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["c_strlen"]["1"] = Data_Tree("str");
+  Function_Arg_Names["c_strlen"] = {"0", "1"};
+  Function_Required_Arg_Count["c_strlen"] = 1;
+
+
+  // c_memcpy
+  functions_return_data_type["c_memcpy"] = Data_Tree("int");
+  llvm_callee["c_memcpy"] = c_memcpy;
+  Function_Arg_DataTypes["c_memcpy"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["c_memcpy"]["1"] = Data_Tree("str");
+  Function_Arg_DataTypes["c_memcpy"]["2"] = Data_Tree("charv");
+  Function_Arg_DataTypes["c_memcpy"]["3"] = Data_Tree("int64");
+  Function_Arg_Names["c_memcpy"] = {"0", "1", "2", "3"};
+  Function_Required_Arg_Count["c_memcpy"] = 3;
+
+
+  // str_set
+  functions_return_data_type["str_set"] = Data_Tree("int");
+  llvm_callee["str_set"] = str_set;
+  Function_Arg_DataTypes["str_set"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["str_set"]["1"] = Data_Tree("str");
+  Function_Arg_DataTypes["str_set"]["2"] = Data_Tree("int");
+  Function_Arg_DataTypes["str_set"]["3"] = Data_Tree("int");
+  Function_Arg_Names["str_set"] = {"0", "1", "2", "3"};
+  Function_Required_Arg_Count["str_set"] = 3;
+
+  // str_offset
+  functions_return_data_type["str_offset"] = Data_Tree("str");
+  llvm_callee["str_offset"] = str_offset;
+  Function_Arg_DataTypes["str_offset"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["str_offset"]["1"] = Data_Tree("str");
+  Function_Arg_DataTypes["str_offset"]["2"] = Data_Tree("int");
+  Function_Arg_Names["str_offset"] = {"0", "1", "2"};
+  Function_Required_Arg_Count["str_offset"] = 2;
+
+  // err
+  functions_return_data_type["err"] = Data_Tree("int");
+  llvm_callee["err"] = err;
+  Function_Arg_DataTypes["err"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["err"]["1"] = Data_Tree("str");
+  Function_Arg_Names["err"] = {"0", "1"};
+  Function_Required_Arg_Count["err"] = 1;
+
+  // malloc_str
+  functions_return_data_type["malloc_str"] = Data_Tree("str");
+  llvm_callee["malloc_str"] = malloc_str;
+  Function_Arg_DataTypes["malloc_str"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["malloc_str"]["1"] = Data_Tree("int");
+  Function_Arg_Names["malloc_str"] = {"0", "1"};
+  Function_Required_Arg_Count["malloc_str"] = 1;
+
+  // allocate
+  functions_return_data_type["alloc_pool"] = Data_Tree("any");
+  llvm_callee["alloc_pool"] = alloc_pool;
+  Function_Arg_DataTypes["alloc_pool"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["alloc_pool"]["1"] = Data_Tree("int");
+  Function_Arg_DataTypes["alloc_pool"]["2"] = Data_Tree("str");
+  Function_Arg_Names["alloc_pool"] = {"0", "1", "2"};
+  Function_Required_Arg_Count["alloc_pool"] = 1;
+
   // DT_file
   struct_create_fn["DT_file"] = DT_file_create;
-
   Function_Arg_DataTypes["file_Create"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["file_Create"]["1"] = Data_Tree("str");
   Function_Arg_Names["file_Create"] = {"0", "1"};
@@ -345,6 +445,14 @@ int main(int argc, char* argv[]) {
   // file_read
   functions_return_data_type["file_read"] = Data_Tree("str");
   llvm_callee["file_read"] = file_read;
+
+  // file_open
+  Function_Arg_DataTypes["file_open"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["file_open"]["1"] = Data_Tree("file");
+  Function_Arg_DataTypes["file_open"]["2"] = Data_Tree("str");
+  Function_Arg_Names["file_open"] = {"0", "1" , "2"};
+  functions_return_data_type["file_open"] = Data_Tree("str");
+  llvm_callee["file_open"] = file_open;
 
   // file_opened
   functions_return_data_type["file_opened"] = Data_Tree("bool");
@@ -362,7 +470,12 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["print"]["3"] = Data_Tree("str");
   Function_Arg_DataTypes["print"]["4"] = Data_Tree("str");
   Function_Arg_DataTypes["print"]["5"] = Data_Tree("str");
-  Function_Arg_Names["print"] = {"0", "1", "2", "3", "4", "5"};
+  Function_Arg_DataTypes["print"]["6"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["7"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["8"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["9"] = Data_Tree("str");
+  Function_Arg_DataTypes["print"]["10"] = Data_Tree("str");
+  Function_Arg_Names["print"] = {"0", "1", "2", "3", "4", "5", "6", "7", "8", "9", "10"};
 
 
 
@@ -421,6 +534,10 @@ int main(int argc, char* argv[]) {
   functions_return_data_type["zeros_float"] = aux;
   functions_return_data_type["ones_float"] = aux;
 
+  Data_Tree split_str_dt = Data_Tree("array");
+  split_str_dt.Nested_Data.push_back(Data_Tree("str")); 
+  functions_return_data_type["str_split"] = split_str_dt;
+
   vararg_methods = {"tensor_view", "tensor_sum", "tensor_mean", "mean_tensor" ,"tensor_prod", "tensor_tmax", "tensor_argmax", "tensor_load_bin_idx", "zip"};
 
 
@@ -444,8 +561,8 @@ int main(int argc, char* argv[]) {
 
   // tensor + string + ...
   // e.g: x.view(), str.split()
-  native_methods = {"split", "split_idx", "str_vec_print", "file_read", "file_close", "file_open",
-                    "file_opened"};
+  native_methods = {"err", "split", "split_idx", "str_vec_print", "file_open", "file_read", "file_close", "file_open",
+                    "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set"};
   native_methods = concat_str_vec(native_methods, return_tensor_methods);
   native_methods = concat_str_vec(native_methods, user_cpp_functions);
 
@@ -479,12 +596,12 @@ int main(int argc, char* argv[]) {
                      {"pinned_tensor_tensor", "pinned_tensor"}, {"pinned_tensor_float", "pinned_tensor"},
                      {"object_object", "object"}, {"str_object", "object"},
                      {"tensor_int", "tensor"}, {"int_tensor", "tensor"}, {"str_channel", "str"}, {"channel_str", "float"}, {"channel_int", "float"},
-                     {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}};
+                     {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"int64_int64", "int64"}};
 
   ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"}, {"int_int_equal", "bool"}, {"int_int_different", "bool"},
                      {"int_int_higher_eq", "bool"}, {"int_int_minor_eq", "bool"},
                      {"float_float_higher", "bool"}, {"float_float_minor", "bool"}, {"float_float_equal", "bool"}, {"float_float_different", "bool"},
-                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"}};
+                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"}, {"charv_int_add", "charv"}, {"charv_int64_add", "charv"}};
 
                      
 

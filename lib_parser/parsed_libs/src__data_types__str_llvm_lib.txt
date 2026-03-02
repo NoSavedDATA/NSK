@@ -1,4 +1,4 @@
-1822-01-20 15:07:52
+1822-03-01 20:54:38
 
 	FunctionType *str_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -90,6 +90,13 @@
 		false
 	);
 	TheModule->getOrInsertFunction("str_split_idx", str_split_idxTy);
+
+	FunctionType *can_convert_to_floatTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("can_convert_to_float", can_convert_to_floatTy);
 
 	FunctionType *str_to_floatTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
