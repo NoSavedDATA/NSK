@@ -1611,8 +1611,6 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
         Init = std::make_unique<IntExprAST>(0);
       else if (data_type=="bool")
         Init = std::make_unique<BoolExprAST>(false);
-      else if (data_type=="str")
-        Init = std::make_unique<StringExprAST>("");
       else
         Init = std::make_unique<NullPtrExprAST>();
     }

@@ -8,4 +8,4 @@ extern std::map<std::string, std::vector<char *>> StrVecAuxHash;
 
 
 
-void str_vec_Clean_Up(void *);
+void str_vec_Clean_Up(void *, int);

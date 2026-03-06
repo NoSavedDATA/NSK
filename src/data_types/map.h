@@ -415,5 +415,5 @@ struct DT_map {
 
 
 
-void map_node_Clean_Up(void *ptr);
-void map_Clean_Up(void *ptr);
+void map_node_Clean_Up(void *ptr, int);
+void map_Clean_Up(void *ptr, int);

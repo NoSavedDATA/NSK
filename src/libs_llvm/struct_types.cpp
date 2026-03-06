@@ -10,7 +10,7 @@ std::unordered_map<std::string, int> struct_type_size;
 
 std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, std::string, Data_Tree, Value*, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&)>> struct_create_fn;
 
-std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&)>> llvm_callee;
+std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&)>> llvm_callee;
 
 void Generate_Struct_Types() {
     // Get llvm types
@@ -109,4 +109,11 @@ void Generate_Struct_Types() {
         );
     struct_types["DT_file"] = File_Struct_Type;
     struct_type_size["file"] = FileBufferSize + 4*4 + 8 + 8;
+
+    struct_types["DT_str"] = StructType::create(
+            *TheContext,
+            {int8PtrTy, int8PtrTy, intTy},
+            "str"
+        );
+    struct_type_size["str"] = 8+8+4;
 }

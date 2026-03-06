@@ -1,4 +1,4 @@
-1822-01-22 12:07:35
+1822-03-02 16:12:25
 
 	FunctionType *list_NewTy= FunctionType::get(
 		int8PtrTy,
@@ -8,21 +8,21 @@
 	TheModule->getOrInsertFunction("list_New", list_NewTy);
 
 	FunctionType *list_append_intTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("list_append_int", list_append_intTy);
 
 	FunctionType *list_append_floatTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, Type::getFloatTy(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("list_append_float", list_append_floatTy);
 
 	FunctionType *list_append_boolTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, Type::getInt1Ty(*TheContext)},
 		false
 	);

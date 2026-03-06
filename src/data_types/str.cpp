@@ -32,7 +32,7 @@ extern "C" char *str_Create(Scope_Struct *scope_struct) {
 
 
 
-void str_Clean_Up(void *data_ptr)
+void str_Clean_Up(void *data_ptr, int tid)
 {
   char *char_ptr = static_cast<char *>(data_ptr);
   move_to_char_pool(strlen(char_ptr)+1, char_ptr, "Mark sweep of str");

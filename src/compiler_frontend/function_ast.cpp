@@ -39,6 +39,7 @@ void InitializeModule() {
   int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
   int8Ty = Type::getInt8Ty(*TheContext);
   intTy = Type::getInt32Ty(*TheContext);
+  int16Ty = Type::getInt16Ty(*TheContext);
   int64Ty = Type::getInt64Ty(*TheContext);
   floatTy = Type::getFloatTy(*TheContext);
   boolTy = Type::getInt1Ty(*TheContext);

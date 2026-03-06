@@ -41,7 +41,7 @@ void set_user_functions() {
 		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
 		"print", "print_void_ptr", "print_int", "print_int64", "print_uint64", 
 		"dir_exists", "path_exists", 
-		"allocate_void", 
+		"allocate_void", "allocate_pool", 
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"read_float", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 

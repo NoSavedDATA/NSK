@@ -20,5 +20,5 @@ class DT_int_vec {
 
 
 
-void int_vec_Clean_Up(void *);
+void int_vec_Clean_Up(void *, int);
 

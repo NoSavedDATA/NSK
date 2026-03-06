@@ -66,6 +66,7 @@ Lib_Info *CppFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) 
 
 
 
+
 Lib_Info *Generate_Function_Dict(Lib_Info *lib_info, std::string in_return_type, std::string function_name) {
 
     std::string return_type="";
@@ -199,6 +200,20 @@ Lib_Info *ExternFunctionExpr::Generate_Args_Dict(Lib_Info *lib_info) {
 }
 
 
+  // floatPtrTy = Type::getFloatTy(*TheContext)->getPointerTo();
+  // int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
+  // int8Ty = Type::getInt8Ty(*TheContext);
+  // intTy = Type::getInt32Ty(*TheContext);
+  // int64Ty = Type::getInt64Ty(*TheContext);
+  // floatTy = Type::getFloatTy(*TheContext);
+  // boolTy = Type::getInt1Ty(*TheContext);
+  // voidTy = Type::getVoidTy(*TheContext);
+
+std::unordered_map<std::string, std::string> str_to_type = \
+    {{"float", "Type::getFloatTy(*TheContext)"}, {"int", "Type::getInt32Ty(*TheContext)"},
+     {"uint64_t", "Type::getInt64Ty(*TheContext)"}, {"int64_t", "Type::getInt64Ty(*TheContext)"},
+     {"bool", "Type::getInt1Ty(*TheContext)"}, {"void", "Type::getVoidTy(*TheContext)"},
+     {"int16_t", "Type::getInt16Ty(*TheContext)"}, {"uint16_t", "Type::getInt16Ty(*TheContext)"}}; 
 
 Lib_Info *ExternFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) {
     
@@ -215,21 +230,10 @@ Lib_Info *ExternFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_inf
 
         std::string line1 = "\tFunctionType *" + fTy + "= FunctionType::get(\n";
 
-        std::string line2;
-
-        if (ReturnType=="float")
-            line2="\t\tType::getFloatTy(*TheContext),\n";
-        else if (ReturnType=="int")
-            line2="\t\tType::getInt32Ty(*TheContext),\n";
-        else if (ReturnType=="uint64_t")
-            line2="\t\tType::getInt64Ty(*TheContext),\n";
-        else if (ReturnType=="int64_t")
-            line2="\t\tType::getInt64Ty(*TheContext),\n";
-        else if (ReturnType=="bool")
-            line2="\t\tType::getInt1Ty(*TheContext),\n";
-        else
-            line2="\t\tint8PtrTy,\n";
-
+        std::string line2, llvm_return_type="int8PtrTy";
+        if (str_to_type.count(ReturnType)>0)
+            llvm_return_type = str_to_type[ReturnType];
+        line2="\t\t"+llvm_return_type+",\n";
 
         std::string line3 = "\t\t{";
 
@@ -237,18 +241,10 @@ Lib_Info *ExternFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_inf
         {
             for(int i=0; i<ArgTypes.size(); ++i)
             {
-                if (ArgTypes[i]=="float")
-                    line3 = line3 + "Type::getFloatTy(*TheContext)";
-                else if (ArgTypes[i]=="int")
-                    line3 = line3 + "Type::getInt32Ty(*TheContext)";
-                else if (ArgTypes[i]=="uint64_t")
-                    line3 = line3 + "Type::getInt64Ty(*TheContext)";
-                else if (ArgTypes[i]=="int64_t")
-                    line3 = line3 + "Type::getInt64Ty(*TheContext)";
-                else if (ArgTypes[i]=="bool")
-                    line3 = line3 + "Type::getInt1Ty(*TheContext)";
-                else
-                    line3 = line3 + "int8PtrTy";
+                std::string llvm_return_type="int8PtrTy";
+                if (str_to_type.count(ArgTypes[i])>0)
+                    llvm_return_type = str_to_type[ArgTypes[i]];
+                line3 = line3 + llvm_return_type;
 
                 if (i!=ArgTypes.size()-1)
                     line3 = line3 + ", ";

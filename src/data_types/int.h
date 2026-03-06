@@ -9,4 +9,4 @@
 #include "include.h"
 
 
-void int_Clean_Up(void *data_ptr);
+void int_Clean_Up(void *data_ptr, int);

@@ -13,10 +13,6 @@
 #include <vector>
 
 
-// #include "libs_parser.h"
-// #include "logging.h"
-// #include "modules.h"
-// #include "tokenizer.h"
 
 #include "../clean_up/clean_up.h"
 #include "../common/extension_functions.h"
@@ -348,7 +344,7 @@ void LibFunction::Add_to_Nsk_Dicts(void *func_ptr, std::string lib_name, bool is
         }
         recognize_data_type(nsk_type);
 
-        using CleanupFunc = void(*)(void*);
+        using CleanupFunc = void(*)(void*,int);
         CleanupFunc casted_func_ptr = reinterpret_cast<CleanupFunc>(func_ptr);
         clean_up_functions[nsk_type] = casted_func_ptr;
 
@@ -756,9 +752,6 @@ void LibParser::ParseExtern() {
 LLVMFunction::LLVMFunction(std::string Name, Data_Tree ReturnType, std::vector<Data_Tree> ArgTypes, std::vector<std::string> ArgNames, bool IsDtCreate) : Name(Name), ReturnType(ReturnType), ArgNames(std::move(ArgNames)), ArgTypes(std::move(ArgTypes)), IsDtCreate(IsDtCreate) {}
 
 
-// std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string, Data_Tree, Value*, Value*, std::vector<Value*>)>> struct_create_fn;
-
-// std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&)>> llvm_callee;
 
 void LLVMFunction::HandleCreate(void *func) {
 
@@ -774,7 +767,7 @@ void LLVMFunction::HandleStandard(void *func) {
     native_methods.push_back(Name);
 
 
-    using CalleeFn = Value*(*)(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<Value*>&); 
+    using CalleeFn = Value*(*)(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&); 
     CalleeFn fn = reinterpret_cast<CalleeFn>(func);
     llvm_callee[Name] = fn;
 
@@ -843,11 +836,6 @@ void LibParser::ParseLibs() {
     {  
       if (token==tok_extern)
         ParseExtern();
-      // else if (running_string == "Value" && seen_spaces==0) {
-      //     token = _getToken();
-      //     if (token='*')
-      //         ParseLLVMFunction();
-      // }
       token = _getToken();
     }
 }

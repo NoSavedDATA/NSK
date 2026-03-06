@@ -63,16 +63,10 @@ void DT_dict::delete_type(std::string key) {
     auto it_type = data_types->find(key);
    
 
-    void *data_ptr=nullptr;
-    if(it_type->second!="float")
-        data_ptr = std::any_cast<void *>(it->second);    
-    
-    // if(data_ptr!=nullptr)
-    //     std::cout << "" << it_type->second << " NOT NULL.\n";
-    // else 
-    //     std::cout << "GOT NULL OF " << it_type->second << ".\n";
-
-    clean_up_functions[it_type->second](data_ptr);
+    // void *data_ptr=nullptr;
+    // if(it_type->second!="float")
+    //     data_ptr = std::any_cast<void *>(it->second);    
+    // clean_up_functions[it_type->second](data_ptr);
 }
 
 

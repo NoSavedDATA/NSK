@@ -137,9 +137,8 @@ class BoolExprAST : public ExprAST {
 
   
 class StringExprAST : public ExprAST {
-  std::string Val;
-
   public:
+    std::string Val;
     StringExprAST(std::string Val); 
 
   Value *codegen(Value *scope_struct) override;

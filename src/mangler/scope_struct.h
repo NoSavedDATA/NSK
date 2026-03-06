@@ -58,8 +58,8 @@ struct Scope_Struct {
     void Print();
     void Print_Stack();
 
-    void *Allocate(int size, int type_id) {
-        void *ret = gc->Allocate(size, type_id, thread_id); 
+    inline void *Allocate(int size, int type_id) {
+        void *ret = gc->Allocate(this, size, type_id, thread_id); 
         return ret;
     }
 };

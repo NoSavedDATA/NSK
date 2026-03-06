@@ -26,7 +26,7 @@ extern "C" void *str_vec_Create(Scope_Struct *scope_struct)
 
 
 
-void str_vec_Clean_Up(void *data_ptr) {
+void str_vec_Clean_Up(void *data_ptr, int tid) {
 }
 
 

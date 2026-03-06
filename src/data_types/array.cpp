@@ -18,8 +18,8 @@ void DT_array::New(int size, int elem_size, int tid, std::string type) {
     size = ((size + 7) / 8)*8;
     this->size = size;
     
-    data = (void*)malloc(size*elem_size);
-    // data = cache_pop(size*elem_size, tid);
+    // data = (void*)malloc(size*elem_size);
+    data = cache_pop(size*elem_size, tid);
 }
 
 void DT_array::New(int size, int tid, std::string type) {
@@ -31,8 +31,8 @@ void DT_array::New(int size, int tid, std::string type) {
     this->size = size;
 
     
-    data = (void*)malloc(size*8);
-    // data = cache_pop(size*elem_size, tid);
+    // data = (void*)malloc(size*8);
+    data = cache_pop(size*elem_size, tid);
 }
 
 
@@ -47,14 +47,15 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, Data_Tree *dt)
 
 
   DT_array *vec = newT<DT_array>(scope_struct, "array");
-  // vec->New(8, elem_size, scope_struct->thread_id, elem_type);
+  vec->New(8, elem_size, scope_struct->thread_id, elem_type);
   vec->virtual_size = 0;
   return vec;
 }
 
-void array_Clean_Up(void *data_ptr) {
+void array_Clean_Up(void *data_ptr, int tid) {
     DT_array *array = static_cast<DT_array *>(data_ptr);
-    free(array->data);
+    // free(array->data);
+    cache_push(array->data, array->size, tid);
 }
 
 extern "C" int array_size(Scope_Struct *scope_struct, DT_array *vec) {
@@ -70,15 +71,18 @@ extern "C" int array_bad_idx(int line, int idx, int size) {
 
 
 
-extern "C" void array_double_size(DT_array *vec, int new_size) {
+extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec, int new_size) {
     // vec->data 
+    int tid = scope_struct->thread_id;
     int old_size = vec->virtual_size*vec->elem_size;
     int vec_size = new_size         *vec->elem_size;
 
-    void *new_data = (void*)malloc(vec_size);
+    // void *new_data = (void*)malloc(vec_size);
+    void *new_data = cache_pop(vec_size, tid);
     memcpy(new_data, vec->data, old_size);
 
-    free(vec->data);
+    // free(vec->data);
+    cache_push(vec->data, old_size, tid);
     vec->data = new_data;
     vec->size = new_size;
     vec->virtual_size++;

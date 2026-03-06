@@ -1,7 +1,7 @@
 1821-09-03 10:12:07
 
 	FunctionType *Delete_PtrTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
 		false
 	);

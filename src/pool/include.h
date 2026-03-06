@@ -90,8 +90,6 @@ inline void *cache_pop(int size, int tid) {
 
 inline void cache_push(void* ptr, int size, int tid) {
     int exp = round_up_pow2_exp(size);
-
     auto& bucket = memory_cache[tid][exp];
-
     bucket.push_back(ptr);
 }

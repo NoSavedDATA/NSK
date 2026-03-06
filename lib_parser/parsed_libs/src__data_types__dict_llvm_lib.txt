@@ -1,4 +1,4 @@
-1822-01-20 15:09:48
+1822-03-02 16:12:08
 
 	FunctionType *dict_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -15,21 +15,21 @@
 	TheModule->getOrInsertFunction("dict_New", dict_NewTy);
 
 	FunctionType *dict_Store_KeyTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("dict_Store_Key", dict_Store_KeyTy);
 
 	FunctionType *dict_Store_Key_intTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("dict_Store_Key_int", dict_Store_Key_intTy);
 
 	FunctionType *dict_Store_Key_floatTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getFloatTy(*TheContext)},
 		false
 	);

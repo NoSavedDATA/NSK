@@ -136,7 +136,7 @@ extern "C" void *dict_Query(Scope_Struct *scope_struct, DT_dict *dict, char *que
     return nullptr;
 }
 
-void dict_Clean_Up(void *data_ptr) {
+void dict_Clean_Up(void *data_ptr, int tid) {
     if (data_ptr==nullptr)
         return;
 

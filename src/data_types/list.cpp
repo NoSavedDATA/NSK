@@ -166,7 +166,7 @@ extern "C" DT_float_vec *list_as_float_vec(Scope_Struct *scope_struct, DT_list *
 }
 
 
-void list_Clean_Up(void *data_ptr) {
+void list_Clean_Up(void *data_ptr, int tid) {
   if (data_ptr==nullptr)
     return;
   // std::cout << "list cleanup" << ".\n";

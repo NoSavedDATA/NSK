@@ -23,16 +23,4 @@ uint16_t GC_size_to_class[GC_N+1];
 uint16_t GC_size_to_c[GC_N+1];
 
 std::array<GC_span_traits*, GC_obj_sizes> GC_span_traits_vec;
-std::unordered_map<int, std::vector<char *>> arena_base_addr;
-
-
-
-
-
-
-
-
-
-
-
-
+std::array<char *, 100> arena_base_addr;

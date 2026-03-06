@@ -1,4 +1,4 @@
-1822-03-01 20:54:38
+1822-03-04 13:37:57
 
 	FunctionType *str_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -120,7 +120,7 @@
 	TheModule->getOrInsertFunction("str_str_equal", str_str_equalTy);
 
 	FunctionType *str_DeleteTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
 		false
 	);

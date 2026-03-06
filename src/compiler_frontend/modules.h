@@ -42,7 +42,9 @@ extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Funct
 extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, std::string,
                                                        Data_Tree,
                                                        std::vector<Data_Tree>&,
-                                                       Value*, std::vector<Value*>&)>> llvm_callee;
+                                                       Value*,
+                                                       std::vector<std::unique_ptr<ExprAST>>&,
+                                                       std::vector<Value*>&)>> llvm_callee;
 
 
 
@@ -51,6 +53,12 @@ inline Value *const_int8(int8_t val) {
 }
 inline Value *const_int(int val) {
     return ConstantInt::get(Type::getInt32Ty(*TheContext), val);
+}
+inline Value *const_int16(int16_t val) {
+    return ConstantInt::get(Type::getInt16Ty(*TheContext), val);
+}
+inline Value *const_uint16(uint16_t val) {
+    return ConstantInt::get(Type::getInt16Ty(*TheContext), val);
 }
 inline Value *const_int64(int val) {
     return ConstantInt::get(Type::getInt64Ty(*TheContext), val);

@@ -12,4 +12,4 @@ struct DT_file {
     int line_counter, bytes_read, bytes_remaining;
 };
 
-void file_Clean_Up(void *);
+void file_Clean_Up(void *, int);

@@ -428,13 +428,13 @@ int main(int argc, char* argv[]) {
   Function_Required_Arg_Count["malloc_str"] = 1;
 
   // allocate
-  functions_return_data_type["alloc_pool"] = Data_Tree("any");
-  llvm_callee["alloc_pool"] = alloc_pool;
-  Function_Arg_DataTypes["alloc_pool"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["alloc_pool"]["1"] = Data_Tree("int");
-  Function_Arg_DataTypes["alloc_pool"]["2"] = Data_Tree("str");
-  Function_Arg_Names["alloc_pool"] = {"0", "1", "2"};
-  Function_Required_Arg_Count["alloc_pool"] = 1;
+  functions_return_data_type["alloc"] = Data_Tree("any");
+  llvm_callee["alloc"] = alloc;
+  Function_Arg_DataTypes["alloc"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["alloc"]["1"] = Data_Tree("int");
+  Function_Arg_DataTypes["alloc"]["2"] = Data_Tree("str");
+  Function_Arg_Names["alloc"] = {"0", "1", "2"};
+  Function_Required_Arg_Count["alloc"] = 1;
 
   // DT_file
   struct_create_fn["DT_file"] = DT_file_create;

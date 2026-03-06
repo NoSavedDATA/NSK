@@ -1,21 +1,21 @@
 1822-01-19 14:54:02
 
 	FunctionType *dive_voidTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("dive_void", dive_voidTy);
 
 	FunctionType *dive_intTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("dive_int", dive_intTy);
 
 	FunctionType *dive_floatTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, Type::getFloatTy(*TheContext), int8PtrTy},
 		false
 	);

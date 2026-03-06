@@ -212,7 +212,6 @@ inline void delete_scope(Scope_Struct *scope_struct) {
 
 
 void alloc_gc_vspace(Scope_Struct *scope_struct, int size) {
-    // std::cout << "alloc vspace of " << size << ".\n";
     scope_struct->gc->size_occupied += size;
 }
 
@@ -226,24 +225,24 @@ extern "C" void scope_struct_Sweep(Scope_Struct *scope_struct) {
 }
 
 extern "C" void scope_struct_Delete(Scope_Struct *scope_struct) {
+    // Called by threads exiting
     GC *gc = scope_struct->gc;
 
-    std::cout << "***sweep " << "\n";
-    std::exit(0);
+    // std::cout << "***sweep " << "\n";
+    // std::exit(0);
 
     gc->Sweep(scope_struct);
 
-    for (auto arena : gc->arenas) {        
-        for (int span_group=0; span_group<arena->Spans.size(); span_group++) {
-            for (const auto &span : arena->Spans[span_group]) {
-                // free(span->mark_bits);
-                // free(span->type_metadata);
-                // free(span);
-            }
-        } 
-        // free(arena->arena); // todo: channels may receive data only after the arena was cleaned
-        free(arena->metadata);
-    }
+    for (int span_group=0; span_group<gc->arena->Spans.size(); span_group++) {
+        for (const auto &span : gc->arena->Spans[span_group]) {
+            // free(span->mark_bits);
+            // free(span->type_metadata);
+            // free(span);
+        }
+    } 
+    // free(arena->arena); // todo: channels may receive data only after the arena was cleaned
+    free(gc->arena->metadata);
+
 
     free(scope_struct);
     free(gc);

@@ -1,1 +1,1 @@
-"allocate_void", 
+"allocate_void", "allocate_pool", 

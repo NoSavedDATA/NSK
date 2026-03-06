@@ -1,7 +1,7 @@
-1822-03-01 22:47:39
+1822-03-05 21:22:28
 
 	FunctionType *scope_struct_Alloc_GCTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
 		false
 	);

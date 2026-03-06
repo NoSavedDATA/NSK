@@ -38,7 +38,7 @@ extern "C" void *float_vec_Create(Scope_Struct *scope_struct, int size)
 }
 
  
-void float_vec_Clean_Up(void *data_ptr) {
+void float_vec_Clean_Up(void *data_ptr, int tid) {
   // std::cout << "delete float_vec" << ".\n";
   DT_float_vec *vec = static_cast<DT_float_vec*>(data_ptr);
   free(vec->vec);

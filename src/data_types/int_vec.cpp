@@ -43,7 +43,7 @@ extern "C" int nsk_vec_size(Scope_Struct *scope_struct, Nsk_Vector *vec) {
 }
 
  
-void int_vec_Clean_Up(void *data_ptr) {
+void int_vec_Clean_Up(void *data_ptr, int tid) {
   std::cout << "delete int_vec" << ".\n";
   DT_int_vec *vec = static_cast<DT_int_vec*>(data_ptr);
   free(vec->vec);

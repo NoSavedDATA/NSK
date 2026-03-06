@@ -8,14 +8,14 @@
 	TheModule->getOrInsertFunction("GetEmptyChar", GetEmptyCharTy);
 
 	FunctionType *FreeCharFromFuncTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("FreeCharFromFunc", FreeCharFromFuncTy);
 
 	FunctionType *FreeCharTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
 		false
 	);

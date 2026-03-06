@@ -103,6 +103,26 @@ inline int find_free_16_l2(uint64_t* buf, int words) {
     return -1;
 }
 
+// Find first uint16 that has the 2 leftmost bits set to 0, considers previous seen slots
+inline int find_free_16_l2(uint64_t* buf, int words, int offset) {
+    const int per = 4; // 4 x 16 bits inside each int64;
+    
+    int b_offset = offset-(offset/4)*4;
+    for (int w = offset/4; w < words; ++w) {
+        if (~buf[w]) {
+
+            for (int i = b_offset; i < per; ++i) {
+                int off = i * 16;
+                uint64_t slot = (buf[w] >> (off+14)) & 3;
+                if (slot == 0)      // free = zero
+                    return w * per + i;
+            }
+            b_offset=0;
+        }
+    }
+    return -1;
+}
+
 
 
 
@@ -134,3 +154,20 @@ inline void mark_bits_free(uint64_t *mark_bits, const int idx) {
 }
 
 
+
+inline bool get_1(uint64_t* mark_bits, uint32_t idx) {
+    return (mark_bits[idx >> 6] >> (idx & 63)) & 1;
+}
+inline void set_1(uint64_t* mark_bits, uint32_t idx) {
+    mark_bits[idx >> 6] |= (1ULL << (idx & 63));
+}
+
+inline int mark_bits_find(uint64_t* mark_bits, int words) {
+    for (int w = 0; w < words; ++w) {
+        uint64_t free = ~mark_bits[w];
+        if (free) {
+            return (w << 6) + __builtin_ctzll(free);
+        }
+    }
+    return -1;
+}

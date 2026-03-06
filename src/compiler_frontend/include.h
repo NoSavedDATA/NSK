@@ -67,6 +67,6 @@ extern std::unique_ptr<llvm::orc::KaleidoscopeJIT> TheJIT;
 extern ExitOnError ExitOnErr;
 
 extern PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
-extern llvm::Type *floatTy, *intTy, *int8Ty, *int64Ty, *boolTy, *voidTy;
+extern llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *boolTy, *voidTy;
 
 extern Value *stack, *stack_top_value;

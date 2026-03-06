@@ -1,4 +1,4 @@
-1822-03-01 23:51:34
+1822-03-02 16:56:56
 
 	FunctionType *array_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -22,14 +22,14 @@
 	TheModule->getOrInsertFunction("array_bad_idx", array_bad_idxTy);
 
 	FunctionType *array_double_sizeTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		Type::getVoidTy(*TheContext),
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("array_double_size", array_double_sizeTy);
 
 	FunctionType *array_print_intTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, int8PtrTy},
 		false
 	);

@@ -315,5 +315,5 @@ extern "C" bool int_channel_alive(Scope_Struct *scope_struct, Channel *ch) {
 }
 
 
-void channel_Clean_Up(void *ptr) {
+void channel_Clean_Up(void *ptr, int tid) {
 }

@@ -13,5 +13,5 @@ class DT_array {
 };
 
 
-void array_Clean_Up(void *data_ptr);
+void array_Clean_Up(void *data_ptr, int);
 

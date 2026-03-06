@@ -1,4 +1,4 @@
-1822-03-01 23:29:51
+1822-03-05 21:30:32
 
 	FunctionType *allocate_voidTy= FunctionType::get(
 		int8PtrTy,
@@ -6,3 +6,10 @@
 		false
 	);
 	TheModule->getOrInsertFunction("allocate_void", allocate_voidTy);
+
+	FunctionType *allocate_poolTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt16Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("allocate_pool", allocate_poolTy);

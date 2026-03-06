@@ -36,7 +36,7 @@ std::string current_codegen_function;
 std::vector<Value *> thread_pointers;
 
 PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
-llvm::Type *floatTy, *intTy, *int8Ty, *int64Ty, *boolTy, *voidTy;
+llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *boolTy, *voidTy;
 
 
 Value *stack_top_value;
@@ -45,22 +45,10 @@ Value *stack_top_value;
 
 Value * VoidPtr_toValue(void *vec)
 {
-  auto void_ptr_ty = Type::getInt8Ty(*TheContext)->getPointerTo();
-  Value* LLVMValue = ConstantInt::get(Type::getInt64Ty(*TheContext), reinterpret_cast<uint64_t>(vec));
-  return Builder->CreateIntToPtr(LLVMValue, void_ptr_ty);
+  Value* LLVMValue = ConstantInt::get(int64Ty, reinterpret_cast<uint64_t>(vec));
+  return Builder->CreateIntToPtr(LLVMValue, int8PtrTy);
 }
 
-Value* FloatPtr_toValue(float* vec)
-{
-    // Get the type for float*
-    auto float_ptr_ty = Type::getFloatTy(*TheContext)->getPointerTo();
-    
-    // Convert the float* to uint64_t and create a constant integer value
-    Value* LLVMValue = ConstantInt::get(Type::getInt64Ty(*TheContext), reinterpret_cast<uint64_t>(vec));
-    
-    // Cast the integer value to float*
-    return Builder->CreateIntToPtr(LLVMValue, float_ptr_ty);
-}
 
 Value *load_alloca(std::string name, std::string type, std::string from_function) {
 
@@ -308,6 +296,10 @@ Value *StringExprAST::codegen(Value *scope_struct) {
     return const_float(0.0f);
   SetName(Val);
   // Value *_str = callret("CopyString", {scope_struct, global_str(Val)});
+  // Value *str = callret("allocate_void", {scope_struct,
+  //                                       const_int(20),
+  //                                       global_str("str")});
+  
   return global_str(Val);
 }
 
@@ -486,7 +478,7 @@ inline Value *get_scope_obj_gep(Value *scope_struct) {
 }
 
 void check_scope_struct_sweep(Function *TheFunction, Value *scope_struct, const Parser_Struct &parser_struct) {
-  // return;
+  return;
   
   Value *GC_ptr = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5, "GC_ptr_element");
   Value *GC = Builder->CreateLoad(struct_types["GC"]->getPointerTo(), GC_ptr, "GC");
@@ -917,7 +909,7 @@ Value *DT_file_create(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
 
     BasicBlock *ErrBB = BasicBlock::Create(*TheContext, "file_read.good", TheFunction);
     BasicBlock *GoodBB = BasicBlock::Create(*TheContext, "file_read.no_file", TheFunction);
@@ -939,31 +931,41 @@ Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return callret("read", {ArgsV[1], ArgsV[2], ArgsV[3]});
 }
 
 Value *malloc_str(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return callret("malloc", {ArgsV[1]});
 }
 
-Value *alloc_pool(Parser_Struct parser_struct, Function *TheFunction,
+Value *alloc(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
-    return callret("allocate_void", {scope_struct, ArgsV[1], ArgsV[2]});
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
+    
+    Value *type_id;
+    if(auto *str_expr = dynamic_cast<StringExprAST*>(Args[1].get()))
+        type_id = const_uint16(data_name_to_type[str_expr->Val]);
+    else {
+        LogErrorS(parser_struct.line, "alloc requires const string");
+        std::exit(0);
+    }
+
+    return callret("allocate_pool", {scope_struct, ArgsV[1], type_id});
+    // return callret("allocate_void", {scope_struct, ArgsV[1], ArgsV[2]});
 }
 
 Value *c_strlen(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return callret("strlen", {ArgsV[1]});
 }
 
 Value *c_memcpy(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Builder->CreateMemCpy(ArgsV[1], Align(1), ArgsV[2], Align(1), ArgsV[3]);
     // Value *last_c_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[1], ArgsV[3]);
     // Builder->CreateStore(const_int8('\0'), last_c_gep);
@@ -972,7 +974,7 @@ Value *c_memcpy(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *str_set(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *last_c_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[1], ArgsV[2]);
     Builder->CreateStore(Builder->CreateTrunc(ArgsV[3], int8Ty), last_c_gep);
     return const_int(0);
@@ -980,13 +982,13 @@ Value *str_set(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *str_offset(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return Builder->CreateGEP(int8Ty, ArgsV[1], ArgsV[2]);
 }
 
 Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *buf = ArgsV[1];
     Value* newlineVal = ArgsV[2];
     // Value *split_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[2], {const_int(0), const_int(0)});
@@ -1014,7 +1016,7 @@ Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *err(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
 
     call("LogErrorCall", {const_int(parser_struct.line), ArgsV[1]});
     call("_quit_", {});
@@ -1024,7 +1026,7 @@ Value *err(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *file_open(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
 
     Value *file_value = ArgsV[1];
     StructType *st = struct_types["DT_file"];
@@ -1069,7 +1071,7 @@ Value *file_open(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<Value*> &ArgsV) {
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *file_value = ArgsV[1];
 
     StructType *st = struct_types["DT_file"];
@@ -1234,7 +1236,7 @@ Value *file_read(Parser_Struct parser_struct, Function *TheFunction,
 
 Value *file_opened(Parser_Struct parser_struct, Function *TheFunction, std::string Callee,
         Data_Tree data_type, std::vector<Data_Tree> &args_type,
-        Value *scope_struct, std::vector<Value*> &ArgsV) {
+        Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *file_value = ArgsV[1];
     StructType *st = struct_types["DT_file"];
 
@@ -4064,7 +4066,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         //bad size (thus double array size)
         Builder->SetInsertPoint(bad_sizeBB);
         Value *new_size = Builder->CreateMul(size, const_int(2));
-        call("array_double_size", {loaded_var, new_size}); 
+        call("array_double_size", {scope_struct, loaded_var, new_size}); 
         vec = Load_Array(parser_struct.function_name, loaded_var);
         elem_gep = Builder->CreateGEP(elemTy, vec, vsize); 
         Builder->CreateStore(appended_val, elem_gep);
@@ -4082,7 +4084,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
 Value *print(Parser_Struct parser_struct, Function *TheFunction,
         std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-        Value *scope_struct, std::vector<Value*> &ArgsV) {
+        Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
 
     Value *offset = const_int(0);
 
@@ -4207,7 +4209,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
     Value *ret;
     if (llvm_callee.count(Callee)>0)
     ret = llvm_callee[Callee](parser_struct, TheFunction, Callee, data_type, ArgTypes,
-                              scope_struct, ArgsV);
+                              scope_struct, Args, ArgsV);
   else
     ret = callret(Callee, ArgsV);
 

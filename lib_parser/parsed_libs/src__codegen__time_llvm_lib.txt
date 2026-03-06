@@ -1,14 +1,14 @@
 1821-09-03 10:12:07
 
 	FunctionType *__slee_p_Ty= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, Type::getInt32Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("__slee_p_", __slee_p_Ty);
 
 	FunctionType *random_sleepTy= FunctionType::get(
-		int8PtrTy,
+		Type::getVoidTy(*TheContext),
 		{int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext)},
 		false
 	);

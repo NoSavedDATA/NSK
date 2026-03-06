@@ -68,11 +68,11 @@ extern "C" DT_map *map_Create(Scope_Struct *scope_struct, Data_Tree dt) {
     return map;
 }
 
-void map_node_Clean_Up(void *ptr) {
+void map_node_Clean_Up(void *ptr, int tid) {
     // Let the map clean as it has better context.
 }
 
-void map_Clean_Up(void *ptr) {
+void map_Clean_Up(void *ptr, int tid) {
     DT_map *map = static_cast<DT_map*>(ptr);
  
     bool key_primary = in_str(map->key_type, primary_data_tokens);

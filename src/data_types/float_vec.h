@@ -19,4 +19,4 @@ struct DT_float_vec {
     void New(int);
 };
 
-void float_vec_Clean_Up(void *);
+void float_vec_Clean_Up(void *, int);

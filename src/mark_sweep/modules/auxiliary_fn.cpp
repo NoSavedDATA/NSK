@@ -21,19 +21,12 @@ std::string get_pool_obj_type(Scope_Struct *scope_struct, void *ptr) {
     GC *gc = scope_struct->gc;
 
     int tid = scope_struct->thread_id;
-    char *arena_addr;
+    char *arena_addr = arena_base_addr[tid];
 
     char *p = static_cast<char*>(ptr);
     // int arena =  arena_offset / GC_arena_size;
 
-    bool in_bounds;
-    int arena_id=-1;
-    do {
-        arena_id++;
-        arena_addr = arena_base_addr[tid][arena_id]; 
-        // arena =  arena_offset / GC_arena_size;
-        in_bounds = (p>=arena_addr||p<arena_addr+GC_arena_size);
-    } while(!in_bounds&&arena_id<arena_base_addr[tid].size()-1);
+    bool in_bounds = (p>=arena_addr||p<arena_addr+GC_arena_size);
     if (!in_bounds) {
         std::cout << "at get_pool_obj_type()" << ".\n";
         std::cout << " Address " << ptr << " address does not reside in any memory pool.\n";
@@ -42,7 +35,7 @@ std::string get_pool_obj_type(Scope_Struct *scope_struct, void *ptr) {
     long arena_offset = static_cast<char*>(ptr) - arena_addr;
     int page  =  (arena_offset / GC_page_size) % pages_per_arena;
 
-    GC_Span *span = scope_struct->gc->arenas[arena_id]->page_to_span[page];
+    GC_Span *span = scope_struct->gc->arena->page_to_span[page];
 
     long obj_idx = (static_cast<char*>(ptr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
