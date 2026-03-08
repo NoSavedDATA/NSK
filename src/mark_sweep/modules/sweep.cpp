@@ -14,6 +14,7 @@
 #include "../../data_types/array.h"
 #include "../../data_types/list.h"
 #include "../../data_types/map.h"
+#include "../../data_types/type_info.h"
 #include "../../mangler/scope_struct.h"
 #include "../../pool/pool.h"
 #include "../include.h"
@@ -24,19 +25,13 @@
 
 
 
-void Reset_Pools(GC_Arena *arena) {
+void Reset_Pools(GC_Arena *arena, uint64_t mark_bit) {
     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-        int span_id=0;
         for (const auto &span : arena->Spans[span_group]) {
-            if(span_id==0)
-                arena->current_span[span_group] = span;
-            span->free_idx=0;
             GC_span_traits *traits = span->traits;
             for (int i=0; i<traits->N; ++i) {
-                mark_bits_free(span->mark_bits, i);
-                set_16_L1(span->type_metadata, i, 0u);
+                mark_bits_free(span->mark_bits, mark_bit);
             }
-            span_id++;
         }
     }
 }
@@ -50,7 +45,7 @@ inline void check_is_in_bounds(char *arena_addr, char *p) {
     }
 }
 
-inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr) {
+inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t &type, uint64_t mark_bit) {
         char *p = static_cast<char*>(node_ptr);
         check_is_in_bounds(arena_addr, p);
 
@@ -61,57 +56,60 @@ inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr) {
 
         long obj_idx = (p - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
-        set_16_L1(span->type_metadata, obj_idx, 1u);
+        type = get_16_r12(span->type_metadata, obj_idx);
+        // set_16_L1(span->type_metadata, obj_idx, 1u);
+        set_1(span->mark_bits, obj_idx, mark_bit);
 }
 
 
 
-inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, const std::string &root_type, std::vector<GC_Node> &work_list) {
-    if (root_type=="channel") {
-        LogBlue("FROM ROOT OF CHANNEL");
-    }
-    if (root_type=="list") {
+inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_type, std::vector<GC_Node> &work_list, uint64_t mark_bit) {
+    uint16_t type16;
+    // if (root_type=="channel") {
+    //     LogBlue("FROM ROOT OF CHANNEL");
+    // }
+    if (root_type==uint16_t{6}) { // list
         DT_list *list = static_cast<DT_list*>(ptr);
         for (int i=0; i<list->size; ++i) {
             const char *type = list->data_types->at(i).c_str(); 
-            if(!strcmp(type, "list")) {
-                gc_list(arena, arena_addr, list->get<void*>(i), "list", work_list);
+            uint16_t list_type = data_name_to_type[type];
+            if(in_vec(list_type, compound_types)) {
+                gc_list(arena, arena_addr, list->get<void*>(i), list_type, work_list, mark_bit);
                 continue;
             }
-            if(!strcmp(type, "str")) {
-                mark_obj(arena, arena_addr, list->get<char*>(i));
+            if(list_type==uint16_t{5}) { //str
+                mark_obj(arena, arena_addr, list->get<char*>(i), type16, mark_bit);
                 continue;
             }
-            if(strcmp(type, "int")&&strcmp(type, "float")&&strcmp(type, "bool")) // not a primary
-                mark_obj(arena, arena_addr, list->get<void*>(i));
-            //     work_list.push_back(GC_Node(list->get<void*>(i), type));
+            if(!in_vec(list_type, primary_data_types)) //not a primary
+                mark_obj(arena, arena_addr, list->get<void*>(i), type16, mark_bit);
         }
     }
-    if (root_type=="array") {
+    if (root_type==uint16_t{12}) { // array 
         DT_array *array = static_cast<DT_array*>(ptr);
         void **data = static_cast<void **>(array->data);
         
         if (in_str(array->type, compound_tokens)) {
             for (int i=0; i<array->virtual_size; ++i) {
-                mark_obj(arena, arena_addr, data[i]);
-                gc_list(arena, arena_addr, data[i], array->type, work_list);
+                mark_obj(arena, arena_addr, data[i], type16, mark_bit);
+                gc_list(arena, arena_addr, data[i], data_name_to_type[array->type], work_list, mark_bit);
             }
         }
         else if(!in_str(array->type, primary_data_tokens)) {
             for (int i=0; i<array->virtual_size; ++i)
-                mark_obj(arena, arena_addr, data[i]);
+                mark_obj(arena, arena_addr, data[i], type16, mark_bit);
         } 
     }
-    if (root_type=="map") {
+    if (root_type==uint16_t{8}) { // map 
         DT_map *map = static_cast<DT_map*>(ptr);
-        bool is_value_compound = in_str(map->val_type, compound_tokens);
+        bool is_value_compound = in_vec(data_name_to_type[map->val_type], compound_types);
 
         for (int i=0; i<map->capacity; ++i) {
             DT_map_node *node = map->nodes[i];
             while (node!=nullptr) {
-                mark_obj(arena, arena_addr, node);
+                mark_obj(arena, arena_addr, node, type16, mark_bit);
                 if(is_value_compound);
-                    gc_list(arena, arena_addr, node, map->val_type, work_list);
+                    gc_list(arena, arena_addr, node, data_name_to_type[map->val_type], work_list, mark_bit);
                 node = node->next;
             }
         }
@@ -119,89 +117,119 @@ inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, const std::str
 }
 
 
-void mark_worklist_pointers(GC_Arena *arena, char *arena_addr, std::vector<GC_Node> &work_list) {
+void mark_worklist_pointers(GC_Arena *arena, char *arena_addr, std::vector<GC_Node> &work_list, uint64_t mark_bit) {
+    uint16_t type16;
     for (int i=0; i<work_list.size(); ++i) {
         GC_Node &node = work_list[i];
-        mark_obj(arena, arena_addr, node.ptr);
-        // std::cout << "push obj attr of type: " << node.type << "/" << node.ptr << ".\n";
+        mark_obj(arena, arena_addr, node.ptr, type16, mark_bit);
 
-        if (ClassPointers.count(node.type)>0) {
-            for (int j=0; j<ClassPointers[node.type].size(); ++j) {
-                int offset = ClassPointers[node.type][j];
-                std::string type = ClassPointersType[node.type][j];
+        TypeInfo *class_info = type_info[type16]; 
+        if (class_info!=nullptr) {
+            for (int ptr_i=0; ptr_i<class_info->pointers_count; ++ptr_i) {
+                PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
+                uint16_t offset = ptr_info->offset;
+                uint16_t nested_type = ptr_info->type;
 
                 void **slot = (void **)(static_cast<char*>(node.ptr)+offset);
-
                 if(check_initialized_field(slot))
-                    work_list.push_back(GC_Node(*slot, type));
+                    work_list.push_back(GC_Node(*slot, nested_type));
             }
         }
-        gc_list(arena, arena_addr, node.ptr, node.type, work_list);
+        gc_list(arena, arena_addr, node.ptr, type16, work_list, mark_bit);
     }
 }
 
 
-void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *arena_addr) {
+void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *arena_addr, uint64_t mark_bit) {
+    uint16_t type16;
     std::vector<GC_Node> work_list;
 
-    // std::cout << "stack top: " << scope_struct->stack_top << ".\n";
     for (int i=0; i<scope_struct->stack_top; ++i) {
         void *root_ptr = scope_struct->pointers_stack[i];
-        mark_obj(arena, arena_addr, root_ptr);
+        mark_obj(arena, arena_addr, root_ptr, type16, mark_bit);
 
-        // std::cout << "PUSH BACK ROOT: " << i << "/" << scope_struct->stack_top << "/" <<  root_ptr << ".\n";
+        TypeInfo *class_info = type_info[type16]; 
+        if (class_info!=nullptr) {
+            for (int ptr_i=0; ptr_i<class_info->pointers_count; ++ptr_i) {
+                PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
+                int offset = ptr_info->offset;
+                uint16_t nested_type = ptr_info->type;
 
-        std::string root_type = get_pool_obj_type(scope_struct, root_ptr);
-        // std::cout << "PUSH BACK ROOT: " << root_type << "/" << root_ptr << ".\n";
-        
-        if (ClassPointers.count(root_type)>0) {
-            for (int i=0; i<ClassPointers[root_type].size(); ++i) {
-                int offset = ClassPointers[root_type][i];
-                std::string type = ClassPointersType[root_type][i];
-                
                 void **slot = (void **)(static_cast<char*>(root_ptr)+offset);
-                
+
                 if(check_initialized_field(slot))
-                    work_list.push_back(GC_Node(*slot, type));
+                    work_list.push_back(GC_Node(*slot, nested_type));
+               
             }
         }
-        gc_list(arena, arena_addr, root_ptr, root_type, work_list);
+
+        gc_list(arena, arena_addr, root_ptr, type16, work_list, mark_bit);
     }
-    mark_worklist_pointers(arena, arena_addr, work_list);
+    mark_worklist_pointers(arena, arena_addr, work_list, mark_bit);
 }
 
 
 
+// sweep
 void GC::Sweep(Scope_Struct *scope_struct) {
-    Reset_Pools(arena);
+    // Reset_Pools(arena, mark_bit^1);
 
     int tid = scope_struct->thread_id;
     char *arena_addr = arena_base_addr[tid];
 
-    check_roots_worklist(scope_struct, arena, arena_addr);
+    check_roots_worklist(scope_struct, arena, arena_addr, mark_bit^1);
 
     CleanUp_Unused(tid); // Trigger clean_up functions
-    // Reset_Free_Lists(arena);
     allocations=0;
     size_occupied=0;
 }
 
 
-void GC::CleanUp_Unused(int tid) {
-    
-    for (int span_group=0; span_group<arena->Spans.size(); span_group++) {
-        for (const auto &span : arena->Spans[span_group]) {
-            GC_span_traits* traits = span->traits;
-            int obj_size = traits->obj_size;
-            
+struct SpanEntry {
+    GC_Span* span;
+    bool is_free;
+};
 
+void GC::CleanUp_Unused(int tid) {
+    uint64_t mask = mark_bit ? ~0ULL : 0ULL;
+
+    std::array<std::vector<SpanEntry>, GC_obj_sizes> All_Spans;
+    for (size_t i = 0; i < GC_obj_sizes; ++i) {
+        All_Spans[i].reserve(arena->Spans[i].size() + arena->Free_Spans[i].size());
+
+        for (GC_Span* s : arena->Spans[i]) {
+            All_Spans[i].push_back({s, false});
+        }
+
+        for (GC_Span* s : arena->Free_Spans[i]) {
+            All_Spans[i].push_back({s, true});
+        }
+    }
+    
+
+
+    for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
+        int span_id=0;
+        arena->Spans[span_group].clear();
+        arena->Free_Spans[span_group].clear();
+
+        
+        // int span_count = All_Spans[span_group].size();
+        for (const auto &span_entry : All_Spans[span_group]) {
+            GC_Span *span = span_entry.span;
+
+            GC_span_traits* traits = span->traits;
+            int obj_size = span->elem_size;
+            int freed_slots = 0; 
             for (int idx=0; idx<traits->N; ++idx) {
-                if (get_16_l2(span->type_metadata, idx)==0) { // free slot
+                if (get_1(span->mark_bits, idx)==mark_bit) { // free slot
+                    freed_slots++;
+                    
                     // Clean up pointer
                     uint16_t u_type = get_16_r12(span->type_metadata, idx);
                     if(u_type!=0) {
                         std::string obj_type = data_type_to_name[u_type]; 
-                        if(obj_type!="str"&&ClassSize.count(obj_type)==0) {
+                        if(u_type!=5&&type_info[u_type]==nullptr) { // Not str and not class
                             void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
                             // if (obj_type!="list"&&obj_type!="tensor")
                             // std::cout << "CLEANing: addr " << obj_addr << " got object: " << u_type << "/" << obj_type << ".\n";
@@ -210,6 +238,31 @@ void GC::CleanUp_Unused(int tid) {
                     }
                 }
             }
+
+            // if (freed_slots>0)
+            // std::cout << freed_slots << "/" << span->free_idx << "/" << span->N<< "\n";
+
+            if (span_entry.is_free) {
+                uint64_t *mark_bits = span->mark_bits;
+                for (int i=span->free_idx; i<span->N; ++i) {
+                    set_1(mark_bits, i, mark_bit);
+                }
+            }
+
+            if (freed_slots==span->free_idx)
+                arena->Free_Spans[span_group].push_back(span);
+            else
+                arena->Spans[span_group].push_back(span);
+
+
+
+            if(span_id==0)
+                arena->current_span[span_group] = span;
+            span->free_idx=0;
+            span_id++;
         }
     }
+
+    // std::exit(0);
+    mark_bit ^= 1;
 }

@@ -34,7 +34,6 @@ extern "C" void *allocate_void(Scope_Struct *scope_struct, int size, const char 
 }
 
 extern "C" void *allocate_pool(Scope_Struct *scope_struct, int size, uint16_t type_id) { 
-
     void *ptr = scope_struct->Allocate(size, type_id);
     memset(ptr, SENTINEL_BYTE, size);
     scope_struct->gc->size_occupied += size;

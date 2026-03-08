@@ -23,6 +23,7 @@
 #include "nullptr.h"
 #include "str.h"
 #include "str_vec.h"
+#include "type_info.h"
 
 using namespace llvm;
 

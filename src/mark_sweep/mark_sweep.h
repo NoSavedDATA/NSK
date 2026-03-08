@@ -62,31 +62,33 @@ struct GC_Span {
     // Interpretate type_metadata as int12
     uint64_t *mark_bits, *type_metadata;
     
-    GC_Span(GC_Arena *, GC_span_traits *);
-    inline void *Allocate(uint16_t type_id) {
+    GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
+    inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
 
-        if(free_idx>=traits->N)
-            return nullptr;
-        if(get_16_l2(type_metadata, free_idx)!=0) {
-            free_idx = find_free_16_l2(type_metadata, type_words, free_idx+1);
-            if (free_idx==-1)
-                return nullptr;
-        }
-        void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-        set_16_r12_mark(type_metadata, free_idx, type_id);
-        free_idx++;
-        return ret_ptr;
-        
-        // if(free_idx>=traits->N)
+        // if(free_idx>=N)
         //     return nullptr;
-        // if(get_1(type_metadata, free_idx)!=0) {
-        //     free_idx = mark_bits_find(mark_bits, words);
+        // if(get_16_l2(type_metadata, free_idx)!=0) {
+        //     free_idx = find_free_16_l2(type_metadata, type_words, free_idx+1);
         //     if (free_idx==-1)
         //         return nullptr;
         // }
         // void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-        // set_1(mark_bits, free_idx);
+        // set_16_r12(type_metadata, free_idx, type_id);
         // free_idx++;
+        // return ret_ptr;
+        
+        if(free_idx>=N)
+            return nullptr;
+        if(get_1(mark_bits, free_idx)==gc_mark_bit) {
+            free_idx = mark_bits_find(mark_bits, words, gc_mark_bit);
+            if (free_idx==-1)
+                return nullptr;
+        }
+        void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
+        set_1(mark_bits, free_idx, gc_mark_bit);
+        set_16_r12(type_metadata, free_idx, type_id);
+        free_idx++;
+        return ret_ptr;
 
 
         // if(cur_free<end) {
@@ -115,11 +117,12 @@ struct GC_Arena {
     void *arena, *metadata;
 
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Spans;
+    std::array<std::vector<GC_Span*>, GC_obj_sizes> Free_Spans;
     std::array<GC_Span*, GC_obj_sizes> current_span{};
     std::array<GC_Span*, pages_per_arena> page_to_span;
 
     GC_Arena(int);
-    inline void* Allocate(int size_class, uint16_t type_id) {
+    inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
         GC_span_traits* traits = GC_span_traits_vec[size_class];
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
@@ -128,12 +131,12 @@ struct GC_Arena {
         // FAST PATH
         if (span != nullptr)
         {
-            void* ptr = span->Allocate(type_id);
+            void* ptr = span->Allocate(type_id, gc_mark_bit);
             if (ptr != nullptr)
                 return ptr;
             while(span->next_span!=nullptr) { // only happens after resets
                 span = span->next_span;
-                ptr = span->Allocate(type_id);
+                ptr = span->Allocate(type_id, gc_mark_bit);
                 if (ptr!=nullptr) {
                     current_span[size_class] = span;
                     return ptr;
@@ -147,7 +150,7 @@ struct GC_Arena {
             return nullptr;
 
 
-        span = new GC_Span(this, traits);
+        span = new GC_Span(this, traits, gc_mark_bit);
         if (prev_span!=nullptr)
             prev_span->next_span = span;
 
@@ -155,13 +158,13 @@ struct GC_Arena {
         current_span[size_class] = span;
         Spans[size_class].push_back(span);
 
-        return span->Allocate(type_id);
+        return span->Allocate(type_id, gc_mark_bit);
     }
 };
 
 struct GC {
     int allocations=0;
-    uint64_t size_occupied=0;
+    uint64_t size_occupied=0, mark_bit=1ULL;
     GC_Arena *arena;
     
     GC(int);
@@ -175,10 +178,10 @@ struct GC {
             return nullptr;
          }
         
-        void *ptr = arena->Allocate(obj_class, type_id);
+        void *ptr = arena->Allocate(obj_class, type_id, mark_bit);
         if(ptr==nullptr) {
             Sweep(scope_struct);
-            ptr = arena->Allocate(obj_class, type_id);
+            ptr = arena->Allocate(obj_class, type_id, mark_bit);
             if (ptr==nullptr) {
                 LogErrorC(-1, "ARENA FULL.");
                 std::exit(0);
@@ -186,6 +189,7 @@ struct GC {
         }
         return ptr;
     }
+
 
     void Sweep(Scope_Struct *);
     void CleanUp_Unused(int);
@@ -197,9 +201,9 @@ struct GC {
 
 struct GC_Node{
     void *ptr;
-    std::string type;
+    uint16_t type;
     
-    GC_Node(void *, std::string);
+    GC_Node(void *, uint16_t);
 };
 
 

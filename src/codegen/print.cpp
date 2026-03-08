@@ -5,8 +5,13 @@ extern "C" float print(Scope_Struct *scope_struct, char* str){
   return 0;
 }
 
+
 extern "C" void print_void_ptr(void *x) {
     std::cout << "--->GOT void*: " << x << ".\n";
+}
+extern "C" float print_void_ptrC(Scope_Struct *scope_struct, void *x) {
+    std::cout << "--->GOT void*: " << x << ".\n";
+    return 0;
 }
 
 extern "C" void print_int(int x) {

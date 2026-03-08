@@ -131,6 +131,7 @@ bool in_str(std::string str, std::vector<std::string> list) {
     return std::find(list.begin(), list.end(), str) != list.end();
 }
 
+
 bool in_int(int value, const std::vector<int> list) {
     return std::find(list.begin(), list.end(), value) != list.end();
 }

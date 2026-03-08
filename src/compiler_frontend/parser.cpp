@@ -69,8 +69,6 @@ std::map<std::string, std::map<std::string, int>> ClassVariables;
 std::map<std::string, std::map<std::string, int>> ClassAttrs;
 std::map<std::string, std::vector<std::string>> ClassAttrsName;
 std::map<std::string, int> ClassSize;
-std::unordered_map<std::string, std::vector<int>> ClassPointers;
-std::unordered_map<std::string, std::vector<std::string>> ClassPointersType;
 std::map<std::string, llvm::Type *> ClassStructs;
 
 
@@ -2379,8 +2377,14 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
 
   Classes.push_back(Name);
 
+  std::vector<uint16_t> class_pointers;
+  std::vector<uint16_t> class_pointers_type;
+  uint16_t pointers_count = 0;
+
+  uint16_t type16 = data_type_count;
   data_name_to_type[Name] = data_type_count;
   data_type_to_name[data_type_count++] = Name;
+
 
 
   getNextToken(); // eat name
@@ -2438,23 +2442,27 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
       ClassVariables[Name][IdentifierStr] = last_offset;
       ClassAttrs[Name][IdentifierStr] = last_attr_idx++;
       ClassAttrsName[Name].push_back(IdentifierStr);
+      llvm::Type *Ty;
 
       
-      if (data_type=="float"||data_type=="int") {
-        last_offset+=4;
+      if (data_type=="float") {
+          Ty = floatTy;
+      } else if(data_type=="int") {
+          Ty = intTy;
       } else if(data_type=="int64") {
-        last_offset+=8;
+          Ty = int64Ty;
       } else if(data_type=="bool") {
-        last_offset+=1;
+          Ty = boolTy;
       } else if(data_type=="charv") {
         int size = std::stoi(data_tree.Nested_Data[0].Type);
-        llvm::Type *arrTy = ArrayType::get(int8Ty, size);
-        last_offset+=TheModule->getDataLayout().getTypeAllocSize(arrTy);
+        Ty = ArrayType::get(int8Ty, size);
       } else {
-        ClassPointers[Name].push_back(last_offset);
-        ClassPointersType[Name].push_back(data_type);
-        last_offset+=8;
+        class_pointers.push_back(last_offset);
+        class_pointers_type.push_back(data_name_to_type[data_type]);
+        Ty = int8PtrTy;
+        pointers_count++;
       }
+      last_offset+=TheModule->getDataLayout().getTypeAllocSize(Ty);
 
       if(is_channel)
         ChannelDirections[Name][IdentifierStr] = ch_both;
@@ -2471,6 +2479,9 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
       getNextToken();
   }
   ClassSize[Name] = last_offset;
+
+
+
 
   if (last_offset==0)
     return LogErrorNextBlock(parser_struct.line, "Class " + Name + " missing attributes field.");

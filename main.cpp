@@ -436,27 +436,6 @@ int main(int argc, char* argv[]) {
   Function_Arg_Names["alloc"] = {"0", "1", "2"};
   Function_Required_Arg_Count["alloc"] = 1;
 
-  // DT_file
-  struct_create_fn["DT_file"] = DT_file_create;
-  Function_Arg_DataTypes["file_Create"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["file_Create"]["1"] = Data_Tree("str");
-  Function_Arg_Names["file_Create"] = {"0", "1"};
-
-  // file_read
-  functions_return_data_type["file_read"] = Data_Tree("str");
-  llvm_callee["file_read"] = file_read;
-
-  // file_open
-  Function_Arg_DataTypes["file_open"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["file_open"]["1"] = Data_Tree("file");
-  Function_Arg_DataTypes["file_open"]["2"] = Data_Tree("str");
-  Function_Arg_Names["file_open"] = {"0", "1" , "2"};
-  functions_return_data_type["file_open"] = Data_Tree("str");
-  llvm_callee["file_open"] = file_open;
-
-  // file_opened
-  functions_return_data_type["file_opened"] = Data_Tree("bool");
-  llvm_callee["file_opened"] = file_opened;
 
 
 
@@ -514,6 +493,9 @@ int main(int argc, char* argv[]) {
     }
     for (int i=0; i<GC_obj_sizes; ++i)
         GC_span_traits_vec[i] = new GC_span_traits(gc_sizes[i]);
+
+    for (int i=0; i<4096; ++i)
+        type_info[i] = nullptr;
         
 
 

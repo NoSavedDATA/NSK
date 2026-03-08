@@ -409,20 +409,6 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("scope_struct_Get_Async_Scope", scope_struct_Get_Async_ScopeTy);
 
-	FunctionType *scope_struct_Clear_GC_RootTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Clear_GC_Root", scope_struct_Clear_GC_RootTy);
-
-	FunctionType *scope_struct_Add_GC_RootTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Add_GC_Root", scope_struct_Add_GC_RootTy);
-
 	FunctionType *scope_struct_SweepTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
@@ -1217,6 +1203,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("print_void_ptr", print_void_ptrTy);
+
+	FunctionType *print_void_ptrCTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("print_void_ptrC", print_void_ptrCTy);
 
 	FunctionType *print_intTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),

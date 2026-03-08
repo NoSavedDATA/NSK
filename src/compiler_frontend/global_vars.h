@@ -24,8 +24,6 @@ extern uint16_t data_type_count;
 
 extern std::map<std::string, std::string> functions_return_type, reverse_ops;
 
-extern std::unordered_map<std::string, std::vector<int>> ClassPointers;
-extern std::unordered_map<std::string, std::vector<std::string>> ClassPointersType;
 extern std::map<std::string, int> ClassSize;
 
 

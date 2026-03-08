@@ -196,14 +196,7 @@ extern "C" void scope_struct_Get_Async_Scope(Scope_Struct *scope_struct, int thr
 
 
 
-extern "C" void scope_struct_Clear_GC_Root(Scope_Struct *scope_struct) {
-    // std::cout << "----->clearing " << scope_struct->root_nodes.size() << ".\n";
-    scope_struct->root_nodes.clear();
-}
 
-extern "C" void scope_struct_Add_GC_Root(Scope_Struct *scope_struct, void *root_pointer, char *type) {
-    scope_struct->root_nodes.push_back(GC_Node(root_pointer, type));
-}
 
 
 inline void delete_scope(Scope_Struct *scope_struct) {

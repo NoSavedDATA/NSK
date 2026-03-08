@@ -1353,24 +1353,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("1");
 		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("2");
 		
-		Function_Arg_Types["scope_struct_Clear_GC_Root"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Clear_GC_Root"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Clear_GC_Root"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Add_GC_Root"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Add_GC_Root"]["1"] = "void";
-		Function_Arg_Types["scope_struct_Add_GC_Root"]["2"] = "str";
-		
-		Function_Arg_DataTypes["scope_struct_Add_GC_Root"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Add_GC_Root"]["1"] = Data_Tree("void");
-		Function_Arg_DataTypes["scope_struct_Add_GC_Root"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["scope_struct_Add_GC_Root"].push_back("0");
-		Function_Arg_Names["scope_struct_Add_GC_Root"].push_back("1");
-		Function_Arg_Names["scope_struct_Add_GC_Root"].push_back("2");
-		
 		Function_Arg_Types["scope_struct_Sweep"]["0"] = "Scope_Struct";
 		
 		Function_Arg_DataTypes["scope_struct_Sweep"]["0"] = Data_Tree("Scope_Struct");
@@ -1865,6 +1847,15 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["print"].push_back("0");
 		Function_Arg_Names["print"].push_back("1");
+		
+		Function_Arg_Types["print_void_ptrC"]["0"] = "Scope_Struct";
+		Function_Arg_Types["print_void_ptrC"]["1"] = "void";
+		
+		Function_Arg_DataTypes["print_void_ptrC"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["print_void_ptrC"]["1"] = Data_Tree("void");
+		
+		Function_Arg_Names["print_void_ptrC"].push_back("0");
+		Function_Arg_Names["print_void_ptrC"].push_back("1");
 	
 		
 		Function_Arg_Types["charv_print"]["0"] = "Scope_Struct";

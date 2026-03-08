@@ -26,17 +26,55 @@ void Generate_Struct_Types() {
 
     // high-level classes
     for (auto &class_pair : ClassSize) {
+        const std::string &class_name = class_pair.first;
+        // LogBlue(class_name);
         std::vector<llvm::Type*> types;
-        for (auto &attr : ClassAttrsName[class_pair.first]) {
-            Data_Tree dt = data_typeVars[class_pair.first][attr];
+        for (auto &attr : ClassAttrsName[class_name]) {
+            Data_Tree dt = data_typeVars[class_name][attr];
             types.push_back(get_type_from_data(dt));
+            // std::cout << "--push: " << dt.Type << "\n";
         }
-        struct_types["class_"+class_pair.first] = StructType::create(
+        StructType *st = StructType::create(
             *TheContext,
             types,
-            "class_"+class_pair.first
+            "class_"+class_name
         );
+        struct_types["class_"+class_name] = st;
+
+        uint16_t type16 = data_name_to_type[class_name];
+        if (type_info[type16]==nullptr) {
+            const llvm::DataLayout &DL = TheModule->getDataLayout();
+            const llvm::StructLayout *layout = DL.getStructLayout(st);
+
+            int idx=0, pointers_count=0;
+            std::vector<uint16_t> offsets, types16;
+            for (auto &attr : ClassAttrsName[class_name]) {
+                Data_Tree dt = data_typeVars[class_name][attr];
+                // uint64_t offset = layout->getElementOffset(idx);
+                // LogBlue("offset of " + std::to_string(idx) + " is " + std::to_string(offset));
+                if (!in_vec(dt.Type, {primary_data_tokens}) && dt.Type!="charv") {
+                    uint64_t offset = layout->getElementOffset(idx);
+                    offsets.push_back(offset);
+                    types16.push_back(data_name_to_type[dt.Type]);
+                    pointers_count++;
+                }
+                idx++;
+            }
+            if (pointers_count>0) {
+                // Handle class low level pointers information
+                TypeInfo *class_info = (TypeInfo*)malloc(sizeof(TypeInfo) + pointers_count*sizeof(PtrInfo));
+                type_info[type16] = class_info;
+                class_info->pointers_count = pointers_count;
+                for (int i=0; i<pointers_count; ++i) {
+                    PtrInfo *ptr_info = &class_info->ptr_info[i];
+                    ptr_info->offset = offsets[i];
+                    ptr_info->type = types16[i];
+                }
+            }
+        }
     }
+
+
 
 
     // std::vector<void*>

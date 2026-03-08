@@ -46,7 +46,7 @@ void set_functions_return_type() {
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"is_null_terminated", "bool"}, 
 						{"nsk_vec_size", "int"}, {"int_vec_CalculateSliceIdx", ""}, {"int_vec_Slice", "int_vec"}, {"int_vec_print", "int"}, {"int_vec_Split_Parallel", "int_vec"}, {"int_vec_Split_Strided_Parallel", "int_vec"}, {"int_vec_size", "int"}, 
-						{"print", "float"}, 
+						{"print", "float"}, {"print_void_ptrC", "float"}, 
 						{"fexists", "bool"}, 
 						{"CreateNotesVector", "list"}, {"Dispose_NotesVector", "float"}, {"Add_To_NotesVector_float", "list"}, {"Add_To_NotesVector_int", "list"}, {"Add_To_NotesVector_str", "list"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
@@ -233,6 +233,7 @@ void set_functions_return_type() {
 	functions_return_data_type["int_channel_terminate"] = Data_Tree("float");
 	functions_return_data_type["int_channel_alive"] = Data_Tree("bool");
 	functions_return_data_type["print"] = Data_Tree("float");
+	functions_return_data_type["print_void_ptrC"] = Data_Tree("float");
 	functions_return_data_type["dir_exists"] = Data_Tree("float");
 	functions_return_data_type["path_exists"] = Data_Tree("float");
 	functions_return_data_type["LenStrVec"] = Data_Tree("int");

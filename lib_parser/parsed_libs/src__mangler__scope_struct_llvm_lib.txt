@@ -1,4 +1,4 @@
-1822-03-04 14:30:28
+1822-03-06 16:07:31
 
 	FunctionType *print_stack1Ty= FunctionType::get(
 		Type::getVoidTy(*TheContext),
@@ -111,20 +111,6 @@
 		false
 	);
 	TheModule->getOrInsertFunction("scope_struct_Get_Async_Scope", scope_struct_Get_Async_ScopeTy);
-
-	FunctionType *scope_struct_Clear_GC_RootTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Clear_GC_Root", scope_struct_Clear_GC_RootTy);
-
-	FunctionType *scope_struct_Add_GC_RootTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Add_GC_Root", scope_struct_Add_GC_RootTy);
 
 	FunctionType *scope_struct_SweepTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),

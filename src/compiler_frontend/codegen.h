@@ -71,22 +71,17 @@ Value *Load_Stack(Value *scope_struct, const std::string &function_name, const s
 
 void Cache_Array(Parser_Struct, Value *var);
 
-
-Value *DT_file_create(Parser_Struct, Function*, std::string, std::string, Data_Tree, Value *, Value *, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&);
 Value *DT_charv_create(Parser_Struct parser_struct, Function *TheFunction,
                       std::string, std::string type, Data_Tree data_type,
                       Value *scope_struct, Value *initial_value,
                       std::vector<std::unique_ptr<ExprAST>> &Args,
                       std::vector<Value*> &ArgsV);
 
-Value *file_open(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*>&);
-Value *file_read(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*>&);
-Value *file_opened(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*>&);
-Value *print(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*>&);
-
+Value *print(Parser_Struct, Function *,
+                 std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &, std::vector<Value*>&);
 Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
-                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
-                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*> &ArgsV);
+                 std::string, Data_Tree data_type, std::vector<Data_Tree> &,
+                 Value *, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*> &);
 Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*> &ArgsV);

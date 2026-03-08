@@ -1,8 +1,9 @@
 #pragma once
 
-#include <vector>
+#include <algorithm>
 #include <map>
 #include <string>
+#include <vector>
 
 
 
@@ -61,5 +62,9 @@ std::vector<int> concat_int_vec(std::vector<int> l, std::vector<int>r);
 extern bool ShallCodegen;
 
 
+template<typename T>
+bool in_vec(const T& str, const std::vector<T>& list) {
+    return std::find(list.begin(), list.end(), str) != list.end();
+}
 
 int round_nearest_pow2(int x); 

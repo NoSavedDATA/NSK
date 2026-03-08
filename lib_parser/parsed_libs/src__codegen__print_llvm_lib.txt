@@ -1,4 +1,4 @@
-1822-02-24 18:52:28
+1822-03-06 17:46:21
 
 	FunctionType *printTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
@@ -13,6 +13,13 @@
 		false
 	);
 	TheModule->getOrInsertFunction("print_void_ptr", print_void_ptrTy);
+
+	FunctionType *print_void_ptrCTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("print_void_ptrC", print_void_ptrCTy);
 
 	FunctionType *print_intTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),

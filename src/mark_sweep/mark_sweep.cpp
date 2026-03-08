@@ -30,7 +30,7 @@ GC_span_traits::GC_span_traits(int obj_size) : obj_size(obj_size) {
         N-=1;
 }
 
-GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits) : arena(arena), traits(traits) {
+GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) : arena(arena), traits(traits) {
 
     // Get Span address
     span_address = static_cast<char*>(arena->arena) + arena->size_allocated;
@@ -42,7 +42,6 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits) : arena(arena), traits
     elem_size = traits->obj_size;
     N = traits->N;
 
-
     // Set arena page idx
     for (int i=0; i<traits->pages; ++i) {
         arena->page_to_span[arena->pages_allocated] = this;
@@ -50,10 +49,11 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits) : arena(arena), traits
     }
 
     // Get & initialize mark-bits
+    uint64_t mask = gc_mark_bit ? 0ULL : ~0ULL;
     words = (traits->N + 63) / 64;
     mark_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
     for (int i=0; i<words; ++i)
-       mark_bits[i] = 0ULL; 
+       mark_bits[i] = mask; 
     
     // Initialize type-metadata
     int types_per_word = 64 / 16;
@@ -140,7 +140,7 @@ bool unprotect_pool_addr(Scope_Struct *scope_struct, void *addr) {
 
 // //---------------------------------------------------------//
 
-GC_Node::GC_Node(void *ptr, std::string type) : ptr(ptr), type(type) {}
+GC_Node::GC_Node(void *ptr, uint16_t type) : ptr(ptr), type(type) {}
 
 
 
