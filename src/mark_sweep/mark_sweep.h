@@ -20,7 +20,7 @@ const int word_bits=64;
 const int GC_page_size=8192;
 
 const int sweep_after_alloc = 32 << 20;
-const int GC_arena_size = 64 << 20;
+const int GC_arena_size = 1024 << 20;
 
 const int pages_per_arena = GC_arena_size / GC_page_size;
 
@@ -72,33 +72,17 @@ struct GC_Span {
             free_idx++;
             return ret_ptr;
         }
-        int idx = mark_bits_find(alloc_bits, words, 0ULL);
-        if (idx==-1)
-            return nullptr;
-        void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
-        alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
-        set_16_r12(type_metadata, idx, type_id);
-        idx++;
-        return ret_ptr;
-
-
-        // if(free_idx>=N)
-        //     return nullptr;
-        // if(!is_free) {
-        //     if(get_1(alloc_bits, free_idx)) {
-        //         free_idx = mark_bits_find(alloc_bits, words, 0ULL);
-        //         if (free_idx==-1) {
-        //             free_idx = N;
-        //             return nullptr;
-        //         }
-        //     }
-        // }
-        // void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-        // // set_1(alloc_bits, free_idx, 1ULL);
-        // alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
-        // set_16_r12(type_metadata, free_idx, type_id);
-        // free_idx++;
-        // return ret_ptr;
+        for (int w=0; w<words; ++w) {
+            uint64_t bits = alloc_bits[w] ^ ~0ULL;
+            if (bits) {
+                int idx = (w<<6) + __builtin_ctzll(bits);
+                void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
+                alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
+                set_16_r12(type_metadata, idx, type_id);
+                return ret_ptr;
+            }
+        }
+        return nullptr;
     }
 };
 
@@ -123,6 +107,7 @@ struct GC_Arena {
 
     GC_Arena(int);
     inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
+        // std::cout << "allocate " << size_class << " | " << type_id << "\n";
         GC_span_traits* traits = GC_span_traits_vec[size_class];
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
@@ -152,7 +137,6 @@ struct GC_Arena {
         span = new GC_Span(this, traits, gc_mark_bit);
         if (prev_span!=nullptr)
             prev_span->next_span = span;
-
 
         current_span[size_class] = span;
         Spans[size_class].push_back(span);

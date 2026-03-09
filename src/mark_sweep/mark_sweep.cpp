@@ -20,13 +20,12 @@
 GC_span_traits::GC_span_traits(int obj_size) : obj_size(obj_size) {
     while (N<32&&pages<4) {
         pages++;
-        N = (8192*pages) / obj_size;
+        N = (GC_page_size*pages) / obj_size;
         // std::cout << "N: " << N << ", pages: " << pages << ", obj size: " << obj_size << ".\n";
     }
+    size = (GC_page_size*pages);
 
-    size = (8192*pages);
-
-    if ((float)((8192*pages)/obj_size) != ((8192*pages)/(float)obj_size))
+    if ((float)((GC_page_size*pages)/obj_size) != ((GC_page_size*pages)/(float)obj_size))
         N-=1;
 }
 
@@ -58,6 +57,13 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
        alloc_bits[i] = 0ULL;
        mark_bits[i] = mask; 
     }
+
+
+    for (int i=N; i<((N+63)/64)*64; ++i)
+        set_1(alloc_bits, i, 1ULL);
+
+    
+
     
     // Initialize type-metadata
     int types_per_word = 64 / 16;
@@ -66,8 +72,9 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
     for (int i=0; i<type_words; ++i)
        type_metadata[i] = 0ULL; 
 
-    for (int i=traits->N; i< ((traits->N + types_per_word-1) / types_per_word)*types_per_word; ++i)
+    for (int i=traits->N; i< ((traits->N + types_per_word-1) / types_per_word)*types_per_word; ++i) 
         set_16_L2(type_metadata, i, 1u); // Set as protected
+    
 }
 
 GC_Arena::GC_Arena(int tid) {

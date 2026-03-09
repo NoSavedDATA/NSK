@@ -191,6 +191,8 @@ void GC::CleanUp_Unused(int tid) {
                 bits = bits^mark_mask; 
                 while (bits) {
                     idx = (w<<6) + __builtin_ctzll(bits);
+                    if(idx>=span->N)
+                        break;
                     if (get_1(span->alloc_bits, idx)) {
                         freed_slots++; 
                         uint16_t u_type = get_16_r12(span->type_metadata, idx);
