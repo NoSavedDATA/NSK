@@ -61,52 +61,44 @@ struct GC_Span {
     bool is_free=true;
 
     // Interpretate type_metadata as int12
-    uint64_t *mark_bits, *type_metadata;
+    uint64_t *mark_bits, *alloc_bits, *type_metadata;
     
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
-
-        // if(free_idx>=N)
-        //     return nullptr;
-        // if(get_16_l2(type_metadata, free_idx)!=0) {
-        //     free_idx = find_free_16_l2(type_metadata, type_words, free_idx+1);
-        //     if (free_idx==-1)
-        //         return nullptr;
-        // }
-        // void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-        // set_16_r12(type_metadata, free_idx, type_id);
-        // free_idx++;
-        // return ret_ptr;
-        
-
-        // if (is_free) {
-        //     void *ret_ptr;
-        //     if(cur_free<end) {
-        //         ret_ptr = (void*)cur_free;
-        //         cur_free += elem_size;
-        //         set_1(mark_bits, free_idx, gc_mark_bit);
-        //         set_16_r12(type_metadata, free_idx, type_id);
-        //         free_idx++;
-        //         return ret_ptr;
-        //     }
-        //         return nullptr;
-
-        //     return ret_ptr;
-        // }
-        // else {
-            if(free_idx>=N)
-                return nullptr;
-            if(get_1(mark_bits, free_idx)==gc_mark_bit) {
-                free_idx = mark_bits_find(mark_bits, words, gc_mark_bit);
-                if (free_idx==-1)
-                    return nullptr;
-            }
+        if(free_idx<N) {
             void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-            set_1(mark_bits, free_idx, gc_mark_bit);
+            alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
             set_16_r12(type_metadata, free_idx, type_id);
             free_idx++;
             return ret_ptr;
+        }
+        int idx = mark_bits_find(alloc_bits, words, 0ULL);
+        if (idx==-1)
+            return nullptr;
+        void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
+        alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
+        set_16_r12(type_metadata, idx, type_id);
+        idx++;
+        return ret_ptr;
+
+
+        // if(free_idx>=N)
+        //     return nullptr;
+        // if(!is_free) {
+        //     if(get_1(alloc_bits, free_idx)) {
+        //         free_idx = mark_bits_find(alloc_bits, words, 0ULL);
+        //         if (free_idx==-1) {
+        //             free_idx = N;
+        //             return nullptr;
+        //         }
+        //     }
         // }
+        // void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
+        // // set_1(alloc_bits, free_idx, 1ULL);
+        // alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
+        // set_16_r12(type_metadata, free_idx, type_id);
+        // free_idx++;
+        // return ret_ptr;
     }
 };
 
@@ -178,7 +170,6 @@ struct GC {
     inline void *Allocate(Scope_Struct *scope_struct, int size, uint16_t type_id, int tid) {
 
         int obj_class = GC_size_to_c[(size+7)/8];
-        // std::cout << "Allocate size: " << size << "/" << obj_class << "/" << type_id << ".\n";
 
         if(size>GC_max_object_size) {
             LogErrorC(-1, "Allocated object of size " + std::to_string(size) + ", but the maximum supported object size is " + std::to_string(GC_max_object_size) + ".");

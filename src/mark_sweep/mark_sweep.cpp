@@ -34,10 +34,11 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
 
     // Get Span address
     span_address = static_cast<char*>(arena->arena) + arena->size_allocated;
+    char *span_address_c = static_cast<char*>(span_address);
     arena->size_allocated += traits->size;
 
-    cur_free = (char*)span_address;
-    end = static_cast<char*>(arena->arena) + arena->size_allocated;
+    cur_free = span_address_c;
+    end = span_address_c + arena->size_allocated;
 
     elem_size = traits->obj_size;
     N = traits->N;
@@ -52,8 +53,11 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
     uint64_t mask = gc_mark_bit ? 0ULL : ~0ULL;
     words = (traits->N + 63) / 64;
     mark_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
-    for (int i=0; i<words; ++i)
+    alloc_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
+    for (int i=0; i<words; ++i) {
+       alloc_bits[i] = 0ULL;
        mark_bits[i] = mask; 
+    }
     
     // Initialize type-metadata
     int types_per_word = 64 / 16;

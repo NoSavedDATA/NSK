@@ -158,27 +158,17 @@ inline void mark_bits_free(uint64_t *mark_bits, const int idx) {
 inline bool get_1(uint64_t* mark_bits, uint32_t idx) {
     return (mark_bits[idx >> 6] >> (idx & 63)) & 1;
 }
-inline void set_1(uint64_t* mark_bits, uint32_t idx) {
-    uint64_t mask = 1ULL << (idx & 63);
-    uint64_t &word = mark_bits[idx >> 6];
-    word = (word & ~mask) | ((1ULL & 1ULL) << (idx & 63));
-}
 inline void set_1(uint64_t* mark_bits, uint32_t idx, uint64_t val) {
     uint64_t mask = 1ULL << (idx & 63);
     uint64_t &word = mark_bits[idx >> 6];
     word = (word & ~mask) | ((val & 1ULL) << (idx & 63));
 }
-
-inline int mark_bits_find(uint64_t* mark_bits, int words, uint64_t gc_mark_bit) {
-    uint64_t mask = gc_mark_bit ? ~0ULL : 0ULL;
-
+inline int mark_bits_find(uint64_t* mark_bits, int words, uint64_t find_val) {
+    uint64_t mask = find_val ? 0ULL : ~0ULL;
     for (int w = 0; w < words; ++w) {
-        uint64_t pack = mark_bits[w] ^ mask;   // normalize
-        uint64_t free = ~pack;
-
-        if (free) {
+        uint64_t free = mark_bits[w] ^ mask;   // 1 where free
+        if (free)
             return (w << 6) + __builtin_ctzll(free);
-        }
     }
     return -1;
 }

@@ -22,21 +22,6 @@
 
 
 
-
-
-
-// void Reset_Pools(GC_Arena *arena, uint64_t mark_bit) {
-//     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-//         for (const auto &span : arena->Spans[span_group]) {
-//             GC_span_traits *traits = span->traits;
-//             for (int i=0; i<traits->N; ++i) {
-//                 set_16_L1(span->type_metadata, i, 0u);
-//                 // mark_bits_free(span->mark_bits, mark_bit);
-//             }
-//         }
-//     }
-// }
-
 inline void check_is_in_bounds(char *arena_addr, char *p) {
     bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
     if (!in_bounds) {
@@ -58,9 +43,7 @@ inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t
         long obj_idx = (p - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
         type = get_16_r12(span->type_metadata, obj_idx);
-        set_16_L1(span->type_metadata, obj_idx, 1u);
-        // set_1(span->mark_bits, obj_idx, mark_bit);
-        // std::cout << "marked as " << mark_bit << ", got " << (get_1(span->mark_bits, obj_idx)) << " at idx " << obj_idx << "\n"; 
+        set_1(span->mark_bits, obj_idx, mark_bit);
 }
 
 
@@ -175,12 +158,11 @@ void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *are
 
 // sweep
 void GC::Sweep(Scope_Struct *scope_struct) {
-    // Reset_Pools(arena, mark_bit^1);
 
     int tid = scope_struct->thread_id;
     char *arena_addr = arena_base_addr[tid];
 
-    check_roots_worklist(scope_struct, arena, arena_addr, mark_bit^1);
+    check_roots_worklist(scope_struct, arena, arena_addr, mark_bit);
 
     CleanUp_Unused(tid); // Trigger clean_up functions
     allocations=0;
@@ -190,66 +172,64 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
 
 void GC::CleanUp_Unused(int tid) {
-    int get_mask = mark_bit ? 1 : 0;
-
+    int get_mask = mark_bit ? 0 : 1;
+    uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
 
     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
         GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;
+        GC_Span *cur_span = arena->current_span[span_group];
         
         for (const auto &span : arena->Spans[span_group]) {
 
             GC_span_traits* traits = span->traits;
             int obj_size = span->elem_size;
             int freed_slots = 0; 
-            for (int idx=0; idx<traits->N; ++idx) {
-                if (get_1(span->mark_bits, idx)==get_mask) { // free slot
-                    freed_slots++; 
-                    // Clean up pointer
-                    uint16_t u_type = get_16_r12(span->type_metadata, idx);
-                    if(u_type!=0) {
-                        std::string obj_type = data_type_to_name[u_type]; 
-                        if(u_type!=5&&type_info[u_type]==nullptr) { // Not str and not class
-                            // std::cout << "Clean of " << u_type << "|" << obj_type << "\n";     
-                            void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
-                            clean_up_functions[obj_type](obj_addr, tid);
+            
+            for (int w=0; w<span->words; ++w) {
+                int idx=0;
+                uint64_t bits = span->mark_bits[w];
+                bits = bits^mark_mask; 
+                while (bits) {
+                    idx = (w<<6) + __builtin_ctzll(bits);
+                    if (get_1(span->alloc_bits, idx)) {
+                        freed_slots++; 
+                        uint16_t u_type = get_16_r12(span->type_metadata, idx);
+                        if(u_type!=0) {
+                            if(u_type!=5&&type_info[u_type]==nullptr) { // Not str and not class
+                                const std::string &obj_type = data_type_to_name[u_type]; 
+                                // std::cout << "Clean of " << u_type << "|" << obj_type << "|" << get_1(span->mark_bits, idx) << "\n";     
+                                void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
+                                clean_up_functions[obj_type](obj_addr, tid);
+                            }
                         }
+                        set_1(span->alloc_bits, idx, 0ULL); 
                     }
-                    set_16_r12(span->type_metadata, idx, uint16_t{0}); // avoid cleaning twice
+                    uint64_t set_mask = 1ULL << (idx&63);
+                    bits = bits & ~set_mask;
                 }
+                span->mark_bits[w] = mark_mask;
             }
 
-            if (freed_slots>0)
-            std::cout << freed_slots << "/" << span->free_idx << "/" << span->N<< "\n";
-
-
-            if (span->is_free) {
-                uint64_t *mark_bits = span->mark_bits;
-                for (int i=span->free_idx; i<span->N; ++i) {
-                    set_1(mark_bits, i, mark_bit);
-                }
+            bool is_free = (span->free_idx<span->N||freed_slots==span->N);
+            if (is_free) {
+                if(!last_free)
+                    last_free = span;
+                span->next_span = free_span_ST;
+                free_span_ST = span;
+            } else {
+                span->next_span = span_ST;
+                span_ST = span;
             }
-
-            // bool is_free = ((span->is_free && span->free_idx<span->N) ||\
-            //                 (freed_slots==span->N));
-            // if (is_free) {
-            //     if(!last_free)
-            //         last_free = span;
-            //     span->next_span = free_span_ST;
-            //     free_span_ST = span;
-            // } else {
-            //     span->next_span = span_ST;
-            //     span_ST = span;
-            // }
-
-            span->is_free = is_free;
-            span->cur_free = (char*)span->span_address;
-            span->free_idx=0;
+            if (freed_slots==span->N) {
+                span->cur_free = (char*)span->span_address;
+                span->free_idx=0;
+            }
         }
         GC_Span *first_span = span_ST;
-        // if (last_free) {
-        //     last_free->next_span = span_ST;
-        //     first_span = free_span_ST;
-        // }
+        if (last_free) {
+            last_free->next_span = span_ST;
+            first_span = free_span_ST;
+        }
         arena->current_span[span_group] = first_span;
     }
 
