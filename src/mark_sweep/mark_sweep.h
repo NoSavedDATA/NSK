@@ -58,6 +58,7 @@ struct GC_Span {
     GC_Span *next_span=nullptr;
 
     int words, type_words, free_idx=0, elem_size, N;
+    bool is_free=true;
 
     // Interpretate type_metadata as int12
     uint64_t *mark_bits, *type_metadata;
@@ -77,28 +78,35 @@ struct GC_Span {
         // free_idx++;
         // return ret_ptr;
         
-        if(free_idx>=N)
-            return nullptr;
-        if(get_1(mark_bits, free_idx)==gc_mark_bit) {
-            free_idx = mark_bits_find(mark_bits, words, gc_mark_bit);
-            if (free_idx==-1)
-                return nullptr;
-        }
-        void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
-        set_1(mark_bits, free_idx, gc_mark_bit);
-        set_16_r12(type_metadata, free_idx, type_id);
-        free_idx++;
-        return ret_ptr;
 
+        // if (is_free) {
+        //     void *ret_ptr;
+        //     if(cur_free<end) {
+        //         ret_ptr = (void*)cur_free;
+        //         cur_free += elem_size;
+        //         set_1(mark_bits, free_idx, gc_mark_bit);
+        //         set_16_r12(type_metadata, free_idx, type_id);
+        //         free_idx++;
+        //         return ret_ptr;
+        //     }
+        //         return nullptr;
 
-        // if(cur_free<end) {
-        //     void *ret_ptr = cur_free;
-        //     cur_free += elem_size;
         //     return ret_ptr;
         // }
-        //     return nullptr;
-
-        // return ret_ptr;
+        // else {
+            if(free_idx>=N)
+                return nullptr;
+            if(get_1(mark_bits, free_idx)==gc_mark_bit) {
+                free_idx = mark_bits_find(mark_bits, words, gc_mark_bit);
+                if (free_idx==-1)
+                    return nullptr;
+            }
+            void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
+            set_1(mark_bits, free_idx, gc_mark_bit);
+            set_16_r12(type_metadata, free_idx, type_id);
+            free_idx++;
+            return ret_ptr;
+        // }
     }
 };
 
@@ -127,7 +135,6 @@ struct GC_Arena {
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
 
-        // std::cout << "allocate: " << gc_sizes[size_class] << "\n";
         // FAST PATH
         if (span != nullptr)
         {

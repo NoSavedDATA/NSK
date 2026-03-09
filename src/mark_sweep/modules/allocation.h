@@ -159,10 +159,14 @@ inline bool get_1(uint64_t* mark_bits, uint32_t idx) {
     return (mark_bits[idx >> 6] >> (idx & 63)) & 1;
 }
 inline void set_1(uint64_t* mark_bits, uint32_t idx) {
-    mark_bits[idx >> 6] |= (1ULL << (idx & 63));
+    uint64_t mask = 1ULL << (idx & 63);
+    uint64_t &word = mark_bits[idx >> 6];
+    word = (word & ~mask) | ((1ULL & 1ULL) << (idx & 63));
 }
 inline void set_1(uint64_t* mark_bits, uint32_t idx, uint64_t val) {
-    mark_bits[idx >> 6] |= (val << (idx & 63));
+    uint64_t mask = 1ULL << (idx & 63);
+    uint64_t &word = mark_bits[idx >> 6];
+    word = (word & ~mask) | ((val & 1ULL) << (idx & 63));
 }
 
 inline int mark_bits_find(uint64_t* mark_bits, int words, uint64_t gc_mark_bit) {

@@ -60,16 +60,15 @@ void Generate_Struct_Types() {
                 }
                 idx++;
             }
-            if (pointers_count>0) {
-                // Handle class low level pointers information
-                TypeInfo *class_info = (TypeInfo*)malloc(sizeof(TypeInfo) + pointers_count*sizeof(PtrInfo));
-                type_info[type16] = class_info;
-                class_info->pointers_count = pointers_count;
-                for (int i=0; i<pointers_count; ++i) {
-                    PtrInfo *ptr_info = &class_info->ptr_info[i];
-                    ptr_info->offset = offsets[i];
-                    ptr_info->type = types16[i];
-                }
+
+            // Handle class low level pointers information
+            TypeInfo *class_info = (TypeInfo*)malloc(sizeof(TypeInfo) + pointers_count*sizeof(PtrInfo));
+            type_info[type16] = class_info;
+            class_info->pointers_count = pointers_count;
+            for (int i=0; i<pointers_count; ++i) {
+                PtrInfo *ptr_info = &class_info->ptr_info[i];
+                ptr_info->offset = offsets[i];
+                ptr_info->type = types16[i];
             }
         }
     }
