@@ -6,9 +6,10 @@ experiments/
 include/
 samples/
 lib/
+src_reference/
 sys_lib/
 Dockerfile
 *backup/
 *.csv
 *.txt
-
+*.py
