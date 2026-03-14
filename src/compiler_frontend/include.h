@@ -23,7 +23,7 @@
 
 extern std::vector<std::string> return_tensor_functions, return_tensor_methods, return_tensor_fn, native_modules,
 return_pinned_methods, vararg_methods, string_methods, native_methods, native_functions, native_fn, tensor_inits,
-return_string_fn, threaded_tensor_functions, require_scope_functions, notators_str, user_cpp_functions;
+return_string_fn, threaded_tensor_functions, require_scope_functions, notators_str, user_cpp_functions, template_fn;
 
 
 extern std::map<std::string, int> Function_Arg_Count;
@@ -67,6 +67,11 @@ extern std::unique_ptr<llvm::orc::KaleidoscopeJIT> TheJIT;
 extern ExitOnError ExitOnErr;
 
 extern PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
-extern llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *boolTy, *voidTy;
+extern llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *m256Ty, *boolTy, *voidTy;
 
 extern Value *stack, *stack_top_value;
+
+
+
+extern std::unordered_map<std::string, std::function<Data_Tree(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&)>>function_return_overwrite;
+

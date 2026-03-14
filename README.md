@@ -58,6 +58,7 @@ source ~/.bashrc
 - clang version 19;
   
 ```bash
+apt-get install git make lsb-release wget software-properties-common gnupg
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
 sudo ./llvm.sh 19 all

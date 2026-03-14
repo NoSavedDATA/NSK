@@ -76,6 +76,11 @@ Value *DT_charv_create(Parser_Struct parser_struct, Function *TheFunction,
                       Value *scope_struct, Value *initial_value,
                       std::vector<std::unique_ptr<ExprAST>> &Args,
                       std::vector<Value*> &ArgsV);
+Value *DT_vec_create(Parser_Struct parser_struct, Function *TheFunction,
+                      std::string, std::string type, Data_Tree data_type,
+                      Value *scope_struct, Value *initial_value,
+                      std::vector<std::unique_ptr<ExprAST>> &Args,
+                      std::vector<Value*> &ArgsV);
 
 Value *print(Parser_Struct, Function *,
                  std::string, Data_Tree, std::vector<Data_Tree>&, Value *, std::vector<std::unique_ptr<ExprAST>> &, std::vector<Value*>&);

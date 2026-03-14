@@ -1,1 +1,1 @@
-{"_quit_", "float"}, 
+{"_quit_", "float"}, {"fexists", "bool"}, 

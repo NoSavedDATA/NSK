@@ -44,6 +44,7 @@ void InitializeModule() {
   floatTy = Type::getFloatTy(*TheContext);
   boolTy = Type::getInt1Ty(*TheContext);
   voidTy = Type::getVoidTy(*TheContext);
+  m256Ty = llvm::VectorType::get(Type::getInt8Ty(*TheContext), 32, false);
   ShallCodegen = true;
   seen_var_attr = false;
 
@@ -497,11 +498,21 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("memcpy", memcpyTy);
 
-  FunctionCallee memchrFn = TheModule->getOrInsertFunction(
+  TheModule->getOrInsertFunction(
     "memchr",
     FunctionType::get(
         int8PtrTy,
         { int8PtrTy, intTy, int64Ty },
+        false
+    )
+  );
+
+
+  TheModule->getOrInsertFunction(
+    "_mm256_loadu_si256",
+    FunctionType::get(
+        m256Ty,
+        { int8PtrTy },
         false
     )
   );

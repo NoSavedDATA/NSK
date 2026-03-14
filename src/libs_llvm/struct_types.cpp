@@ -100,7 +100,7 @@ void Generate_Struct_Types() {
     struct_types["int_vec"] = int_vecTy;
 
     // array
-    struct_types["vec"] = StructType::create(
+    struct_types["array"] = StructType::create(
         *TheContext,
         {intTy, intTy, intTy, int8PtrTy},
         "DT_array"
@@ -138,19 +138,4 @@ void Generate_Struct_Types() {
     struct_types["GC"] = GC_Struct_Type;
     struct_types["scope_struct"] = Scope_Struct_Type;
 
-
-    StructType *File_Struct_Type = StructType::create(
-            *TheContext,
-            {intTy, ArrayType::get(int8Ty, FileBufferSize), intTy, intTy, intTy, int8PtrTy},
-            "file"
-        );
-    struct_types["DT_file"] = File_Struct_Type;
-    struct_type_size["file"] = FileBufferSize + 4*4 + 8 + 8;
-
-    struct_types["DT_str"] = StructType::create(
-            *TheContext,
-            {int8PtrTy, int8PtrTy, intTy},
-            "str"
-        );
-    struct_type_size["str"] = 8+8+4;
 }

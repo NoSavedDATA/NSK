@@ -37,8 +37,8 @@ void print_caller() {
 
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
-std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float", "int64"}},
-                                                                    {"int64", {"int"}}};
+std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float", "i64"}},
+                                                                    {"i64", {"int"}}};
 
 std::map<std::string, int> Function_Arg_Count;
 std::map<std::string, int> Function_Required_Arg_Count;
@@ -138,6 +138,10 @@ Data_Tree Parse_Data_Type(std::string root_type, Parser_Struct parser_struct) {
   while(CurTok!='>')
   {
     std::string dt = IdentifierStr;
+    if(CurTok==tok_int) {
+        CurTok = tok_data;
+        dt = std::to_string((int)NumVal);
+    }
 
     if(CurTok!=tok_data&&CurTok!=tok_struct&&!in_str(dt, Classes)) {
       LogErrorBreakLine(parser_struct.line, root_type + " requires a data type.");
@@ -1064,6 +1068,7 @@ std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string 
 
 
   // Codegen async functions
+  Body.push_back(std::make_unique<LibImportExprAST>("std_lib", false, parser_struct));
   for (int i=0; i<has_previous_async; ++i)
     Body.push_back(std::make_unique<AsyncFnPriorExprAST>());  
   
@@ -1286,6 +1291,11 @@ std::optional<std::vector<std::unique_ptr<ExprAST>>> Parse_Arguments(Parser_Stru
       }
       else if (CurTok=='[')
         Args.push_back(std::move(ParseNewList(parser_struct, class_name)));
+
+      else if (CurTok==tok_data) {
+        getNextToken();
+        Args.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
+      }
       
       else if (auto Arg = ParseExpression(parser_struct, class_name, false))
       {
@@ -1294,6 +1304,7 @@ std::optional<std::vector<std::unique_ptr<ExprAST>>> Parse_Arguments(Parser_Stru
                 Arg = std::make_unique<PositionalArgExprAST>(parser_struct, BinExpr->LHS->GetName(), std::move(BinExpr->RHS));
             
         }
+
         Args.push_back(std::move(Arg));
       }        
       else
@@ -1521,15 +1532,15 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
   {
     has_notes=true;
     getNextToken();
-     
+    
+    int arg_idx=0;
     while (true) {
-      if (CurTok!=tok_number && CurTok!=tok_int && CurTok!=tok_identifier && CurTok!=tok_self && CurTok!=tok_str && CurTok!='[')
-        return LogError(parser_struct.line, "Expected a number, string or var on the notes of " + data_type + ".");
-      
-      
       if (CurTok==tok_number)
       { 
         notes.push_back(std::make_unique<NumberExprAST>(NumVal));
+        getNextToken();
+      } else if (CurTok==tok_data&&data_type=="vec"&&arg_idx==0) {
+        notes.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
         getNextToken();
       } else if (CurTok==tok_str) {
         notes.push_back(std::make_unique<StringExprAST>(IdentifierStr));
@@ -1546,7 +1557,7 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
       else {
         notes.push_back(std::move(ParsePrimary(parser_struct, class_name, false)));
       }
-
+      arg_idx++;
       
       if (CurTok != ',')
         break;
@@ -2449,7 +2460,7 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
           Ty = floatTy;
       } else if(data_type=="int") {
           Ty = intTy;
-      } else if(data_type=="int64") {
+      } else if(data_type=="i64") {
           Ty = int64Ty;
       } else if(data_type=="bool") {
           Ty = boolTy;

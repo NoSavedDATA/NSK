@@ -214,9 +214,9 @@ extern std::vector<std::string> LLVM_IR_Functions = {"pow", "sqrt"};
 
 std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec", "MHSA", "LSTM", "Linear", "tuple",
 										"list", "map", "array",
-                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "int16", "int64", "int8"};
-std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map"};
-std::vector<std::string> primary_data_tokens = {"int", "float", "bool", "foreach_control_var", "int64", "int8", "char"};
+                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8"};
+std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "vec"};
+std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "foreach_control_var", "i64", "int8", "char"};
 
 std::vector<uint16_t> primary_data_types = {2, 3, 4, 6, 15, 16, 17, 18};
 std::vector<uint16_t> compound_types = {6, 7, 8, 9, 12};
@@ -227,14 +227,14 @@ std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"flo
                                                                {"tuple", 7}, {"map", 8}, {"channel", 9}, {"int_vec", 10},
                                                                {"float_vec", 11}, {"array", 12}, {"map_node", 13},
                                                                {"char", 15},  {"charv", 16},
-                                                               {"int64", 17}, {"int8", 18}};
+                                                               {"i64", 17}, {"i8", 18}, {"i16", 19}, {"vec", 20}};
 
 std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "float"}, {4, "bool"}, {5, "str"},
                                                                {6, "list"},
                                                                {7, "tuple"}, {8, "map"}, {9, "channel"}, {10, "int_vec"},
                                                                {11, "float_vec"}, {12, "array"}, {13, "map_node"},
                                                                {15, "char"}, {16, "charv"},
-                                                               {17, "int64"}, {18, "int8"}};
+                                                               {17, "i64"}, {18, "i8"}, {19, "i16"}, {20, "vec"}};
 uint16_t data_type_count=19;
 
 

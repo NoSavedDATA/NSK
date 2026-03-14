@@ -1,6 +1,10 @@
 #include <cstddef>
-#include <string>
+#include <functional>
+#include <iostream>
 #include <map>
+#include <memory>
+#include <string>
+#include <unordered_map>
 #include <vector>
 
 
@@ -12,8 +16,7 @@ bool Shall_Exit = false;
 // Tensor related
 std::vector<std::string> return_tensor_functions, return_tensor_methods, return_tensor_fn, native_modules,
 return_pinned_methods, vararg_methods, string_methods, native_methods, native_functions, native_fn,
-return_string_fn, threaded_tensor_functions, require_scope_functions, notators_str;
-
+return_string_fn, threaded_tensor_functions, require_scope_functions, notators_str, template_fn;
 
 std::map<std::string, std::string> reverse_ops;
 

@@ -575,6 +575,7 @@ LibImportExprAST::LibImportExprAST(std::string LibName, bool IsDefault, Parser_S
 
 
 
+
     std::string include_path = lib_dir + "/include.nk";
     if(fs::exists(include_path)) {
       has_nk=true;
@@ -583,6 +584,7 @@ LibImportExprAST::LibImportExprAST(std::string LibName, bool IsDefault, Parser_S
     } else 
       getNextToken(); // eat lib name
     
+
 
 
     if(!(has_nk||has_so_lib))
@@ -671,13 +673,13 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     Elements = "float_float"; 
     cast_R_to="int_to_float";
   }
-  if (Elements=="int_int64") {
+  if (Elements=="int_i64") {
     Elements = "int_int"; 
-    cast_R_to="int64_to_int";
+    cast_R_to="i64_to_int";
   }
-  if (Elements=="int64_int") {
+  if (Elements=="i64_int") {
     Elements = "int_int"; 
-    cast_L_to="int64_to_int";
+    cast_L_to="i64_to_int";
   }
   
   std::string operation = op_map[Op];
@@ -789,7 +791,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_int64", "charv_int", "int64_int64"})&&\
+  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64"})&&\
       TheModule->getFunction(Operation)==nullptr)
       LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }
@@ -1178,6 +1180,9 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
 
     ret = return_dt;
   }
+  if (function_return_overwrite.count(Callee)>0)
+    ret = function_return_overwrite[Callee](parser_struct, Args);
+
 
   data_type = ret;
   ReturnType = ret.Type;
@@ -1312,7 +1317,8 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
   // check if exists
-  if (functions_return_data_type.count(Callee)==0) {
+  if (functions_return_data_type.count(Callee)==0&&!in_vec(Callee, template_fn)) {
+    std::cout << "" << Callee << "|" << std::to_string(!in_vec(Callee, template_fn)) << "\n";
       LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
       return;
   }

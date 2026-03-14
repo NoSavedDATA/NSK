@@ -1,5 +1,5 @@
 CXX := clang++-19 -std=c++17
-CXXFLAGS := -O3 -rdynamic -march=native -fno-exceptions
+CXXFLAGS := -O3 -rdynamic -march=native -mavx -mavx2 -fno-exceptions
 # CXXFLAGS := -O0 -g -rdynamic
 LLVM_CONFIG := llvm-config-19 --link-static --libs core orcjit native
 SYSTEM_LIBS := -ldl -lrt -pthread

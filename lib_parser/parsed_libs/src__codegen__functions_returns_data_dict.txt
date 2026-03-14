@@ -1,1 +1,2 @@
 	functions_return_data_type["_quit_"] = Data_Tree("float");
+	functions_return_data_type["fexists"] = Data_Tree("bool");

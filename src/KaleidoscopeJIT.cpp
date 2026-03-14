@@ -150,8 +150,12 @@ Expected<std::unique_ptr<KaleidoscopeJIT>> KaleidoscopeJIT::Create() {
 
   JITTargetMachineBuilder JTMB(
       ES->getExecutorProcessControl().getTargetTriple());
-
   JTMB.setCodeGenOptLevel(llvm::CodeGenOptLevel::Aggressive);
+  JTMB.setCPU("x86-64-v3"); // native gets restricted to the current CPU generation
+  // enable portable SIMD level
+  JTMB.addFeatures({"+sse2"});
+
+
 
   auto DL = JTMB.getDefaultDataLayoutForTarget();
   if (!DL)

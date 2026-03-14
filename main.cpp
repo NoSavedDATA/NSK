@@ -215,7 +215,6 @@ void InitializeTokenizer() {
 
     } else
         getNextToken();
-
 }
 
 /// top ::= definition | external | expression | ';'
@@ -341,6 +340,13 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["charv_Create"]["1"] = Data_Tree("int");
   Function_Arg_Names["charv_Create"] = {"0", "1"};
 
+  // DT_vec
+  struct_create_fn["DT_vec"] = DT_vec_create;
+  Function_Arg_DataTypes["vec_Create"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["vec_Create"]["1"] = Data_Tree("int");
+  Function_Arg_DataTypes["vec_Create"]["2"] = Data_Tree("int");
+  Function_Arg_Names["vec_Create"] = {"0", "1", "2"};
+
 
 
   // c_open
@@ -352,7 +358,7 @@ int main(int argc, char* argv[]) {
   Function_Required_Arg_Count["c_open"] = 1;
 
   // c_read
-  functions_return_data_type["c_read"] = Data_Tree("int64");
+  functions_return_data_type["c_read"] = Data_Tree("i64");
   llvm_callee["c_read"] = c_read;
   Function_Arg_DataTypes["c_read"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_read"]["1"] = Data_Tree("int");
@@ -363,17 +369,17 @@ int main(int argc, char* argv[]) {
 
 
   // c_memchr
-  functions_return_data_type["c_memchr"] = Data_Tree("int64");
+  functions_return_data_type["c_memchr"] = Data_Tree("i64");
   llvm_callee["c_memchr"] = c_memchr;
   Function_Arg_DataTypes["c_memchr"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_memchr"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("int");
-  Function_Arg_DataTypes["c_memchr"]["3"] = Data_Tree("int64");
+  Function_Arg_DataTypes["c_memchr"]["3"] = Data_Tree("i64");
   Function_Arg_Names["c_memchr"] = {"0", "1", "2", "3"};
   Function_Required_Arg_Count["c_memchr"] = 3;
 
   // c_strlen
-  functions_return_data_type["c_strlen"] = Data_Tree("int64");
+  functions_return_data_type["c_strlen"] = Data_Tree("i64");
   llvm_callee["c_strlen"] = c_strlen;
   Function_Arg_DataTypes["c_strlen"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_strlen"]["1"] = Data_Tree("str");
@@ -387,7 +393,7 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["c_memcpy"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_memcpy"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["c_memcpy"]["2"] = Data_Tree("charv");
-  Function_Arg_DataTypes["c_memcpy"]["3"] = Data_Tree("int64");
+  Function_Arg_DataTypes["c_memcpy"]["3"] = Data_Tree("i64");
   Function_Arg_Names["c_memcpy"] = {"0", "1", "2", "3"};
   Function_Required_Arg_Count["c_memcpy"] = 3;
 
@@ -434,7 +440,17 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["alloc"]["1"] = Data_Tree("int");
   Function_Arg_DataTypes["alloc"]["2"] = Data_Tree("str");
   Function_Arg_Names["alloc"] = {"0", "1", "2"};
-  Function_Required_Arg_Count["alloc"] = 1;
+  Function_Required_Arg_Count["alloc"] = 2;
+
+  // simd_load
+  function_return_overwrite["simd_load"] = simd_load_ret;
+  llvm_callee["simd_load"] = simd_load;
+  Function_Arg_DataTypes["simd_load"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["simd_load"]["1"] = Data_Tree("any");
+  Function_Arg_DataTypes["simd_load"]["2"] = Data_Tree("int");
+  Function_Arg_DataTypes["simd_load"]["3"] = Data_Tree("int");
+  Function_Arg_Names["simd_load"] = {"0", "1", "2", "3"};
+  Function_Required_Arg_Count["simd_load"] = 3;
 
 
 
@@ -458,13 +474,6 @@ int main(int argc, char* argv[]) {
 
 
 
-
-
-  floatFunctions["log"] = "logE";
-  floatFunctions["log2"] = "logE2";
-  floatFunctions["log2f"] = "logE2f";
-  floatFunctions["round"] = "roundE";
-  floatFunctions["floor"] = "floorE";
 
 
     gc_sizes[0] = 8;
@@ -540,7 +549,8 @@ int main(int argc, char* argv[]) {
 
   // Universal
   string_methods = {"split", "split_idx"};
-
+  
+  template_fn = {"simd_load"};
 
   // tensor + string + ...
   // e.g: x.view(), str.split()
@@ -579,12 +589,12 @@ int main(int argc, char* argv[]) {
                      {"pinned_tensor_tensor", "pinned_tensor"}, {"pinned_tensor_float", "pinned_tensor"},
                      {"object_object", "object"}, {"str_object", "object"},
                      {"tensor_int", "tensor"}, {"int_tensor", "tensor"}, {"str_channel", "str"}, {"channel_str", "float"}, {"channel_int", "float"},
-                     {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"int64_int64", "int64"}};
+                     {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"i64_i64", "i64"}};
 
   ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"}, {"int_int_equal", "bool"}, {"int_int_different", "bool"},
                      {"int_int_higher_eq", "bool"}, {"int_int_minor_eq", "bool"},
                      {"float_float_higher", "bool"}, {"float_float_minor", "bool"}, {"float_float_equal", "bool"}, {"float_float_different", "bool"},
-                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"}, {"charv_int_add", "charv"}, {"charv_int64_add", "charv"}};
+                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"}, {"charv_int_add", "charv"}, {"charv_i64_add", "charv"}};
 
                      
 
