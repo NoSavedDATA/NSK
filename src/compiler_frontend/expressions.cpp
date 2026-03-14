@@ -220,6 +220,10 @@ BoolExprAST::BoolExprAST(bool Val) : Val(Val) {
 StringExprAST::StringExprAST(std::string Val) : Val(Val) {
   this->SetType("str");
 } 
+
+CharExprAST::CharExprAST(int Val) : Val(Val) {
+  this->SetType("char");
+} 
   
 
 NullPtrExprAST::NullPtrExprAST() {
@@ -495,7 +499,6 @@ DataExprAST::DataExprAST(
     Data_Tree init_dt = Init->GetDataTree();
     std::string init_type = init_dt.Type;
 
-    
     Check_Is_Compatible_Data_Type(data_type, init_dt, parser_struct);
 
     if (!HasNotes&&\
@@ -1154,11 +1157,6 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
    
 
   std::string ret_type = ret.Type;
-  if (ends_with(ret_type, "_vec")) {
-    Data_Tree return_dt = Data_Tree("vec");
-    return_dt.Nested_Data.push_back(remove_suffix(ret_type, "_vec"));
-    ret = return_dt;
-  }
 
   if(Callee=="map_keys") {
     Data_Tree return_dt = Data_Tree("array");
@@ -1317,7 +1315,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
   // check if exists
-  if (functions_return_data_type.count(Callee)==0&&!in_vec(Callee, template_fn)) {
+  if (functions_return_data_type.count(Callee)==0&&function_return_overwrite.count(Callee)==0) {
     std::cout << "" << Callee << "|" << std::to_string(!in_vec(Callee, template_fn)) << "\n";
       LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
       return;

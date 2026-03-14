@@ -293,6 +293,12 @@ Value *StringExprAST::codegen(Value *scope_struct) {
   return global_str(Val);
 }
 
+Value *CharExprAST::codegen(Value *scope_struct) {
+  if (not ShallCodegen)
+    return const_float(0.0f);
+  return const_int8(Val);
+}
+
 
 Value *NullPtrExprAST::codegen(Value *scope_struct) { 
   // return Constant::getNullValue(int8PtrTy);
@@ -882,6 +888,38 @@ Value *DT_vec_create(Parser_Struct parser_struct, Function *TheFunction,
 }
 
 
+Value *parse_i8(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    const std::string &type = Args[0]->GetDataTree().Type;
+    if(!in_vec(type, {"int", "i16", "i64"}))
+        LogError(parser_struct.line, "Cannot cast " + type + " to i8.");
+    return Builder->CreateIntCast(ArgsV[0], int8Ty, true); // true for signed extend
+}
+Value *parse_i16(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    const std::string &type = Args[0]->GetDataTree().Type;
+    if(!in_vec(type, {"int", "i8", "i64"}))
+        LogError(parser_struct.line, "Cannot cast " + type + " to i16.");
+    return Builder->CreateIntCast(ArgsV[0], int16Ty, true); // true for signed extend
+}
+Value *parse_int(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    const std::string &type = Args[0]->GetDataTree().Type;
+    if(!in_vec(type, {"i8", "i16", "i64"}))
+        LogError(parser_struct.line, "Cannot cast " + type + " to int.");
+    return Builder->CreateIntCast(ArgsV[0], intTy, true); // true for signed extend
+}
+Value *parse_i64(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    const std::string &type = Args[0]->GetDataTree().Type;
+    if(!in_vec(type, {"int", "i16", "i8"}))
+        LogError(parser_struct.line, "Cannot cast " + type + " to i64.");
+    return Builder->CreateIntCast(ArgsV[0], int64Ty, true); // true for signed extend
+}
 
 Value *c_mm256_loadu_si256(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
@@ -1046,7 +1084,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         }
 
 
-        if(in_str(Type, primary_data_tokens)&&!(is_self||is_attr))
+        if(in_vec(Type, primary_data_tokens)&&!(is_self||is_attr))
         { 
             if (Type=="float"&&init_dt.Type=="int")
                 initial_value = Builder->CreateSIToFP(initial_value, floatTy, "int_to_float");
@@ -3903,6 +3941,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
 
     std::vector<Value*> ArgsV = {scope_struct};
+    std::vector<Data_Tree> ArgTypes;
 
 
     if(Depth>1&&!FromLib) {
@@ -3933,24 +3972,27 @@ Value *NameableCall::codegen(Value *scope_struct) {
             }
             previous_obj = swap_scope_obj(scope_struct, obj_ptr); 
         }
-        else{
+        else {
+            ArgTypes.push_back(Inner->GetDataTree());
             ArgsV.push_back(obj_ptr);
             target_args_size++;
+            
+            if(Inner->GetDataTree().Type!="vec") {
+                BasicBlock *GotNullBB = BasicBlock::Create(*TheContext, "nested_call.bad.bb", TheFunction);
+                BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "nested_call.ok.bb", TheFunction);
 
-            BasicBlock *GotNullBB = BasicBlock::Create(*TheContext, "nested_call.bad.bb", TheFunction);
-            BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "nested_call.ok.bb", TheFunction);
+                Value *nullPtr = ConstantPointerNull::get(
+                        cast<PointerType>(int8PtrTy)
+                        );
 
-            Value *nullPtr = ConstantPointerNull::get(
-                    cast<PointerType>(int8PtrTy)
-                    );
+                Builder->CreateCondBr(Builder->CreateICmpEQ(obj_ptr, nullPtr), GotNullBB, AfterBB);  
 
-            Builder->CreateCondBr(Builder->CreateICmpEQ(obj_ptr, nullPtr), GotNullBB, AfterBB);  
+                Builder->SetInsertPoint(GotNullBB);
+                call("LogErrorCall", {const_int(parser_struct.line), global_str("Could not call " + Callee + ", got a nullptr as object")});
+                Builder->CreateUnreachable();
 
-            Builder->SetInsertPoint(GotNullBB);
-            call("LogErrorCall", {const_int(parser_struct.line), global_str("Could not call " + Callee + ", got a nullptr as object")});
-            Builder->CreateUnreachable();
-
-            Builder->SetInsertPoint(AfterBB);
+                Builder->SetInsertPoint(AfterBB);
+            }
         }
     }
     // if(!Check_Args_Count(Callee, Args, target_args_size, parser_struct))
@@ -3959,7 +4001,6 @@ Value *NameableCall::codegen(Value *scope_struct) {
     if (ReturnType=="")
         GetDataTree();
 
-    std::vector<Data_Tree> ArgTypes;
     ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct,\
             Callee, is_nsk_fn, arg_type_check_offset);
 

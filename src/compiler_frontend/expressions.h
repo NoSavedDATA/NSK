@@ -143,6 +143,14 @@ class StringExprAST : public ExprAST {
 
   Value *codegen(Value *scope_struct) override;
 };
+
+class CharExprAST : public ExprAST {
+  public:
+    int Val;
+    CharExprAST(int Val); 
+
+  Value *codegen(Value *scope_struct) override;
+};
   
 
 

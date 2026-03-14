@@ -38,7 +38,8 @@ void print_caller() {
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
 std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float", "i64"}},
-                                                                    {"i64", {"int"}}};
+                                                                    {"i64", {"int"}},
+                                                                    {"char", {"i8"}}};
 
 std::map<std::string, int> Function_Arg_Count;
 std::map<std::string, int> Function_Required_Arg_Count;
@@ -153,15 +154,8 @@ Data_Tree Parse_Data_Type(std::string root_type, Parser_Struct parser_struct) {
     
     if(CurTok=='<') 
       data_type.Nested_Data.push_back(Parse_Data_Type(dt, parser_struct));
-    else {
-
-      if(ends_with(dt,"_vec")) {
-        Data_Tree vec_tree = Data_Tree("vec");
-        vec_tree.Nested_Data.push_back(remove_suffix(dt,"_vec"));
-        data_type.Nested_Data.push_back(vec_tree);
-      } else    
-        data_type.Nested_Data.push_back(Data_Tree(dt));
-    }
+    else
+      data_type.Nested_Data.push_back(Data_Tree(dt));
 
     if(CurTok==',')
       getNextToken();
@@ -185,13 +179,7 @@ Data_Tree ParseDataTree(std::string data_type, bool is_struct, Parser_Struct par
   if (is_struct&&CurTok=='<')
     data_tree = Parse_Data_Type(data_type, parser_struct);
   else
-  {
-    if(ends_with(data_type,"_vec")) {
-      data_tree = Data_Tree("vec");
-      data_tree.Nested_Data.push_back(remove_suffix(data_type,"_vec"));
-    } else    
-      data_tree = Data_Tree(data_type);
-  }
+    data_tree = Data_Tree(data_type);
   return data_tree;
 }
 
@@ -220,6 +208,12 @@ std::unique_ptr<ExprAST> ParseBoolExpr(Parser_Struct parser_struct) {
 std::unique_ptr<ExprAST> ParseStringExpr(Parser_Struct parser_struct) {
   auto Result = std::make_unique<StringExprAST>(IdentifierStr);
   getNextToken(); // consume the "
+  return std::move(Result);
+}
+
+std::unique_ptr<ExprAST> ParseCharExpr(Parser_Struct parser_struct) {
+  auto Result = std::make_unique<CharExprAST>(NumVal);
+  getNextToken(); // consume the '
   return std::move(Result);
 }
 
@@ -1294,7 +1288,13 @@ std::optional<std::vector<std::unique_ptr<ExprAST>>> Parse_Arguments(Parser_Stru
 
       else if (CurTok==tok_data) {
         getNextToken();
-        Args.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
+  
+        if (CurTok=='(') {
+          std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, IdentifierStr, 0);
+          nameable->AddNested(std::make_unique<NameableRoot>(parser_struct));
+          Args.push_back(ParseCallExpr(parser_struct, std::move(nameable), class_name, 1));
+        } else
+            Args.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
       }
       
       else if (auto Arg = ParseExpression(parser_struct, class_name, false))
@@ -1522,10 +1522,15 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
   std::vector<std::unique_ptr<ExprAST>> notes;
   bool has_notes=false;
     
+  if (CurTok=='(') {
+      std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, data_type, 0);
+      nameable->AddNested(std::make_unique<NameableRoot>(parser_struct));
+      return ParseCallExpr(parser_struct, std::move(nameable), class_name, 1);
+  }
+
+  // todo: maybe return as type id
+  // if (!in_vec(CurTok, {'[', tok_self, tok_identifier})) {}
   
-
-
-
 
   // Get the Notes vector
   if (CurTok == '[')
@@ -1804,6 +1809,8 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseBoolExpr(parser_struct);
   case tok_str:
     return ParseStringExpr(parser_struct);
+  case tok_char:
+    return ParseCharExpr(parser_struct);
   case '(':
     return ParseParenExpr(parser_struct);
   case tok_if:

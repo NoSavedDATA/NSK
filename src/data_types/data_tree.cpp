@@ -33,6 +33,12 @@ int CompareArrays(Data_Tree *L, Data_Tree R) {
     // return L->Nested_Data[0].Compare(R.Nested_Data[0]);
     return (L->Nested_Data[0].Type==R.Nested_Data[0].Type) ? 0 : 1;
 }
+int CompareVec(Data_Tree *L, Data_Tree R) {
+    if(L->Nested_Data.size()==0||R.Nested_Data.size()==0)
+        return 1;
+    return (L->Nested_Data[0].Compare(R.Nested_Data[0])==0) && \
+           (L->Nested_Data[1].Type==R.Nested_Data[1].Type) ? 0 : 1;
+}
 
 
 bool CompareListRecursive(Data_Tree L, Data_Tree R) {
@@ -102,10 +108,13 @@ int Data_Tree::Compare(Data_Tree other_tree) {
     if(Type=="void")
         return 0;
 
-    if(!in_str(Type, primary_data_tokens) && other_tree.Type=="nullptr")
+    if(!in_vec(Type, primary_data_tokens) && other_tree.Type=="nullptr")
         return 0;
 
-    if(in_str(Type, primary_data_tokens) && in_str(other_tree.Type, primary_data_tokens) &&\
+    if(Type=="vec"&&other_tree.Type=="vec")
+        return CompareVec(this, other_tree);
+
+    if(in_vec(Type, primary_data_tokens) && in_str(other_tree.Type, primary_data_tokens) &&\
          CheckIsEquivalent(Type, other_tree.Type))
         return 0;
     
@@ -180,8 +189,6 @@ std::string Data_Tree::toString() {
 
 
 std::string UnmangleVec(Data_Tree dt) {
-    if (dt.Type=="vec")
-        return  dt.Nested_Data[0].Type + "_vec";
     if (dt.Type=="channel")
         return  dt.Nested_Data[0].Type + "_channel";
     return dt.Type;

@@ -9,6 +9,9 @@ lib/
 src_reference/
 sys_lib/
 Dockerfile
+foo.nk
+foo_backup.nk
+.build_flag
 *backup/
 *.csv
 *.txt

@@ -35,6 +35,7 @@ void set_user_functions() {
 		"str_Create", "str_Copy", "str_CopyArg", "str_str_add", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
 		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"LogErrorCall", "print_codegen", "print_codegen_silent", 
+		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
 		"print_randoms", "randint", 
 		"allocate_void", "allocate_pool", 
 		"list_New", "list_append_int", "list_append_float", "list_append_bool", "list_append", "list_print", "tuple_print", "list_Create", "list_shuffle", "list_size", "list_as_float_vec", "list_CalculateIdx", "to_int", "to_float", "to_bool", "list_CalculateSliceIdx", "list_Slice", "assign_wise_list_Idx", "int_list_Store_Idx", "float_list_Store_Idx", "list_Store_Idx", "zip", "list_Idx", "tuple_Idx", 

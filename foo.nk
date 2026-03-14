@@ -43,9 +43,12 @@ class MyFile
 			self.bytes_read = c_read(self.fd, self.buf, 8192)
 		
 		vec<i8,32> vsimd = simd_load(self.buf+self.bytes_offset, i8, 32)
+		vec<i8,32> comma_mask = vec_make(',',32)
 		
 		i64 n_pos = c_memchr(self.buf+self.bytes_offset, 10, self.bytes_read-self.bytes_offset)	
-		
+		vsimd.print()
+		comma_mask.print()
+		_quit_()
 
 		c_memcpy(self.line, self.buf+self.bytes_offset, n_pos)
 		self.line.set(n_pos, 0)

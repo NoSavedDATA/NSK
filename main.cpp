@@ -441,6 +441,35 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["alloc"]["2"] = Data_Tree("str");
   Function_Arg_Names["alloc"] = {"0", "1", "2"};
   Function_Required_Arg_Count["alloc"] = 2;
+  
+  // i8
+  functions_return_data_type["i8"] = Data_Tree("i8");
+  llvm_callee["i8"] = parse_i8;
+  Function_Arg_DataTypes["i8"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["i8"]["1"] = Data_Tree("any");
+  Function_Arg_Names["i8"] = {"0", "1"};
+  Function_Required_Arg_Count["i8"] = 1;
+  // i16
+  functions_return_data_type["i16"] = Data_Tree("i16");
+  llvm_callee["i16"] = parse_i16;
+  Function_Arg_DataTypes["i16"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["i16"]["1"] = Data_Tree("any");
+  Function_Arg_Names["i16"] = {"0", "1"};
+  Function_Required_Arg_Count["i16"] = 1;
+  // int
+  functions_return_data_type["int"] = Data_Tree("int");
+  llvm_callee["int"] = parse_int;
+  Function_Arg_DataTypes["int"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["int"]["1"] = Data_Tree("any");
+  Function_Arg_Names["int"] = {"0", "1"};
+  Function_Required_Arg_Count["int"] = 1;
+  // i64
+  functions_return_data_type["i64"] = Data_Tree("i64");
+  llvm_callee["i64"] = parse_i64;
+  Function_Arg_DataTypes["i64"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["i64"]["1"] = Data_Tree("any");
+  Function_Arg_Names["i64"] = {"0", "1"};
+  Function_Required_Arg_Count["i64"] = 1;
 
   // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
@@ -451,6 +480,23 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["simd_load"]["3"] = Data_Tree("int");
   Function_Arg_Names["simd_load"] = {"0", "1", "2", "3"};
   Function_Required_Arg_Count["simd_load"] = 3;
+
+  // vec_make
+  function_return_overwrite["vec_make"] = vec_make_ret;
+  llvm_callee["vec_make"] = vec_make;
+  Function_Arg_DataTypes["vec_make"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["vec_make"]["1"] = Data_Tree("any");
+  Function_Arg_DataTypes["vec_make"]["2"] = Data_Tree("int");
+  Function_Arg_Names["vec_make"] = {"0", "1", "2"};
+  Function_Required_Arg_Count["vec_make"] = 2;
+
+  // vec_print
+  functions_return_data_type["vec_print"] = Data_Tree("int");
+  llvm_callee["vec_print"] = vec_print;
+  Function_Arg_DataTypes["vec_print"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["vec_print"]["1"] = Data_Tree("vec");
+  Function_Arg_Names["vec_print"] = {"0", "1"};
+  Function_Required_Arg_Count["vec_print"] = 1;
 
 
 
@@ -555,7 +601,7 @@ int main(int argc, char* argv[]) {
   // tensor + string + ...
   // e.g: x.view(), str.split()
   native_methods = {"err", "split", "split_idx", "str_vec_print", "file_open", "file_read", "file_close", "file_open",
-                    "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set"};
+                    "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set", "vec_print"};
   native_methods = concat_str_vec(native_methods, return_tensor_methods);
   native_methods = concat_str_vec(native_methods, user_cpp_functions);
 

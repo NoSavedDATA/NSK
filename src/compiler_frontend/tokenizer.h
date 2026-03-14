@@ -42,6 +42,7 @@ enum Token {
     tok_number = -5,
     tok_int = -13,
     tok_str = -40, // ""
+    tok_char = -69, // ""
     tok_bool = -58,
 
 

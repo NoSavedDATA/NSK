@@ -850,6 +850,41 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("__sliced_idx__", __sliced_idx__Ty);
 
+	FunctionType *print_vec_i8Ty= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_vec_i8", print_vec_i8Ty);
+
+	FunctionType *print_vec_i16Ty= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_vec_i16", print_vec_i16Ty);
+
+	FunctionType *print_vec_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_vec_int", print_vec_intTy);
+
+	FunctionType *print_vec_i64Ty= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_vec_i64", print_vec_i64Ty);
+
+	FunctionType *print_vec_floatTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_vec_float", print_vec_floatTy);
+
 	FunctionType *print_randomsTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{Type::getFloatTy(*TheContext), Type::getFloatTy(*TheContext)},

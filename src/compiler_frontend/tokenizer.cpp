@@ -61,6 +61,7 @@ std::map<int, std::string> token_to_string = {
   { tok_identifier, "tok identifier" },
   { tok_number, "tok number" },
   { tok_str, "tok str `` ''" },
+  { tok_char, "tok char `` ''" },
   { tok_var, "var" },
   { tok_int, "int number" },
 
@@ -421,7 +422,15 @@ static int get_token(bool block) {
     return '[';
   }
 
-  
+  if (LastChar=='\'') {
+    LastChar = tokenizer.get();
+    NumVal = LastChar;
+    LastChar = tokenizer.get();
+    if (LastChar!='\'')
+        LogErrorC(LineCounter, "Could not find matching \'");
+    LastChar = tokenizer.get();
+    return tok_char;
+  }
 
   if (LastChar=='"')
   {

@@ -22,6 +22,7 @@ void set_functions_return_type() {
                            {"mean_tensor", "tensor"},
                            {"BatchNorm2d", "tensor"}, {"Pool2d", "tensor"}, {"LSTM", "tensor"}, {"MHSA", "tensor"}, {"Embedding", "tensor"},
 						{"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"ShuffleStrVec", "str_vec"},
+						{"print_vec_i8", "int"}, {"print_vec_i16", "int"}, {"print_vec_int", "int"}, {"print_vec_i64", "int"}, {"print_vec_float", "int"}, 
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"is_null", "bool"}, 
@@ -92,6 +93,11 @@ void set_functions_return_type() {
 	functions_return_data_type["Add_To_NotesVector_float"] = Data_Tree("list");
 	functions_return_data_type["Add_To_NotesVector_int"] = Data_Tree("list");
 	functions_return_data_type["Add_To_NotesVector_str"] = Data_Tree("list");
+	functions_return_data_type["print_vec_i8"] = Data_Tree("int");
+	functions_return_data_type["print_vec_i16"] = Data_Tree("int");
+	functions_return_data_type["print_vec_int"] = Data_Tree("int");
+	functions_return_data_type["print_vec_i64"] = Data_Tree("int");
+	functions_return_data_type["print_vec_float"] = Data_Tree("int");
 	functions_return_data_type["scope_struct_spec"] = Data_Tree("float");
 	functions_return_data_type["scope_struct_CreateFirst"] = Data_Tree("");
 	functions_return_data_type["scope_struct_Create"] = Data_Tree("");
