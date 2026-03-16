@@ -698,12 +698,12 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   std::string type;
   if (Operation=="int_int_div")
     type = "float";
+  else if (Elements=="vec_vec")
+      return L_dt;
   else if (ops_type_return.count(Operation)>0)
     return Data_Tree(ops_type_return[Operation]);
   else if (functions_return_data_type.count(Operation))
     return functions_return_data_type[Operation];
-  // else if (functions_return_type.count(Operation)>0)
-  //   type = functions_return_type[Operation];
   else if (elements_type_return.count(Elements)>0)
     type = elements_type_return[Elements];
   else {}
@@ -794,7 +794,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64"})&&\
+  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
       TheModule->getFunction(Operation)==nullptr)
       LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }

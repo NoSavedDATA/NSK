@@ -216,6 +216,7 @@ extern std::vector<std::string> LLVM_IR_Functions = {"pow", "sqrt"};
 std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec", "MHSA", "LSTM", "Linear", "tuple",
 										"list", "map", "array",
                                         "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8"};
+std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
 std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "vec"};
 std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "foreach_control_var", "i64", "int8", "char"};
 
@@ -424,13 +425,31 @@ static int get_token(bool block) {
 
   if (LastChar=='\'') {
     LastChar = tokenizer.get();
-    NumVal = LastChar;
+
+    if (LastChar == '\\') {              // escape sequence
+        LastChar = tokenizer.get();
+        switch (LastChar) {
+            case 'n': NumVal = '\n'; break;
+            case 't': NumVal = '\t'; break;
+            case '0': NumVal = '\0'; break;
+            case 'r': NumVal = '\r'; break;
+            case '\\': NumVal = '\\'; break;
+            case '\'': NumVal = '\''; break;
+            default:
+                LogErrorC(LineCounter, "Unknown escape sequence");
+        }
+    } else {
+        NumVal = LastChar;               // normal char
+    }
+
     LastChar = tokenizer.get();
+
     if (LastChar!='\'')
-        LogErrorC(LineCounter, "Could not find matching \'");
+        LogErrorC(LineCounter, "Could not find matching '");
+
     LastChar = tokenizer.get();
     return tok_char;
-  }
+}
 
   if (LastChar=='"')
   {

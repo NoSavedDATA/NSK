@@ -373,7 +373,7 @@ int main(int argc, char* argv[]) {
   llvm_callee["c_memchr"] = c_memchr;
   Function_Arg_DataTypes["c_memchr"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_memchr"]["1"] = Data_Tree("str");
-  Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("int");
+  Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("char");
   Function_Arg_DataTypes["c_memchr"]["3"] = Data_Tree("i64");
   Function_Arg_Names["c_memchr"] = {"0", "1", "2", "3"};
   Function_Required_Arg_Count["c_memchr"] = 3;
@@ -471,6 +471,23 @@ int main(int argc, char* argv[]) {
   Function_Arg_Names["i64"] = {"0", "1"};
   Function_Required_Arg_Count["i64"] = 1;
 
+  // ctz
+  functions_return_data_type["ctz"] = Data_Tree("int");
+  llvm_callee["ctz"] = ctz;
+  Function_Arg_DataTypes["ctz"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["ctz"]["1"] = Data_Tree("any");
+  Function_Arg_Names["ctz"] = {"0", "1"};
+  Function_Required_Arg_Count["ctz"] = 1;
+
+  // swap_bit
+  function_return_overwrite["swap_bit"] = swap_bit_ret;
+  llvm_callee["swap_bit"] = swap_bit;
+  Function_Arg_DataTypes["swap_bit"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["swap_bit"]["1"] = Data_Tree("any");
+  Function_Arg_DataTypes["swap_bit"]["2"] = Data_Tree("int");
+  Function_Arg_Names["swap_bit"] = {"0", "1", "2"};
+  Function_Required_Arg_Count["swap_bit"] = 2;
+
   // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
   llvm_callee["simd_load"] = simd_load;
@@ -489,6 +506,14 @@ int main(int argc, char* argv[]) {
   Function_Arg_DataTypes["vec_make"]["2"] = Data_Tree("int");
   Function_Arg_Names["vec_make"] = {"0", "1", "2"};
   Function_Required_Arg_Count["vec_make"] = 2;
+
+  // vec_movemask
+  functions_return_data_type["vec_movemask"] = Data_Tree("int");
+  llvm_callee["vec_movemask"] = vec_movemask;
+  Function_Arg_DataTypes["vec_movemask"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["vec_movemask"]["1"] = Data_Tree("any");
+  Function_Arg_Names["vec_movemask"] = {"0", "1"};
+  Function_Required_Arg_Count["vec_movemask"] = 1;
 
   // vec_print
   functions_return_data_type["vec_print"] = Data_Tree("int");
@@ -576,33 +601,23 @@ int main(int argc, char* argv[]) {
   split_str_dt.Nested_Data.push_back(Data_Tree("str")); 
   functions_return_data_type["str_split"] = split_str_dt;
 
-  vararg_methods = {"tensor_view", "tensor_sum", "tensor_mean", "mean_tensor" ,"tensor_prod", "tensor_tmax", "tensor_argmax", "tensor_load_bin_idx", "zip"};
 
 
-  return_tensor_functions = {"gelu", "sigmoid", "_tanh", "relu", "softmax", "log", "randu_like",
-                             "RandomCrop", "RandomHorizontalFlip", "NormalizeImg", "dropout", "sigmoid_add2weights",
-                             "rl_discounted_return", "self_attn", "Jitter", "mse_with_priorities",
-                             "btc_mult", "btc_multT", "Linear"};
 
   
   
   functions_return_data_type["scope_struct_Sweep"] = Data_Tree("float");
 
-  return_tensor_fn = concat_str_vec(return_tensor_functions, return_tensor_methods);
-
-  return_pinned_methods = {"gpu", "gpuw"};
 
 
-  // Universal
-  string_methods = {"split", "split_idx"};
   
+  vararg_methods = {"zip"};
   template_fn = {"simd_load"};
 
   // tensor + string + ...
   // e.g: x.view(), str.split()
   native_methods = {"err", "split", "split_idx", "str_vec_print", "file_open", "file_read", "file_close", "file_open",
-                    "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set", "vec_print"};
-  native_methods = concat_str_vec(native_methods, return_tensor_methods);
+                    "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set", "vec_print", "vec_movemask", "int_print_bits"};
   native_methods = concat_str_vec(native_methods, user_cpp_functions);
 
   return_string_fn = {"to_string", "cat_str_float"};
@@ -620,7 +635,6 @@ int main(int argc, char* argv[]) {
                       "network_ema", "mse", "priority_sample", "priority_sample_val",
                       "importance_sample_idx", "importance_sample_weight",
                       "cross_entropy_idx"};
-  native_functions = concat_str_vec(native_functions, return_tensor_functions);
   native_functions = concat_str_vec(native_functions, return_string_fn);
   native_fn = concat_str_vec(native_methods, native_functions);
 

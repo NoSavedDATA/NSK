@@ -1,1 +1,1 @@
-{"read_int", "int"}, {"int_to_str", "str"}, {"int64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, 
+{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, {"int_print_bits", "int"}, 

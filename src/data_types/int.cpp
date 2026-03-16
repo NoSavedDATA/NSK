@@ -79,7 +79,7 @@ extern "C" char* int_to_str(Scope_Struct *scope_struct, int value)
 }
 
 
-extern "C" int64_t int64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, char *buffer)
+extern "C" int64_t i64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, char *buffer)
 {
     if (value == std::numeric_limits<int64_t>::min()) {
         const char* min_str = "-9223372036854775808";
@@ -143,4 +143,15 @@ extern "C" int64_t int_to_str_buffer(Scope_Struct *scope_struct, int value, char
         buffer[0] = '-';
 
     return total_len;
+}
+
+
+extern "C" int int_print_bits(Scope_Struct *scope_struct, int value) {
+    unsigned int u = static_cast<unsigned int>(value);
+
+    for (int i = sizeof(int)*8 - 1; i >= 0; --i) {
+        std::putchar((u >> i) & 1 ? '1' : '0');
+    }
+    std::putchar('\n');
+    return 0;
 }

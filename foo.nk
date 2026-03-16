@@ -4,7 +4,7 @@ def array<str> str_split(str s, str pattern)
 	array<str> ret
 	
 	i64 len = c_strlen(s)
-	i64 pos = c_memchr(s, 44, len)
+	i64 pos = c_memchr(s, ',', len)
 	
 	int offset=0, i=0
 
@@ -17,19 +17,19 @@ def array<str> str_split(str s, str pattern)
 		ret.append(v)
 	
 		offset = offset+pos+1
-		pos = c_memchr(s.offset(offset), 44, len-offset)
-		i=i+1
+		pos = c_memchr(s.offset(offset), ',', len-offset)
 
 
 	return ret
 
-class MyFile
+class Csv
 	int fd, bytes_offset
 	charv[8192] buf
 	i64 bytes_read
 	str line
+	char sep
 
-	ctor(str fname)
+	ctor(str fname, char sep)
 		if !fexists(fname)
 			err("File " + fname + " does not exist.")
 		
@@ -37,33 +37,54 @@ class MyFile
 		self.line = alloc(2048, "str")
 		self.bytes_offset = 0
 		self.bytes_read = -1
+		self.sep = sep
+		
 
 	def str read()
 		if self.bytes_read==-1 or self.bytes_offset>=self.bytes_read
 			self.bytes_read = c_read(self.fd, self.buf, 8192)
-		
-		vec<i8,32> vsimd = simd_load(self.buf+self.bytes_offset, i8, 32)
-		vec<i8,32> comma_mask = vec_make(',',32)
-		
-		i64 n_pos = c_memchr(self.buf+self.bytes_offset, 10, self.bytes_read-self.bytes_offset)	
-		vsimd.print()
-		comma_mask.print()
-		_quit_()
+			self.bytes_offset = 0
+		i64 n_pos = c_memchr(self.buf+self.bytes_offset, '\n', self.bytes_read-self.bytes_offset)	
+
+		int mask = 0, pos = 0
+
+		while mask==0 and (self.bytes_offset+pos)<8192
+			vec<i8,32> bytes = simd_load(self.buf+(self.bytes_offset+pos), i8,32)
+			vec<i8,32> v_comma = vec_make('\n', 32)
+			vec<i8,32> v_mask = v_comma == bytes
+			mask = v_mask.movemask()
+			if mask==0
+				pos = pos + 32
+			else
+				pos = pos + ctz(mask)
+			
+
+			
 
 		c_memcpy(self.line, self.buf+self.bytes_offset, n_pos)
 		self.line.set(n_pos, 0)
 
 		self.bytes_offset = self.bytes_offset + n_pos+1
+
 		
-		if self.bytes_offset<self.bytes_read
+		if self.bytes_offset<=self.bytes_read
+			if self.bytes_offset==self.bytes_read
+				self.bytes_read = c_read(self.fd, self.buf, 8192)
+				self.bytes_offset = 0
+				
 			return self.line
 
-		self.bytes_offset=0
+
 		self.bytes_read = c_read(self.fd, self.buf, 8192)
 		int last_i = n_pos
  
-		n_pos = c_memchr(self.buf, 10, self.bytes_read)	
+		n_pos = c_memchr(self.buf, '\n', self.bytes_read)	
 		c_memcpy(self.line.offset(last_i), self.buf, n_pos)
+		
+		self.line.set(last_i+n_pos, 0)
+
+		self.bytes_offset=n_pos+1
+
 
 		return self.line
 
@@ -73,12 +94,11 @@ class MyFile
 main
 	#file["games.csv"] f
 	#f.read()
-	MyFile f("games.csv")
+	Csv f("games.csv", ',')
 
 	int i=0
 	while f.opened()
-		print(i)
+		print("i ", i)
 		str line = f.read()
 		array<str> v = line.split(",")
 		i = i + 1
-

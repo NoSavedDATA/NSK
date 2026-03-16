@@ -21,7 +21,7 @@ void set_user_functions() {
 		"bool_to_str", "bool_to_str_buffer", 
 		"__idx__", "__sliced_idx__", 
 		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
-		"read_int", "int_to_str", "int64_to_str_buffer", "int_to_str_buffer", 
+		"read_int", "int_to_str", "i64_to_str_buffer", "int_to_str_buffer", "int_print_bits", 
 		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
 		"charv_print", 
 		"__slee_p_", "random_sleep", "silent_sleep", "start_timer", "end_timer", 

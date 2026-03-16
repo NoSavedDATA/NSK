@@ -1140,17 +1140,17 @@ void set_functions_args_type() {
 		Function_Arg_Names["int_to_str"].push_back("0");
 		Function_Arg_Names["int_to_str"].push_back("1");
 		
-		Function_Arg_Types["int64_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int64_to_str_buffer"]["1"] = "int64_t";
-		Function_Arg_Types["int64_to_str_buffer"]["2"] = "str";
+		Function_Arg_Types["i64_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["i64_to_str_buffer"]["1"] = "int64_t";
+		Function_Arg_Types["i64_to_str_buffer"]["2"] = "str";
 		
-		Function_Arg_DataTypes["int64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int64_to_str_buffer"]["1"] = Data_Tree("int64_t");
-		Function_Arg_DataTypes["int64_to_str_buffer"]["2"] = Data_Tree("str");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["1"] = Data_Tree("int64_t");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["2"] = Data_Tree("str");
 		
-		Function_Arg_Names["int64_to_str_buffer"].push_back("0");
-		Function_Arg_Names["int64_to_str_buffer"].push_back("1");
-		Function_Arg_Names["int64_to_str_buffer"].push_back("2");
+		Function_Arg_Names["i64_to_str_buffer"].push_back("0");
+		Function_Arg_Names["i64_to_str_buffer"].push_back("1");
+		Function_Arg_Names["i64_to_str_buffer"].push_back("2");
 		
 		Function_Arg_Types["int_to_str_buffer"]["0"] = "Scope_Struct";
 		Function_Arg_Types["int_to_str_buffer"]["1"] = "int";
@@ -1163,6 +1163,15 @@ void set_functions_args_type() {
 		Function_Arg_Names["int_to_str_buffer"].push_back("0");
 		Function_Arg_Names["int_to_str_buffer"].push_back("1");
 		Function_Arg_Names["int_to_str_buffer"].push_back("2");
+		
+		Function_Arg_Types["int_print_bits"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_print_bits"]["1"] = "int";
+		
+		Function_Arg_DataTypes["int_print_bits"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_print_bits"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["int_print_bits"].push_back("0");
+		Function_Arg_Names["int_print_bits"].push_back("1");
 	
 		
 		Function_Arg_Types["GetEmptyChar"]["0"] = "Scope_Struct";

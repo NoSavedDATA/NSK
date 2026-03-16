@@ -14,7 +14,9 @@
 #include "../common/extension_functions.h"
 #include "../data_types/include.h"
 #include "../notators/include.h"
+#include "../simd/codegen.h"
 #include "../KaleidoscopeJIT.h"
+
 #include "include.h"
 
 
@@ -1010,7 +1012,7 @@ Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *buf = ArgsV[0];
-    Value* newlineVal = ArgsV[1];
+    Value* newlineVal = Builder->CreateIntCast(ArgsV[1], intTy, /*isSigned=*/true);
     // Value *split_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[2], {const_int(0), const_int(0)});
     // Value *newlineVal = Builder->CreateZExt(Builder->CreateLoad(int8Ty, split_gep), intTy);
     Value *len = ArgsV[2];
@@ -1088,8 +1090,9 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         { 
             if (Type=="float"&&init_dt.Type=="int")
                 initial_value = Builder->CreateSIToFP(initial_value, floatTy, "int_to_float");
-            if (Type=="i64"&&init_dt.Type=="int")
-                initial_value = Builder->CreateTrunc(initial_value, intTy, "i64_to_int");
+            if (Type!=init_dt.Type&&in_vec(Type, int_types)&&in_vec(init_dt.Type, int_types))
+                initial_value = Builder->CreateIntCast(initial_value,
+                                        get_type_from_data(data_type), true);
             function_values[parser_struct.function_name][VarName] = initial_value;
             continue;
         }
@@ -1197,6 +1200,7 @@ Value *IfExprAST::codegen(Value *scope_struct) {
 
     // Create blocks for the then and else cases.  Insert the 'then' block at the
     // end of the function.
+    BasicBlock *CurBB = Builder->GetInsertBlock(); // Catch branching scenarios
     BasicBlock *ThenBB  = BasicBlock::Create(*TheContext, "if_then", TheFunction);
     BasicBlock *ElseBB  = BasicBlock::Create(*TheContext, "if_else");
     BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "if_cont");
@@ -1257,13 +1261,22 @@ Value *IfExprAST::codegen(Value *scope_struct) {
     TheFunction->insert(TheFunction->end(), MergeBB);
     Builder->SetInsertPoint(MergeBB);
 
-
-
     for (auto &[name, value] : old_values) {
-        if (then_values[name]!=value || else_values[name]!=value) {
-            PHINode *phi = Builder->CreatePHI(value->getType(), 2);
-            phi->addIncoming(then_values[name], ThenBB);
-            phi->addIncoming(else_values[name], ElseBB);
+
+        Value *then_val = then_values.count(name) ? then_values.at(name) : value;
+        Value *else_val = else_values.count(name) ? else_values.at(name) : value;
+
+        if (then_val != value || else_val != value) {
+
+            int incoming = (!ThenTerminated) + (!ElseTerminated);
+            PHINode *phi = Builder->CreatePHI(value->getType(), incoming);
+
+            if (!ThenTerminated)
+                phi->addIncoming(then_val, ThenBB);
+
+            if (!ElseTerminated)
+                phi->addIncoming(else_val, ElseBB);
+
             function_values[parser_struct.function_name][name] = phi;
         }
     }
@@ -1402,6 +1415,7 @@ Value *BreakExprAST::codegen(Value *scope_struct) {
 
 
 void Codegen_Loop_Body(Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> Body, BasicBlock *LoopBody, BasicBlock *AfterBB) {  
+    // Handle break stmt
     for (auto &body : Body) {
         if (auto *if_stmt = dynamic_cast<IfExprAST*>(body.get()))
             if_stmt->codegen_from_loop(scope_struct, LoopBody, AfterBB);
@@ -1417,17 +1431,16 @@ void Get_Recursive_Assign_Statements(const std::vector<std::unique_ptr<ExprAST>>
             Get_Recursive_Assign_Statements(if_stmt->Then, assigned_vars);
             Get_Recursive_Assign_Statements(if_stmt->Else, assigned_vars);
         }
-        // if (auto *if_stmt = dynamic_cast<IfExprAST*>(body.get())) {
-        //     Get_Recursive_Assign_Statements(if_stmt->Then, assigned_vars);
-        //     Get_Recursive_Assign_Statements(if_stmt->Else, assigned_vars);
-        // }
         if (auto *bin_stmt = dynamic_cast<BinaryExprAST*>(body.get())) {
             char op = bin_stmt->Op;
             if (op=='='||op==tok_arrow) {
                 if (auto *nameable_stmt = dynamic_cast<Nameable*>(bin_stmt->LHS.get())) {
                     if(typeid(*nameable_stmt)==typeid(Nameable)) {
                         if (nameable_stmt->Depth==1) {
-                            assigned_vars.push_back(nameable_stmt->GetName());
+                            // Check non-attributes only
+                            const std::string &var_name = nameable_stmt->GetName();
+                            if (!in_vec(var_name, assigned_vars))
+                                assigned_vars.push_back(var_name);
                         }
                     }
                 }
@@ -1696,6 +1709,7 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     BasicBlock *CondBB = BasicBlock::Create(*TheContext, "cond_while", TheFunction);
     BasicBlock *LoopBB = BasicBlock::Create(*TheContext, "loop_while", TheFunction);
     BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "end_while", TheFunction);
+
     BasicBlock *PreheaderBB = Builder->GetInsertBlock();
 
     // Jump to the condition block
@@ -1721,31 +1735,26 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     }
 
 
-    // Generate the condition code
     Value* condVal = Cond->codegen(scope_struct);
     if (!condVal)
         return nullptr;
 
-
-    // Create the conditional branch
     Builder->CreateCondBr(condVal, LoopBB, AfterBB);
 
-    // Insert the loop body block
     Builder->SetInsertPoint(LoopBB);
 
-    // Generate the loop body code
     Codegen_Loop_Body(scope_struct, std::move(Body), LoopBB, AfterBB);
-
-
     BasicBlock *CurBB = Builder->GetInsertBlock(); // handles branching
+     
     for (auto &name : changed_vars)
         function_phi_values[name]->addIncoming(function_values[parser_struct.function_name][name], CurBB);
 
-    // After the loop body, go back to the condition check
     Builder->CreateBr(CondBB);
+
 
     // Insert the after loop block
     Builder->SetInsertPoint(AfterBB);
+// TheFunction->print(llvm::errs());
 
     return Constant::getNullValue(Type::getFloatTy(*TheContext));
 }
@@ -1829,7 +1838,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         R = Builder->CreateSIToFP(R, floatTy, "lfp");
 
     if (cast_R_to=="i64_to_int")
-        R = Builder->CreateTrunc(R, intTy);
+        R = Builder->CreateIntCast(R, intTy, true);
 
 
     if (Op == '=' || (Op==tok_arrow&&!begins_with(Elements, "channel"))) {
@@ -2210,10 +2219,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         bool is_alloca = (!LHS->GetSelf()&&!LHS->GetIsAttribute());
         if (is_alloca)
         {
-            if(Lname=="vsimd") {
-                LogBlue("store of vsimd");
-                std::cout << "" << LType << "\n";
-            }
 
             std::string store_trigger = LType + "_StoreTrigger";
             std::string copy_fn = LType + "_Copy";
@@ -2289,7 +2294,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
     if (cast_L_to=="int_to_float")
         L = Builder->CreateSIToFP(L, Type::getFloatTy(*TheContext), "lfp");
     if (cast_L_to=="i64_to_int")
-        L = Builder->CreateTrunc(L, intTy);
+        L = Builder->CreateIntCast(L, intTy, true);
 
     if (Operation=="tensor_int_div") {
         Operation = "tensor_float_div";
@@ -2328,6 +2333,15 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         }
     }
 
+    if (Elements=="vec_vec") {
+        switch (Op) {
+            case tok_equal:
+                return simd_equal(LHS, RHS, L, R);
+            default:
+                LogError(parser_struct.line, "Unimplemented vec op");
+                std::exit(0);
+        }
+    }
 
     if (Elements=="float_float")
     {

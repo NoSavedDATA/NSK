@@ -584,12 +584,12 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("int_to_str", int_to_strTy);
 
-	FunctionType *int64_to_str_bufferTy= FunctionType::get(
+	FunctionType *i64_to_str_bufferTy= FunctionType::get(
 		Type::getInt64Ty(*TheContext),
 		{int8PtrTy, Type::getInt64Ty(*TheContext), int8PtrTy},
 		false
 	);
-	TheModule->getOrInsertFunction("int64_to_str_buffer", int64_to_str_bufferTy);
+	TheModule->getOrInsertFunction("i64_to_str_buffer", i64_to_str_bufferTy);
 
 	FunctionType *int_to_str_bufferTy= FunctionType::get(
 		Type::getInt64Ty(*TheContext),
@@ -597,6 +597,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("int_to_str_buffer", int_to_str_bufferTy);
+
+	FunctionType *int_print_bitsTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("int_print_bits", int_print_bitsTy);
 
 	FunctionType *bool_to_strTy= FunctionType::get(
 		int8PtrTy,

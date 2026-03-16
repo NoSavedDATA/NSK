@@ -26,7 +26,7 @@ void set_functions_return_type() {
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"is_null", "bool"}, 
-						{"read_int", "int"}, {"int_to_str", "str"}, {"int64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, 
+						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, {"int_print_bits", "int"}, 
 						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
 						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
 						{"print", "float"}, {"print_void_ptrC", "float"}, 
@@ -182,8 +182,9 @@ void set_functions_return_type() {
 	functions_return_data_type["str_vec_print"] = Data_Tree("float");
 	functions_return_data_type["read_int"] = Data_Tree("int");
 	functions_return_data_type["int_to_str"] = Data_Tree("str");
-	functions_return_data_type["int64_to_str_buffer"] = Data_Tree("int64_t");
+	functions_return_data_type["i64_to_str_buffer"] = Data_Tree("int64_t");
 	functions_return_data_type["int_to_str_buffer"] = Data_Tree("int64_t");
+	functions_return_data_type["int_print_bits"] = Data_Tree("int");
 	functions_return_data_type["channel_str_message"] = Data_Tree("float");
 	functions_return_data_type["channel_void_message"] = Data_Tree("float");
 	functions_return_data_type["str_channel_Idx"] = Data_Tree("str");

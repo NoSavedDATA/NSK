@@ -1,6 +1,41 @@
 #include "../nsk_cpp_llvm.h"
 
 
+Value *ctz(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    auto *ty = get_type_from_data(args_type[0]);
+    Value *v = ArgsV[0];
+
+    llvm::Function* ctz = llvm::Intrinsic::getDeclaration(
+        TheModule.get(),
+        llvm::Intrinsic::cttz,
+        ty
+    );
+
+    Value* zero_undef = llvm::ConstantInt::get(Builder->getInt1Ty(), 1);
+
+    return Builder->CreateCall(ctz, {v, zero_undef});
+}
+
+Value *swap_bit(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    auto *ty = get_type_from_data(args_type[0]);
+    Value *v = ArgsV[0], *idx = ArgsV[1];
+    // cast idx to same type
+    Value* idx_cast = Builder->CreateIntCast(idx, ty, false);
+    // 1
+    Value* one = llvm::ConstantInt::get(ty, 1);
+    // 1 << idx
+    Value* mask = Builder->CreateShl(one, idx_cast);
+    // toggle bit
+    return Builder->CreateXor(v, mask);
+}
+Data_Tree swap_bit_ret(Parser_Struct parser_struct, std::vector<std::unique_ptr<ExprAST>>& Args) {
+    return Args[0]->GetDataTree();
+}
+
 Data_Tree simd_load_ret(Parser_Struct parser_struct, std::vector<std::unique_ptr<ExprAST>>& Args) {
   Data_Tree dt = Data_Tree("vec");
   auto stmt_1 = dynamic_cast<IntExprAST*>(Args[1].get());
@@ -46,6 +81,33 @@ Value *vec_make(Parser_Struct parser_struct, Function *TheFunction,
     // llvm::errs() << "\n";
     return ret;
 }
+
+
+Value *simd_equal(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R) {
+    auto *cmp = Builder->CreateICmpEQ(L, R);
+    auto *vecTy = get_type_from_data(LHS->GetDataTree());
+    return Builder->CreateSExt(cmp, vecTy);
+}
+Value *vec_movemask(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    std::cout << "size " << ArgsV.size() << "\n";
+    auto *vecTy = llvm::FixedVectorType::get(Builder->getInt8Ty(), 32);
+
+    // shift right to keep MSB
+    Value *shift = Builder->CreateLShr(ArgsV[0],
+        ConstantVector::getSplat(
+            llvm::ElementCount::getFixed(32),
+            Builder->getInt8(7)));
+
+    // truncate to i1
+    auto *i1vec = llvm::FixedVectorType::get(Builder->getInt1Ty(), 32);
+    Value *trunc = Builder->CreateTrunc(shift, i1vec);
+
+    // pack bits
+    return Builder->CreateBitCast(trunc, Builder->getInt32Ty());
+}
+
 
 extern "C" int print_vec_i8(int8_t *v, int size) {
     printf("vec<i8,%d>\n", size);
