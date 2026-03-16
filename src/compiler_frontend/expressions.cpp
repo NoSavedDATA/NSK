@@ -1051,8 +1051,10 @@ std::string Nameable::GetLibCallee() {
 
 Data_Tree NameableIdx::GetDataTree(bool from_assignment) {
   Data_Tree inner_dt = Inner->GetDataTree();
-  std::string compound_type = inner_dt.Type;
+  const std::string &compound_type = inner_dt.Type;
 
+  if (compound_type=="charv")
+      return Data_Tree("char");
  
   if(Idx_Fn_Return.count(compound_type+"_Idx")) {
       std::cout <<"1\n";

@@ -2337,6 +2337,10 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         switch (Op) {
             case tok_equal:
                 return simd_equal(LHS, RHS, L, R);
+            case tok_and:
+                return simd_and(LHS, RHS, L, R);
+            case tok_or:
+                return simd_or(LHS, RHS, L, R);
             default:
                 LogError(parser_struct.line, "Unimplemented vec op");
                 std::exit(0);
@@ -3618,12 +3622,13 @@ Value *NameableIdx::codegen(Value *scope_struct) {
         type = compound_type;
 
 
-    // std::cout << "\nNameable idx inner type is: " << type << ".\n";
-
 
     Value *loaded_var = Inner->codegen(scope_struct);
     Value *idx = Idx_Calc_Codegen(compound_type, loaded_var, Idx, scope_struct);
 
+    if (compound_type=="charv")
+        return Builder->CreateInBoundsGEP(int8Ty, loaded_var, idx); //&arr[0]
+    
 
 
     if (compound_type == "map") {
@@ -3911,8 +3916,12 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
         Value *print_gep = Builder->CreateInBoundsGEP(bufferTy,
                 print_buffer, {const_int(0), offset});
 
+        
         if(arg_type=="str") {
             size = callret("strlen", {print_val});
+            call("memcpy", {print_gep, print_val, size});
+        } else if (arg_type=="char") {
+            size = const_int(1);
             call("memcpy", {print_gep, print_val, size});
         } else {
             std::string call = arg_type + "_to_str_buffer";

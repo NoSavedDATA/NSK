@@ -88,10 +88,20 @@ Value *simd_equal(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, 
     auto *vecTy = get_type_from_data(LHS->GetDataTree());
     return Builder->CreateSExt(cmp, vecTy);
 }
+Value *simd_and(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R) {
+    auto *cmp = Builder->CreateAnd(L, R);
+    auto *vecTy = get_type_from_data(LHS->GetDataTree());
+    return Builder->CreateSExt(cmp, vecTy);
+}
+Value *simd_or(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R) {
+    auto *cmp = Builder->CreateOr(L, R);
+    auto *vecTy = get_type_from_data(LHS->GetDataTree());
+    return Builder->CreateSExt(cmp, vecTy);
+}
+
 Value *vec_movemask(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
-    std::cout << "size " << ArgsV.size() << "\n";
     auto *vecTy = llvm::FixedVectorType::get(Builder->getInt8Ty(), 32);
 
     // shift right to keep MSB

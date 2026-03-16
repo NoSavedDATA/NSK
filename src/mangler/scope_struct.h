@@ -10,7 +10,7 @@
 struct GC;
 
 constexpr int ContextStackSize = 4096;
-constexpr int PrintBufferSize = 2048;
+constexpr int PrintBufferSize = 16384;
 
 struct Scope_Struct { 
     int code_line=0;
