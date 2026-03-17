@@ -1,2 +1,4 @@
+include/stb
+lib/eigen3
 *.d
 *.o

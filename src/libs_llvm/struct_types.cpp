@@ -133,7 +133,7 @@ void Generate_Struct_Types() {
         {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize),
          intTy, int8PtrTy, GC_Struct_Type,
          ArrayType::get(int8Ty, PrintBufferSize)},
-        "GC"
+        "scope_struct"
     );
     struct_types["GC"] = GC_Struct_Type;
     struct_types["scope_struct"] = Scope_Struct_Type;

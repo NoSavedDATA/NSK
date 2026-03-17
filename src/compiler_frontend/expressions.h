@@ -741,10 +741,10 @@ class IfExprAST : public ExprAST {
 class ForExprAST : public ExprAST {
   std::string VarName;
   std::unique_ptr<ExprAST> Start, End, Step;
-  std::vector<std::unique_ptr<ExprAST>> Body;
   Parser_Struct parser_struct;
 
   public:
+    std::vector<std::unique_ptr<ExprAST>> Body;
     ForExprAST(const std::string &VarName, std::unique_ptr<ExprAST> Start,
               std::unique_ptr<ExprAST> End, std::unique_ptr<ExprAST> Step,
               std::vector<std::unique_ptr<ExprAST>> Body, Parser_Struct);
@@ -756,10 +756,10 @@ class ForExprAST : public ExprAST {
 class ForEachExprAST : public ExprAST {
   std::string VarName;
   std::unique_ptr<ExprAST> Vec;
-  std::vector<std::unique_ptr<ExprAST>> Body;
   Parser_Struct parser_struct;
 
   public:
+    std::vector<std::unique_ptr<ExprAST>> Body;
     ForEachExprAST(const std::string &VarName, std::unique_ptr<ExprAST> Vec,
               std::vector<std::unique_ptr<ExprAST>> Body, Parser_Struct, Data_Tree);
 
@@ -769,10 +769,10 @@ class ForEachExprAST : public ExprAST {
 /// WhileExprAST - Expression class for while.
 class WhileExprAST : public ExprAST {
   std::unique_ptr<ExprAST> Cond;
-  std::vector<std::unique_ptr<ExprAST>> Body;
   Parser_Struct parser_struct;
 
   public:
+    std::vector<std::unique_ptr<ExprAST>> Body;
     WhileExprAST(std::unique_ptr<ExprAST> Cond, std::vector<std::unique_ptr<ExprAST>> Body, Parser_Struct);
 
   Value* codegen(Value *scope_struct) override;

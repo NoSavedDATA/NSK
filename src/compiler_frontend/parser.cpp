@@ -1062,7 +1062,7 @@ std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string 
 
 
   // Codegen async functions
-  Body.push_back(std::make_unique<LibImportExprAST>("std_lib", false, parser_struct));
+  // Body.push_back(std::make_unique<LibImportExprAST>("std_lib", false, parser_struct));
   for (int i=0; i<has_previous_async; ++i)
     Body.push_back(std::make_unique<AsyncFnPriorExprAST>());  
   

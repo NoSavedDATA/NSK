@@ -43,7 +43,7 @@ PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
 llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *m256Ty, *boolTy, *voidTy;
 
 
-Value *stack_top_value;
+Value *stack_top_value, *cur_self=nullptr;
 
 
 
@@ -51,6 +51,12 @@ Value * VoidPtr_toValue(void *vec)
 {
   Value* LLVMValue = ConstantInt::get(int64Ty, reinterpret_cast<uint64_t>(vec));
   return Builder->CreateIntToPtr(LLVMValue, int8PtrTy);
+}
+
+inline void printTy(Value *v) {
+    llvm::Type *ty = v->getType();
+    ty->print(llvm::errs());
+    llvm::errs() << "\n";
 }
 
 
@@ -428,13 +434,19 @@ inline bool Check_Required_Args_Count(const std::string &Callee, int sent_args,
   return true;
 }
 
-void Cache_Array(Parser_Struct parser_struct, Value *var) {
-    Value *vec_gep = Builder->CreateStructGEP(struct_types["array"], var, 3);
-    function_vecs[parser_struct.function_name][var] = vec_gep;
-}
+// void Cache_Array(Parser_Struct parser_struct, Value *var) {
+//     Value *vec_gep = Builder->CreateStructGEP(struct_types["array"], var, 3);
+//     function_vecs[parser_struct.function_name][var] = vec_gep;
+// }
 
 inline Value *Load_Array(std::string &function_name, Value *var) {
-    Value *vec_gep = function_vecs[function_name][var];
+    Value *vec_gep;
+    // if (function_vecs[function_name].count(var)==0) { // handles self.array
+    //     vec_gep = Builder->CreateStructGEP(struct_types["array"], var, 3);
+    //     function_vecs[function_name][var] = vec_gep;
+    // } else
+    //     vec_gep = function_vecs[function_name][var];
+        vec_gep = Builder->CreateStructGEP(struct_types["array"], var, 3);
     return Builder->CreateLoad(int8PtrTy, vec_gep);
 }
 
@@ -463,29 +475,28 @@ inline void Check_Is_Array_Inbounds(Parser_Struct &parser_struct, Value *var, Va
 
 inline Value *swap_scope_obj(Value *scope_struct, Value *obj) {
     StructType *st = struct_types["scope_struct"];
-    
     Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
     Value *previous_obj = Builder->CreateLoad(int8PtrTy, obj_gep);
     Builder->CreateStore(obj, obj_gep);
-
     return previous_obj;
 }
 
 inline void set_scope_obj(Value *scope_struct, Value *obj) {
     StructType *st = struct_types["scope_struct"];
-    
     Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
     Builder->CreateStore(obj, obj_gep);
+    cur_self = nullptr;
 }
 
 inline Value *get_scope_obj(Value *scope_struct) {
-    StructType *st = struct_types["scope_struct"]; 
-    Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
-    return Builder->CreateLoad(int8PtrTy, obj_gep);
-}
-inline Value *get_scope_obj_gep(Value *scope_struct) {
-    return Builder->CreateStructGEP(struct_types["scope_struct"],
-                                    scope_struct, 4);
+    // if (!cur_self) {
+        StructType *st = struct_types["scope_struct"]; 
+        Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
+        cur_self = Builder->CreateLoad(int8PtrTy, obj_gep);
+        // Value *obj_gep = Builder->CreateStructGEP(st, scope_struct, 4);
+    // }
+    return cur_self;
+    // return Builder->CreateLoad(int8PtrTy, cur_self);
 }
 
 void check_scope_struct_sweep(Function *TheFunction, Value *scope_struct, const Parser_Struct &parser_struct) {
@@ -1156,8 +1167,8 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         else { 
             Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, initial_value); 
             function_values[parser_struct.function_name][VarName] = initial_value;
-            if (Type=="array")
-                Cache_Array(parser_struct, initial_value);
+            // if (Type=="array")
+            //     Cache_Array(parser_struct, initial_value);
 
         }     
     }
@@ -1431,6 +1442,13 @@ void Get_Recursive_Assign_Statements(const std::vector<std::unique_ptr<ExprAST>>
             Get_Recursive_Assign_Statements(if_stmt->Then, assigned_vars);
             Get_Recursive_Assign_Statements(if_stmt->Else, assigned_vars);
         }
+        if (auto *while_stmt = dynamic_cast<WhileExprAST*>(body.get()))
+            Get_Recursive_Assign_Statements(while_stmt->Body, assigned_vars);
+        if (auto *while_stmt = dynamic_cast<ForExprAST*>(body.get()))
+            Get_Recursive_Assign_Statements(while_stmt->Body, assigned_vars);
+        if (auto *while_stmt = dynamic_cast<ForEachExprAST*>(body.get()))
+            Get_Recursive_Assign_Statements(while_stmt->Body, assigned_vars);
+        
         if (auto *bin_stmt = dynamic_cast<BinaryExprAST*>(body.get())) {
             char op = bin_stmt->Op;
             if (op=='='||op==tok_arrow) {
@@ -2242,8 +2260,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
 
-            if (LType=="array")
-                Cache_Array(parser_struct, Val);
+            // if (LType=="array")
+            //     Cache_Array(parser_struct, Val);
 
 
             if(!in_str(LType, primary_data_tokens)) {
@@ -2255,20 +2273,12 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
         } else {
-            if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) {
+            if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) { // self|attr
 
                 LType = L_dt.Type;
-
                 LHSV->Load_Last=false;
 
-
                 Value *obj_ptr = LHSV->codegen(scope_struct);
-
-                // if(in_str(LType, primary_data_tokens))
-                //     call("object_Attr_"+LType, {obj_ptr, Val});
-                // else {
-                //     call("tie_object_to_object", {obj_ptr, Val});
-                // }
                 Builder->CreateStore(Val, obj_ptr);
             } else {}
 
@@ -2383,7 +2393,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 break;
         }
 
-    } else if (Elements=="int_int"||Elements=="i64_i64") {
+    } else if (in_vec(Elements, {"int_int", "i64_i64", "i8_i8", "i16_i16"})) {
         switch (Op) {
             case '+':
                 return Builder->CreateAdd(L, R, "addtmp");
@@ -2400,7 +2410,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     llvm::Value* L_float = Builder->CreateSIToFP(L, floatTy, "lfp");
                     llvm::Value* R_float = Builder->CreateSIToFP(R, floatTy, "rfp");
                     return Builder->CreateFDiv(L_float, R_float, "divtmp");
-                    // return Builder->CreateSDiv(L, R, "divtmp");  // Signed division
                 }
             case '%':
                 return Builder->CreateSRem(L, R, "remtmp");  // Signed remainder
@@ -3626,8 +3635,10 @@ Value *NameableIdx::codegen(Value *scope_struct) {
     Value *loaded_var = Inner->codegen(scope_struct);
     Value *idx = Idx_Calc_Codegen(compound_type, loaded_var, Idx, scope_struct);
 
-    if (compound_type=="charv")
-        return Builder->CreateInBoundsGEP(int8Ty, loaded_var, idx); //&arr[0]
+    if (compound_type=="charv") {
+        Value *charv_gep = Builder->CreateInBoundsGEP(int8Ty, loaded_var, idx); //&arr[0]
+        return Builder->CreateLoad(int8Ty, charv_gep);
+    }
     
 
 
@@ -3922,7 +3933,8 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
             call("memcpy", {print_gep, print_val, size});
         } else if (arg_type=="char") {
             size = const_int(1);
-            call("memcpy", {print_gep, print_val, size});
+            // call("memcpy", {print_gep, print_val, size});
+            Builder->CreateStore(print_val, print_gep);
         } else {
             std::string call = arg_type + "_to_str_buffer";
             size = callret(call, {scope_struct, print_val, print_gep});
@@ -4026,6 +4038,8 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
     ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct,\
             Callee, is_nsk_fn, arg_type_check_offset);
+    if (has_obj_overwrite) // last time that cur fn values are used
+        cur_self = nullptr;
 
 
 
@@ -4037,6 +4051,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
   }
   else
     ret = callret(Callee, ArgsV);
+  cur_self = nullptr;
 
   if (has_obj_overwrite) // Retrieve previous object
     set_scope_obj(scope_struct, previous_obj);

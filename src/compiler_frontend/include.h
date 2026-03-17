@@ -69,7 +69,7 @@ extern ExitOnError ExitOnErr;
 extern PointerType *floatPtrTy, *int8PtrTy, *int1PtrTy;
 extern llvm::Type *floatTy, *intTy, *int8Ty, *int16Ty, *int64Ty, *m256Ty, *boolTy, *voidTy;
 
-extern Value *stack, *stack_top_value;
+extern Value *stack, *stack_top_value, *cur_self;
 
 
 

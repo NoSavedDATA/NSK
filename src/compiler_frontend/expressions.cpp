@@ -664,6 +664,10 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   if ((LType=="list"||RType=="list") && Op!='=')
     LogErrorS(parser_struct.line, "Tuple elements type are unknown during parsing type. Please load the element into a static type variable first.");
 
+  if (LType=="char")
+      LType = "i8";
+  if (RType=="char")
+      RType = "i8";
 
   Elements = LType + "_" + RType;    
 
@@ -794,7 +798,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
+  if (!in_str(Elements, {"int_int", "i8_i8", "i16_i16", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
       TheModule->getFunction(Operation)==nullptr)
       LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }

@@ -23,11 +23,13 @@ def array<str> str_split(str s, str pattern)
 	return ret
 
 class Csv
-	int fd, bytes_offset
+	int fd, bytes_offset, col
 	charv[8192] buf
 	i64 bytes_read
-	str line
+	str line, cur_buffer
 	array<str> buffers
+	array<array<str>> elem
+	map<str, int> col_to_id
 	char sep
 
 	ctor(str fname, char sep)
@@ -37,82 +39,79 @@ class Csv
 		self.fd = c_open(fname)
 		self.line = alloc(2048, "str")
 		self.bytes_offset = 0
+		self.col = 0
 		self.bytes_read = -1
 		self.sep = sep
+		
+		array<str> buffers
+		self.buffers = buffers
+		array<array<str>> elem
+		self.elem = elem
+		map<str, int> col_to_id
+		self.col_to_id = col_to_id
+
 		
 	def float get_buff()
 		self.bytes_read = c_read(self.fd, self.buf, 8192)
 		str buffer = malloc_str(self.bytes_read)
 		c_memcpy(buffer, self.buf, self.bytes_read)
+		self.buffers.append(buffer)
+		self.cur_buffer = buffer
+		
 
 	def float process_delimiter(int offset, int pos, int size)
 		#print("off ", offset, " size ", size)
-		char o = self.buf[pos]
-		print("char: ", o)
-		str aux = malloc_str(size+1)
+		char delimiter = self.buf[pos]
+
+		#print("char: ", o)
+		#str aux = malloc_str(size+1)
+		str aux = alloc(size+1, "str")
 		c_memcpy(aux, self.buf+offset, size)
 		aux.set(size, 0)
-		print(aux)
+		#print(self.col, " -- ", aux)
+
+		#if self.elem.size()<=self.col
+		#	array<str> new_col
+		#	self.elem.append(new_col)
+		#	self.col_to_id[aux] = self.col
+		#self.elem[self.col].append(aux)
+
+		self.col = self.col + 1
+		if delimiter=='\n'
+			self.col = 0
 
 
 	def str read()
-		if self.bytes_read==-1 or self.bytes_offset>=self.bytes_read
-			self.get_buff()
+		if self.bytes_read==-1
 			self.bytes_offset = 0
 
-		int mask = 0, pos = 0, last_pos = 0
+		while self.bytes_read!=0
+			self.get_buff()
+			int mask = 0, pos = 0, last_pos = 0
+			while pos<8192
+				vec<i8,32> bytes = simd_load(self.buf+pos, i8,32)
+				vec<i8,32> v_comma = vec_make(',', 32)
+				vec<i8,32> v_break = vec_make('\n', 32)
 
-		while mask==0 and (self.bytes_offset+pos)<8192
-			vec<i8,32> bytes = simd_load(self.buf+(self.bytes_offset+pos), i8,32)
-			vec<i8,32> v_comma = vec_make(',', 32)
-			vec<i8,32> v_break = vec_make('\n', 32)
+				vec<i8,32> v_mask = (v_comma==bytes) or (v_break==bytes)
+				#print("pre ", last_pos)
+				mask = v_mask.movemask()
+				#int_print_bits(mask)
+				if mask==0
+					pos = pos + 32
+				else
+					int offset = pos
+					while mask!=0
+						int idx = ctz(mask)
+						pos = offset + idx
+						self.process_delimiter(last_pos, pos, pos-last_pos)
+						last_pos = pos + 1
+						mask = swap_bit(mask, idx)
+					pos = pos + 1
+		return " "
 
-			#vec<i8,32> v_mask = (v_comma==bytes) or (v_break==bytes)
-			vec<i8,32> v_mask = v_comma==bytes
-			mask = v_mask.movemask()
-			int_print_bits(mask)
-			if mask==0
-				pos = pos + 32
-			else
-				int offset = pos
-				while mask!=0
-					int idx = ctz(mask)
-					pos = offset + idx
-					self.process_delimiter(self.bytes_offset+last_pos, pos, pos-last_pos)
-					last_pos = pos + 1
-					mask = swap_bit(mask, idx)
-					int_print_bits(mask)
-
-				_quit_()
-			
-		i64 n_pos = c_memchr(self.buf+self.bytes_offset, '\n', self.bytes_read-self.bytes_offset)	
-
-		c_memcpy(self.line, self.buf+self.bytes_offset, n_pos)
-		self.line.set(n_pos, 0)
-
-		self.bytes_offset = self.bytes_offset + n_pos+1
-
-		
-		if self.bytes_offset<=self.bytes_read
-			if self.bytes_offset==self.bytes_read
-				self.get_buff()
-				self.bytes_offset = 0
-				
-			return self.line
-
-
-		self.get_buff()
-		int last_i = n_pos
- 
-		n_pos = c_memchr(self.buf, '\n', self.bytes_read)	
-		c_memcpy(self.line.offset(last_i), self.buf, n_pos)
-		
-		self.line.set(last_i+n_pos, 0)
-
-		self.bytes_offset=n_pos+1
-
-
-		return self.line
+	def array<str> get_col(str col_name)
+		return self.elem[self.col_to_id[col_name]]
 
 	def bool opened()
 		return self.bytes_read!=0 
@@ -129,3 +128,6 @@ main
 		i = i + 1
 		if i>0
 			break
+
+	#array<str> col = f.get_col("gender")
+	#col.print()

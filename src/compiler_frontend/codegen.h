@@ -69,7 +69,7 @@ void Set_Pointer_Stack(Value *scope_struct, std::string function_name, std::stri
 Value *Load_Stack(Value *scope_struct, const std::string &function_name, const std::string &var_name, const std::string &type);
 
 
-void Cache_Array(Parser_Struct, Value *var);
+// void Cache_Array(Parser_Struct, Value *var);
 
 Value *DT_charv_create(Parser_Struct parser_struct, Function *TheFunction,
                       std::string, std::string type, Data_Tree data_type,

@@ -765,14 +765,15 @@ Function *FunctionAST::codegen() {
             LogError(-1, "error at argument " + arg_name + " of function " + function_name);
 
         function_values[current_codegen_function][arg_name] = &Arg;
-        if(type=="array")
-            Cache_Array(parser_struct, &Arg);
+        // if(type=="array")
+        //     Cache_Array(parser_struct, &Arg);
    }
   }
   
   Value *RetVal;
   for (auto &body : Body)
     RetVal = body->codegen(scope_struct);
+  cur_self = nullptr;
 
   if (RetVal) {
     // Finish off the function.
