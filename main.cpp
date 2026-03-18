@@ -425,13 +425,13 @@ int main(int argc, char* argv[]) {
   Function_Arg_Names["err"] = {"0", "1"};
   Function_Required_Arg_Count["err"] = 1;
 
-  // malloc_str
-  functions_return_data_type["malloc_str"] = Data_Tree("str");
-  llvm_callee["malloc_str"] = malloc_str;
-  Function_Arg_DataTypes["malloc_str"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["malloc_str"]["1"] = Data_Tree("int");
-  Function_Arg_Names["malloc_str"] = {"0", "1"};
-  Function_Required_Arg_Count["malloc_str"] = 1;
+  // _malloc
+  functions_return_data_type["_malloc"] = Data_Tree("any");
+  llvm_callee["_malloc"] = _malloc;
+  Function_Arg_DataTypes["_malloc"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["_malloc"]["1"] = Data_Tree("int");
+  Function_Arg_Names["_malloc"] = {"0", "1"};
+  Function_Required_Arg_Count["_malloc"] = 1;
 
   // allocate
   functions_return_data_type["alloc"] = Data_Tree("any");

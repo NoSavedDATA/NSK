@@ -1,3 +1,5 @@
+#include <unistd.h>
+
 #include "../codegen/random.h"
 
 #include "../compiler_frontend/logging_v.h"
@@ -307,11 +309,27 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
 extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     char **data = static_cast<char**>(arr->data);
     int len = arr->virtual_size;
-
     std::cout << data[0];
     for (int i=1; i<len; ++i)
         std::cout << ", " << data[i];
     std::cout << "\n";
-        
+    return 0;
+}
+
+extern "C" int array_print_str_view(Scope_Struct *scope_struct, DT_array *arr) {
+    DT_str *data = static_cast<DT_str*>(arr->data);
+    int len = arr->virtual_size;
+
+    int offset = 0, elem_size=data[0].size;
+    memcpy(scope_struct->print_buffer, data[0].str, elem_size);
+    write(1, scope_struct->print_buffer, elem_size);
+    for (int i = 1; i < len; ++i) {
+        scope_struct->print_buffer[0] = ',';
+        write(1, scope_struct->print_buffer, 1);
+
+        elem_size = data[i].size;
+        memcpy(scope_struct->print_buffer, data[i].str, elem_size);
+        write(1, scope_struct->print_buffer, elem_size);
+    }
     return 0;
 }

@@ -1,4 +1,4 @@
-1822-03-06 13:18:48
+1822-03-19 08:21:35
 
 	FunctionType *array_CreateTy= FunctionType::get(
 		int8PtrTy,
@@ -118,3 +118,10 @@
 		false
 	);
 	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
+
+	FunctionType *array_print_str_viewTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_print_str_view", array_print_str_viewTy);

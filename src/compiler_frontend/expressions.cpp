@@ -697,8 +697,8 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   if (RType=="channel" && !in_str(LType, primary_data_tokens)&&LType!="str")
     Operation = "void_channel_message";
-  
 
+ 
   std::string type;
   if (Operation=="int_int_div")
     type = "float";
@@ -1037,6 +1037,14 @@ unsigned PrototypeAST::getBinaryPrecedence() const { return Precedence; }
 
 
 
+Data_Tree ViewExprAST::GetDataTree(bool from_assignment) {
+    return Data_Tree("str");
+}
+    
+ViewExprAST::ViewExprAST(std::unique_ptr<ExprAST> LHS,
+                std::unique_ptr<ExprAST> RHS, Parser_Struct parser_struct) \
+            : LHS(std::move(LHS)), RHS(std::move(RHS)), parser_struct(parser_struct) {
+}
 
 
 Nameable *Nameable::InnerMost() {

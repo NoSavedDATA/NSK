@@ -294,11 +294,10 @@ Value *StringExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
     return const_float(0.0f);
   SetName(Val);
-  // Value *_str = callret("CopyString", {scope_struct, global_str(Val)});
-  // Value *str = callret("allocate_void", {scope_struct,
-  //                                       const_int(20),
-  //                                       global_str("str")});
-  return global_str(Val);
+  Value *view_val = UndefValue::get(struct_types["str_view"]);
+  view_val = Builder->CreateInsertValue(view_val, global_str(Val), {0});
+  view_val = Builder->CreateInsertValue(view_val, const_int(Val.size()), {1});
+  return view_val;
 }
 
 Value *CharExprAST::codegen(Value *scope_struct) {
@@ -338,6 +337,8 @@ llvm::Type *get_type_from_str(std::string type) {
     llvm_type = int16Ty;
   else if (type=="bool")
     llvm_type = boolTy;
+  else if (type=="str_view")
+    llvm_type = struct_types["str_view"];
   else
     llvm_type = int8PtrTy;
   return llvm_type;
@@ -968,7 +969,7 @@ Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
     return callret("read", {ArgsV[0], ArgsV[1], ArgsV[2]});
 }
 
-Value *malloc_str(Parser_Struct parser_struct, Function *TheFunction,
+Value *_malloc(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return callret("malloc", {ArgsV[0]});
@@ -1016,7 +1017,9 @@ Value *str_set(Parser_Struct parser_struct, Function *TheFunction,
 Value *str_offset(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
-    return Builder->CreateGEP(int8Ty, ArgsV[0], ArgsV[1]);
+    Value *ptr_val = ArgsV[0];
+    Value *offset = Builder->CreateExtractValue(ptr_val, {0});
+    return Builder->CreateGEP(int8Ty, offset, ArgsV[1]);
 }
 
 Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
@@ -1097,7 +1100,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         }
 
 
-        if(in_vec(Type, primary_data_tokens)&&!(is_self||is_attr))
+        if((in_vec(Type, primary_data_tokens)||Type=="str")&&!(is_self||is_attr))
         { 
             if (Type=="float"&&init_dt.Type=="int")
                 initial_value = Builder->CreateSIToFP(initial_value, floatTy, "int_to_float");
@@ -1105,6 +1108,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
                 initial_value = Builder->CreateIntCast(initial_value,
                                         get_type_from_data(data_type), true);
             function_values[parser_struct.function_name][VarName] = initial_value;
+            // printTy(initial_value);
             continue;
         }
 
@@ -3495,7 +3499,16 @@ Value *NestedVariableExprAST::codegen(Value *scope_struct) {
     return ptr;
 }
 
-
+Value *ViewExprAST::codegen(Value *scope_struct) {
+    Value *view_val = UndefValue::get(struct_types["str_view"]);
+    Value *inner = LHS->codegen(scope_struct);
+    printTy(inner);
+    Value *size_val = RHS->codegen(scope_struct);
+    view_val = Builder->CreateInsertValue(view_val, inner, {0});
+    view_val = Builder->CreateInsertValue(view_val, size_val, {1});
+    printTy(view_val);
+    return view_val;
+} 
 
 Value *NameableLLVMIRCall::codegen(Value *scope_struct) {  
     int arg_type_check_offset=1, target_args_size=Args.size();
@@ -3926,14 +3939,14 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
 
         Value *print_gep = Builder->CreateInBoundsGEP(bufferTy,
                 print_buffer, {const_int(0), offset});
-
         
         if(arg_type=="str") {
-            size = callret("strlen", {print_val});
-            call("memcpy", {print_gep, print_val, size});
+            StructType *st = struct_types["str_view"];
+            Value *str_v = Builder->CreateExtractValue(print_val, {0});
+            size = Builder->CreateExtractValue(print_val, {1});
+            call("memcpy", {print_gep, str_v, size});
         } else if (arg_type=="char") {
             size = const_int(1);
-            // call("memcpy", {print_gep, print_val, size});
             Builder->CreateStore(print_val, print_gep);
         } else {
             std::string call = arg_type + "_to_str_buffer";
@@ -4012,7 +4025,7 @@ Value *NameableCall::codegen(Value *scope_struct) {
             ArgsV.push_back(obj_ptr);
             target_args_size++;
             
-            if(Inner->GetDataTree().Type!="vec") {
+            if(Inner->GetDataTree().Type!="vec"&&Inner->GetDataTree().Type!="str") {
                 BasicBlock *GotNullBB = BasicBlock::Create(*TheContext, "nested_call.bad.bb", TheFunction);
                 BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "nested_call.ok.bb", TheFunction);
 

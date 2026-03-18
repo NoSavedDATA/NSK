@@ -7,7 +7,6 @@ def array<str> str_split(str s, str pattern)
 	i64 pos = c_memchr(s, ',', len)
 	
 	int offset=0, i=0
-
 	
 	while offset<len and pos>0
 		str v = alloc(pos+1, "str")
@@ -21,6 +20,7 @@ def array<str> str_split(str s, str pattern)
 
 
 	return ret
+
 
 class Csv
 	int fd, bytes_offset, col
@@ -53,7 +53,7 @@ class Csv
 		
 	def float get_buff()
 		self.bytes_read = c_read(self.fd, self.buf, 8192)
-		str buffer = malloc_str(self.bytes_read)
+		str buffer = alloc(self.bytes_read, "str")
 		c_memcpy(buffer, self.buf, self.bytes_read)
 		self.buffers.append(buffer)
 		self.cur_buffer = buffer
@@ -63,18 +63,13 @@ class Csv
 		#print("off ", offset, " size ", size)
 		char delimiter = self.buf[pos]
 
-		#print("char: ", o)
-		#str aux = malloc_str(size+1)
-		str aux = alloc(size+1, "str")
-		c_memcpy(aux, self.buf+offset, size)
-		aux.set(size, 0)
-		#print(self.col, " -- ", aux)
 
-		#if self.elem.size()<=self.col
-		#	array<str> new_col
-		#	self.elem.append(new_col)
-		#	self.col_to_id[aux] = self.col
-		#self.elem[self.col].append(aux)
+		if self.elem.size()<=self.col
+			array<str> new_col
+			self.elem.append(new_col)
+			#self.col_to_id[aux] = self.col
+		else
+			self.elem[self.col].append({self.cur_buffer.offset(offset), size})
 
 		self.col = self.col + 1
 		if delimiter=='\n'
@@ -111,14 +106,14 @@ class Csv
 		return " "
 
 	def array<str> get_col(str col_name)
-		return self.elem[self.col_to_id[col_name]]
+		#return self.elem[self.col_to_id[col_name]]
+		return self.elem[1]
 
 	def bool opened()
 		return self.bytes_read!=0 
 
-main
-	#file["games.csv"] f
-	#f.read()
+
+def float foo()
 	Csv f("games.csv", ',')
 
 	int i=0
@@ -129,5 +124,17 @@ main
 		if i>0
 			break
 
-	#array<str> col = f.get_col("gender")
-	#col.print()
+	array<str> col = f.get_col("gender")
+	col.print()
+	return 0
+
+main
+	print(1)
+	print(1)
+	print(2)
+	str x = "a very fancy car"
+	print(x)
+	str b = {x.offset(3), 5}
+	print(b)
+
+

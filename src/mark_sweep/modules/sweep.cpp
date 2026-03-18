@@ -22,18 +22,20 @@
 
 
 
-inline void check_is_in_bounds(char *arena_addr, char *p) {
+inline bool check_is_in_bounds(char *arena_addr, char *p) {
     bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
-    if (!in_bounds) {
-        std::cout << "Variable of type " << p << " address does not reside in any memory pool..\n";
-        std::cout << p << ".\n";
-        std::exit(0);
-    }
+    return in_bounds;
+    // if (!in_bounds) {
+    //     std::cout << "Variable of type " << p << " address does not reside in any memory pool..\n";
+    //     std::cout << p << ".\n";
+    //     std::exit(0);
+    // }
 }
 
-inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t &type, uint64_t mark_bit) {
+inline bool mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t &type, uint64_t mark_bit) {
         char *p = static_cast<char*>(node_ptr);
-        check_is_in_bounds(arena_addr, p);
+        if (!check_is_in_bounds(arena_addr, p))
+            return false;
 
         long arena_offset = p - arena_addr;
         int page  =  (arena_offset / GC_page_size) % pages_per_arena;
@@ -44,6 +46,7 @@ inline void mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t
 
         type = get_16_r12(span->type_metadata, obj_idx);
         set_1(span->mark_bits, obj_idx, mark_bit);
+        return true;
 }
 
 
@@ -74,13 +77,16 @@ inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_
         DT_array *array = static_cast<DT_array*>(ptr);
         void **data = static_cast<void **>(array->data);
         
-        if (in_str(array->type, compound_tokens)) {
+        if (array->type=="str_view")
+            return;
+
+        if (in_vec(array->type, compound_tokens)) {
             for (int i=0; i<array->virtual_size; ++i) {
                 mark_obj(arena, arena_addr, data[i], type16, mark_bit);
                 gc_list(arena, arena_addr, data[i], data_name_to_type[array->type], work_list, mark_bit);
             }
         }
-        else if(!in_str(array->type, primary_data_tokens)) {
+        else if(!in_vec(array->type, primary_data_tokens)) {
             for (int i=0; i<array->virtual_size; ++i)
                 mark_obj(arena, arena_addr, data[i], type16, mark_bit);
         } 
@@ -106,7 +112,8 @@ void mark_worklist_pointers(GC_Arena *arena, char *arena_addr, std::vector<GC_No
     uint16_t type16;
     for (int i=0; i<work_list.size(); ++i) {
         GC_Node &node = work_list[i];
-        mark_obj(arena, arena_addr, node.ptr, type16, mark_bit);
+        if(!mark_obj(arena, arena_addr, node.ptr, type16, mark_bit))
+            continue;
 
         TypeInfo *class_info = type_info[type16]; 
         if (class_info!=nullptr) {
@@ -131,7 +138,8 @@ void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *are
 
     for (int i=0; i<scope_struct->stack_top; ++i) {
         void *root_ptr = scope_struct->pointers_stack[i];
-        mark_obj(arena, arena_addr, root_ptr, type16, mark_bit);
+        if (!mark_obj(arena, arena_addr, root_ptr, type16, mark_bit))
+            continue;
 
 
         TypeInfo *class_info = type_info[type16]; 

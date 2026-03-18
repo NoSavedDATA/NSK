@@ -1423,6 +1423,17 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["array_print_str"].push_back("0");
 		Function_Arg_Names["array_print_str"].push_back("1");
+		
+		Function_Arg_Types["array_print_str_view"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_print_str_view"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_print_str_view"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_print_str_view_1 = Data_Tree("array");
+		array_print_str_view_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_print_str_view"]["1"] = array_print_str_view_1;
+		
+		Function_Arg_Names["array_print_str_view"].push_back("0");
+		Function_Arg_Names["array_print_str_view"].push_back("1");
 	
 		
 		Function_Arg_Types["randint"]["0"] = "Scope_Struct";

@@ -99,6 +99,13 @@ void Generate_Struct_Types() {
     );
     struct_types["int_vec"] = int_vecTy;
 
+    // str_view
+    struct_types["str_view"] = StructType::create(
+        *TheContext,
+        {int8PtrTy, intTy},
+        "DT_str_view"
+    ); 
+
     // array
     struct_types["array"] = StructType::create(
         *TheContext,

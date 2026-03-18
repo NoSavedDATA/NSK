@@ -28,7 +28,7 @@ void set_user_functions() {
 		"LockMutex", "UnlockMutex", 
 		"get_barrier", 
 		"offset_object_ptr", "object_Attr_float", "object_Attr_int", "object_Load_float", "object_Load_int", "object_Load_slot", "tie_object_to_object", "object_Attr_on_Offset_float", "object_Attr_on_Offset_int", "object_Attr_on_Offset", "object_Load_on_Offset_float", "object_Load_on_Offset_int", "object_Load_on_Offset", "object_ptr_Load_on_Offset", "object_ptr_Attribute_object", 
-		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", 
+		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", "array_print_str_view", 
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"print", "print_void_ptr", "print_void_ptrC", "print_int", "print_int64", "print_uint64", 
 		"dict_Create", "dict_New", "dict_Store_Key", "dict_Store_Key_int", "dict_Store_Key_float", "dict_print", "dict_Query", 

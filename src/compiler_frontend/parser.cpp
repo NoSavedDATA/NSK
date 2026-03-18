@@ -1137,12 +1137,35 @@ std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string c
   return std::make_unique<NewVecExprAST>(std::move(Elements), "list");
 }
 
+std::unique_ptr<ExprAST> ParseView(std::unique_ptr<ExprAST> elem_offset_stmt,
+                                    Parser_Struct parser_struct, std::string class_name) {
+    // auto *raw = dynamic_cast<BinaryExprAST*>(elem_offset_stmt.get());
+    // if (raw->Op != '+')
+    //     LogError(parser_struct.line, "view expression LHS expected '+'");
+    // elem_offset_stmt.release();
+    // std::unique_ptr<BinaryExprAST> bin_stmt(raw);
 
+    if(CurTok!=',')
+        LogError(parser_struct.line, "view expression expected \',\'");
+    // std::cout << "" << CurTok << "\n";
 
-std::unique_ptr<ExprAST> ParseNewDict(Parser_Struct parser_struct, std::string class_name) {
+    getNextToken(); // ,
+    std::unique_ptr<ExprAST> size_stmt = ParseExpression(parser_struct, class_name, false);
+    // std::cout << "" << CurTok << "|" << ReverseToken(CurTok) << "\n";
+    getNextToken(); // }
+    return std::make_unique<ViewExprAST>(std::move(elem_offset_stmt), std::move(size_stmt), parser_struct);
+}
 
+std::unique_ptr<ExprAST> ParseBrackets(Parser_Struct parser_struct, std::string class_name) {
+    getNextToken(); // {
+    std::unique_ptr<ExprAST> stmt_1 = ParseExpression(parser_struct, class_name, false);
+    if (CurTok==',')
+        return ParseView(std::move(stmt_1), parser_struct, class_name);
+    return ParseNewDict(std::move(stmt_1), parser_struct, class_name);
+}
 
-
+std::unique_ptr<ExprAST> ParseNewDict(std::unique_ptr<ExprAST> elem_offset_stmt,
+                    Parser_Struct parser_struct, std::string class_name) {
 
   
   getNextToken(); // {
@@ -1846,7 +1869,9 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
   case '[':
     return ParseNewList(parser_struct, class_name);
   case '{':
-    return ParseNewDict(parser_struct, class_name);
+    return ParseBrackets(parser_struct, class_name);
+  // case '{':
+  //   return ParseNewDict(parser_struct, class_name);
   case tok_space:
     getNextToken();
     return ParsePrimary(parser_struct ,class_name, can_be_list);

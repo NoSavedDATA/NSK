@@ -112,6 +112,8 @@ std::unique_ptr<ExprAST> ParseFinishExpr(Parser_Struct parser_struct, std::strin
 
 
 
+std::unique_ptr<ExprAST> ParseNewDict(std::unique_ptr<ExprAST> elem_offset_stmt,
+                    Parser_Struct parser_struct, std::string class_name);
 std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string class_name=""); 
 
 

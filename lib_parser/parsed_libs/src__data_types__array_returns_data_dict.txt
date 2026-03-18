@@ -13,3 +13,4 @@
 	functions_return_data_type["ones_float"] = Data_Tree("array");
 	functions_return_data_type["array_Split_Parallel"] = Data_Tree("array");
 	functions_return_data_type["array_print_str"] = Data_Tree("int");
+	functions_return_data_type["array_print_str_view"] = Data_Tree("int");

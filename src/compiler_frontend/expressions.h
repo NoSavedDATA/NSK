@@ -426,6 +426,17 @@ public:
 
 
 
+class ViewExprAST : public ExprAST {
+  Parser_Struct parser_struct;
+  Data_Tree data_type;
+public:
+  std::unique_ptr<ExprAST> LHS;
+  std::unique_ptr<ExprAST> RHS;
+  ViewExprAST(std::unique_ptr<ExprAST> LHS,
+                std::unique_ptr<ExprAST> RHS, Parser_Struct);
+  Value *codegen(Value *scope_struct) override;
+  Data_Tree GetDataTree(bool from_assignment=false) override;
+};
 
 
 

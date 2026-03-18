@@ -27,7 +27,7 @@ void set_functions_return_type() {
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"is_null", "bool"}, 
 						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, {"int_print_bits", "int"}, 
-						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
+						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_print_str_view", "int"}, 
 						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
 						{"print", "float"}, {"print_void_ptrC", "float"}, 
 						{"read_float", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
@@ -67,6 +67,7 @@ void set_functions_return_type() {
 	functions_return_data_type["ones_float"] = Data_Tree("array");
 	functions_return_data_type["array_Split_Parallel"] = Data_Tree("array");
 	functions_return_data_type["array_print_str"] = Data_Tree("int");
+	functions_return_data_type["array_print_str_view"] = Data_Tree("int");
 	functions_return_data_type["list_New"] = Data_Tree("list");
 	functions_return_data_type["list_append"] = Data_Tree("float");
 	functions_return_data_type["list_print"] = Data_Tree("float");
