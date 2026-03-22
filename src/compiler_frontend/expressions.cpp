@@ -135,8 +135,12 @@ bool ExprAST::GetNeedGCSafePoint() {
 inline void Semantic_Arguments_Check(Parser_Struct parser_struct,
                                                   std::vector<std::unique_ptr<ExprAST>> &Args,
                                                   std::string fn_name,
-                                                  bool is_nsk_fn, int arg_offset=1)
+                                                  bool is_nsk_fn, int sent_args, int arg_offset=1)
 {
+  if (Function_Required_Arg_Count.count(fn_name)>0) {
+      if (sent_args<Function_Required_Arg_Count[fn_name])
+          LogErrorS(parser_struct.line, "Passed " + std::to_string(sent_args) + " arguments to " + fn_name + ", but " + std::to_string(Function_Required_Arg_Count[fn_name]) + " are required.");
+  }
 
   // -- Required Arguments -- //
   unsigned i, e;
@@ -288,9 +292,15 @@ ObjectExprAST::ObjectExprAST(
   std::vector<std::vector<std::unique_ptr<ExprAST>>> Args,
   std::string Type,
   std::unique_ptr<ExprAST> Init, int Size, std::string ClassName)
-  : parser_struct(parser_struct), HasInit(HasInit), Args(std::move(Args)), VarExprAST(std::move(VarNames), std::move(Type)), Init(std::move(Init)), Size(Size), ClassName(ClassName)
+  : parser_struct(parser_struct), HasInit(std::move(HasInit)), Args(std::move(Args)), VarExprAST(std::move(VarNames), std::move(Type)), Init(std::move(Init)), Size(Size), ClassName(ClassName)
 {
-  
+
+    for (unsigned i = 0, e = this->VarNames.size(); i != e; ++i)
+    {
+        if (this->HasInit[i]) { // callee init
+          Semantic_Arguments_Check(parser_struct, this->Args[i], ClassName+"___init__", false, this->Args[i].size(), 1);
+        }
+    }
 }
 
 
@@ -512,16 +522,15 @@ DataExprAST::DataExprAST(
     typeVars[parser_struct.function_name][IdentifierStr] = data_type.Type;
 
 
+    create_fn = this->Type;
+    create_fn = (create_fn=="tuple") ? "list" : create_fn;
+    create_fn = create_fn + "_Create";
+    DtHasCreateFn = (struct_create_fn.count(dt_type)>0 || TheModule->getFunction(create_fn)!=nullptr);
 
-
-    if(!IsStruct||this->Type=="list"||this->Type=="array"||this->Type=="map") {
+    if(DtHasCreateFn) {
       if (auto *null_stmt = dynamic_cast<NullPtrExprAST*>(this->VarNames[i].second.get())) {
-            create_fn = this->Type;
-            create_fn = (create_fn=="tuple") ? "list" : create_fn;
-            create_fn = create_fn + "_Create";
-
             if (!(create_fn=="array_Create" || create_fn=="map_Create"))
-              Semantic_Arguments_Check(parser_struct, this->Notes, create_fn, true, 1);
+              Semantic_Arguments_Check(parser_struct, this->Notes, create_fn, true, this->Notes.size(), 1);
       }
     }
   }
@@ -697,8 +706,7 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   if (RType=="channel" && !in_str(LType, primary_data_tokens)&&LType!="str")
     Operation = "void_channel_message";
-
- 
+  // std::cout << Elements << " | " << Operation << "\n";
   std::string type;
   if (Operation=="int_int_div")
     type = "float";
@@ -798,7 +806,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "i8_i8", "i16_i16", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
+  if (!in_str(Elements, {"int_int", "str_int", "i8_i8", "i16_i16", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
       TheModule->getFunction(Operation)==nullptr)
       LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }
@@ -1294,7 +1302,6 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
     Callee = lib_function_remaps[Callee];
 
 
-
   // methods/lib callee
   if(Depth>1) {    
     std::string inner_most_name = this->Inner->InnerMost()->Name;
@@ -1357,12 +1364,13 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
  
   is_nsk_fn = in_str(Callee, native_methods);
-
+  int sent_args = this->Args.size();
   if(Depth>1 && !FromLib) {
-          std::string first_arg_dt = this->Inner->GetDataTree().Type; 
-          // check is data method
-          is_nsk_fn = is_nsk_fn ||\
-                       (ClassSize.count(first_arg_dt)==0&&begins_with(Callee, first_arg_dt) && !in_str(first_arg_dt, primary_data_tokens));        
+      sent_args++;
+      std::string first_arg_dt = this->Inner->GetDataTree().Type; 
+      // check is data method
+      is_nsk_fn = is_nsk_fn ||\
+       (ClassSize.count(first_arg_dt)==0&&begins_with(Callee, first_arg_dt) && !in_str(first_arg_dt, primary_data_tokens));        
   }
 
 
@@ -1373,7 +1381,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
 
-  Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, arg_type_check_offset);
+  Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, sent_args, arg_type_check_offset);
 }
 
 

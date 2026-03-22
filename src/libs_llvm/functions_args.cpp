@@ -53,12 +53,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["charv_print"].push_back("2");
 	
 		
-		Function_Arg_Types["str_Create"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["str_Create"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["str_Create"].push_back("0");
-		
 		Function_Arg_Types["str_Copy"]["0"] = "Scope_Struct";
 		Function_Arg_Types["str_Copy"]["1"] = "str";
 		

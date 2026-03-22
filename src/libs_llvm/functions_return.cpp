@@ -34,7 +34,7 @@ void set_functions_return_type() {
 						{"charv_print", "int"}, 
 						{"print_randoms", "float"}, {"randint", "int"}, 
 						{"silent_sleep", "float"}, {"start_timer", "float"}, {"end_timer", "float"}, 
-						{"str_Create", "str"}, {"str_Copy", "str"}, {"str_CopyArg", "str"}, {"str_str_add", "str"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
+						{"str_Copy", "str"}, {"str_CopyArg", "str"}, {"str_str_add", "str"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
 						{"nsk_vec_size", "int"}, {"int_vec_CalculateSliceIdx", ""}, {"int_vec_Slice", "int_vec"}, {"int_vec_print", "int"}, {"int_vec_Split_Parallel", "int_vec"}, {"int_vec_Split_Strided_Parallel", "int_vec"}, {"int_vec_size", "int"}, 
 						{"min", "float"}, {"max", "float"}, {"logE2f", "float"}, {"roundE", "float"}, {"floorE", "float"}, {"logical_not", "float"}, 
 						{"bool_to_str", "str"}, {"bool_to_str_buffer", "int64_t"}, 
@@ -134,7 +134,6 @@ void set_functions_return_type() {
 	functions_return_data_type["map_keys"] = Data_Tree("array");
 	functions_return_data_type["map_values"] = Data_Tree("array");
 	functions_return_data_type["charv_print"] = Data_Tree("int");
-	functions_return_data_type["str_Create"] = Data_Tree("str");
 	functions_return_data_type["str_Copy"] = Data_Tree("str");
 	functions_return_data_type["str_CopyArg"] = Data_Tree("str");
 	functions_return_data_type["str_str_add"] = Data_Tree("str");

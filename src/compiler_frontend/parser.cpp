@@ -2496,6 +2496,8 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
           Ty = int64Ty;
       } else if(data_type=="bool") {
           Ty = boolTy;
+      } else if(data_type=="str") {
+          Ty = struct_types["DT_str"];
       } else if(data_type=="charv") {
         int size = std::stoi(data_tree.Nested_Data[0].Type);
         Ty = ArrayType::get(int8Ty, size);

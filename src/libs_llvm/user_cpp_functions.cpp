@@ -32,7 +32,7 @@ void set_user_functions() {
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"print", "print_void_ptr", "print_void_ptrC", "print_int", "print_int64", "print_uint64", 
 		"dict_Create", "dict_New", "dict_Store_Key", "dict_Store_Key_int", "dict_Store_Key_float", "dict_print", "dict_Query", 
-		"str_Create", "str_Copy", "str_CopyArg", "str_str_add", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
+		"str_Copy", "str_CopyArg", "str_str_add", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
 		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"LogErrorCall", "print_codegen", "print_codegen_silent", 
 		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
@@ -60,8 +60,6 @@ void set_user_functions() {
 	clean_up_functions["map"] = map_Clean_Up;
 
 	clean_up_functions["list"] = list_Clean_Up;
-
-	clean_up_functions["str"] = str_Clean_Up;
 
 	clean_up_functions["int_vec"] = int_vec_Clean_Up;
 

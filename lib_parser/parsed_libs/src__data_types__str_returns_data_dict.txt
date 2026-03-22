@@ -1,4 +1,3 @@
-	functions_return_data_type["str_Create"] = Data_Tree("str");
 	functions_return_data_type["str_Copy"] = Data_Tree("str");
 	functions_return_data_type["str_CopyArg"] = Data_Tree("str");
 	functions_return_data_type["str_str_add"] = Data_Tree("str");

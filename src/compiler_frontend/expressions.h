@@ -336,7 +336,7 @@ class DataExprAST : public VarExprAST {
     std::vector<std::unique_ptr<ExprAST>> Notes;
     Data_Tree data_type;
     Parser_Struct parser_struct;
-    bool HasNotes, IsStruct;
+    bool HasNotes, IsStruct, DtHasCreateFn;
     std::string dt_type, create_fn; 
 
     DataExprAST(

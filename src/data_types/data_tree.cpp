@@ -186,8 +186,6 @@ std::string Data_Tree::toString() {
 
 
 
-
-
 std::string UnmangleVec(Data_Tree dt) {
     if (dt.Type=="channel")
         return  dt.Nested_Data[0].Type + "_channel";

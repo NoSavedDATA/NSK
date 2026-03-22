@@ -207,7 +207,8 @@ std::map<int, std::string> token_to_string = {
   { static_cast<int>('z'), "z" },
 
 };
-std::vector<char> ops = {'+', '-', '*', '/', '@', '=', '>', '<', 10, -14, ',', '(', ')', ';', tok_equal, tok_diff, tok_higher_eq, tok_minor_eq};
+std::vector<char> ops = {'+', '-', '*', '/', '@', '=', '>', '<', 10, -14, ',', '(', ')', ';', tok_equal,
+                         tok_diff, tok_higher_eq, tok_minor_eq, tok_offby};
 std::vector<char> terminal_tokens = {';', tok_constructor, tok_def, tok_extern, tok_class, tok_eof};
 
 
@@ -223,7 +224,7 @@ std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "
 std::vector<uint16_t> primary_data_types = {2, 3, 4, 6, 15, 16, 17, 18, 21};
 std::vector<uint16_t> compound_types = {6, 7, 8, 9, 12};
 
-std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 17}, {"str_view", 17}};
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 16}, {"str_view", 16}};
 
 std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"str", 5},
                                                                {"list", 6},
@@ -244,13 +245,21 @@ uint16_t data_type_count=22;
 
 
 
-std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self}, {"def", tok_def}, {"ctor", tok_constructor}, {"class", tok_class}, {"extern", tok_extern},
-                                             {"import", tok_import}, {"if", tok_if}, {"then", tok_then}, {"else", tok_else}, {"for", tok_for},
-										     {"while", tok_while}, {"async", tok_async}, {"asyncs", tok_asyncs}, {"finish", tok_async_finish},
-											 {"in", tok_in}, {"global", tok_global}, {"no_grad", tok_no_grad}, {"lock", tok_lock},
-											 {"unlock", tok_unlock}, {"binary", tok_binary}, {"unary", tok_unary}, {"return", tok_ret},
-											 {"as", tok_as}, {"spawn", tok_spawn}, {"channel", tok_channel}, {"main", tok_main}, {"and", tok_and},
-										     {"not", tok_not}, {"or", tok_or}, {"xor", tok_xor}, {"break", tok_break}, {"new", tok_new}};
+std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self}, {"def", tok_def},
+                                             {"ctor", tok_constructor}, {"class", tok_class}, {"extern", tok_extern},
+                                             {"import", tok_import}, {"if", tok_if}, {"then", tok_then},
+                                             {"else", tok_else}, {"for", tok_for},
+										     {"while", tok_while}, {"async", tok_async}, {"asyncs", tok_asyncs},
+                                             {"finish", tok_async_finish},
+											 {"in", tok_in}, {"global", tok_global}, {"no_grad", tok_no_grad},
+                                             {"lock", tok_lock},
+											 {"unlock", tok_unlock}, {"binary", tok_binary}, {"unary", tok_unary},
+                                             {"return", tok_ret},
+											 {"as", tok_as}, {"spawn", tok_spawn}, {"channel", tok_channel},
+                                             {"main", tok_main}, {"and", tok_and},
+										     {"not", tok_not}, {"or", tok_or}, {"xor", tok_xor}, {"break", tok_break},
+                                             {"offby", tok_offby},
+                                             {"new", tok_new}};
 
 std::string IdentifierStr; // Filled in if tok_identifier
 float NumVal;             // Filled in if tok_number

@@ -151,39 +151,23 @@ std::vector<std::thread> all_threads;
 static void CodegenTopLevelExpression(std::unique_ptr<FunctionAST> &FnAST) {
 
     auto *FnIR =  FnAST->codegen();
-
-    /*
-    fprintf(stderr, "\nRead top-level expression:");
-    FnIR->print(errs());
-    fprintf(stderr, "\n\n");
-    */
-
-
-    // TheModule->print(llvm::errs(), nullptr);
-
     // Create a ResourceTracker for memory managment
     // anonymous expression -- that way we can free it after executing.
     auto RT = TheJIT->getMainJITDylib().createResourceTracker();
-
     auto TSM = ThreadSafeModule(std::move(TheModule), std::move(TheContext));
     ExitOnErr(TheJIT->addModule(std::move(TSM), RT));
     // Add IR module
 
-
     InitializeModule();
-
     // Points __anon_expr
     auto Sym = ExitOnErr(TheJIT->lookup("__anon_expr"));
     //assert(Sym && "Function not found");
-      
       
     // Get the symbol's address and cast it to the right type (takes no
     // arguments, returns a float) so we can call it as a native function.
     auto *FP = Sym.getAddress().toPtr<float (*)()>();
     auto fp = FP();
-    
     // fprintf(stderr, "%.2f\n", fp);
-
     // Delete the anonymous expression module from the JIT.
     ExitOnErr(RT->remove());    
 }
@@ -323,6 +307,7 @@ int main(int argc, char* argv[]) {
   BinopPrecedence[tok_diff] = 10;
   BinopPrecedence[tok_minor_eq] = 10;
   BinopPrecedence[tok_higher_eq] = 10;
+  BinopPrecedence[tok_offby] = 19;
   BinopPrecedence['+'] = 20;
   BinopPrecedence['-'] = 20;
   BinopPrecedence['%'] = 35;
@@ -648,19 +633,26 @@ int main(int argc, char* argv[]) {
                      {"tensor_float", "tensor"}, {"pinned_tensor_pinned_tensor", "pinned_tensor"},
                      {"pinned_tensor_tensor", "pinned_tensor"}, {"pinned_tensor_float", "pinned_tensor"},
                      {"object_object", "object"}, {"str_object", "object"},
-                     {"tensor_int", "tensor"}, {"int_tensor", "tensor"}, {"str_channel", "str"}, {"channel_str", "float"}, {"channel_int", "float"},
+                     {"tensor_int", "tensor"}, {"int_tensor", "tensor"}, {"str_channel", "str"},
+                     {"channel_str", "float"}, {"channel_int", "float"},
                      {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"i64_i64", "i64"}};
 
-  ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"}, {"int_int_equal", "bool"}, {"int_int_different", "bool"},
+  ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"},
+                     {"int_int_equal", "bool"}, {"int_int_different", "bool"},
                      {"int_int_higher_eq", "bool"}, {"int_int_minor_eq", "bool"},
-                     {"float_float_higher", "bool"}, {"float_float_minor", "bool"}, {"float_float_equal", "bool"}, {"float_float_different", "bool"},
-                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"}, {"charv_int_add", "charv"}, {"charv_i64_add", "charv"}};
+                     {"float_float_higher", "bool"}, {"float_float_minor", "bool"},
+                     {"float_float_equal", "bool"}, {"float_float_different", "bool"},
+                     {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"},
+                     {"str_int_offby", "str"},
+                     {"charv_int_add", "charv"}, {"charv_i64_add", "charv"}};
 
                      
 
-  op_map = {{'*', "mult"}, {'@', "mma"},  {'+', "add"}, {'-', "sub"}, {'/', "div"}, {'<', "minor"}, {'>', "higher"}, {tok_equal, "equal"},
+  op_map = {{'*', "mult"}, {'@', "mma"},  {'+', "add"}, {'-', "sub"}, {'/', "div"}, {'<', "minor"},
+            {'>', "higher"}, {tok_equal, "equal"},
             {tok_diff, "different"}, {tok_higher_eq, "higher_eq"}, {tok_minor_eq, "minor_eq"}, {'%', "mod"}, {'=', "attr"},
-            {77, "error"}, {tok_arrow, "message"}, {tok_and, "and"}, {tok_not, "not"}, {tok_or, "or"}, {tok_xor, "xor"}};
+            {77, "error"}, {tok_arrow, "message"}, {tok_and, "and"}, {tok_not, "not"}, {tok_or, "or"},
+            {tok_xor, "xor"}, {tok_offby, "offby"}};
 
   for (auto pair : op_map)
     op_map_names.push_back(pair.second);

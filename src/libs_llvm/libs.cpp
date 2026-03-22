@@ -1407,13 +1407,6 @@ void Generate_LLVM_Functions() {
 
 
 
-	FunctionType *str_CreateTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("str_Create", str_CreateTy);
-
 	FunctionType *str_CopyTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},

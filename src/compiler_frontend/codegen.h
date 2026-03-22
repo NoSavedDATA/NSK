@@ -62,7 +62,7 @@ bool CheckIsEquivalent(std::string LType, std::string RType);
 bool CheckIsSenderChannel(std::string Elements, Parser_Struct parser_struct, std::string LName);
 
 
-void Allocate_On_Pointer_Stack(Value *, std::string, std::string, Value *);
+void Allocate_On_Pointer_Stack(Value *, std::string, std::string, Data_Tree, Value *);
 void Set_Stack_Top(Value *, std::string);
 Value *Load_Pointer_Stack(Value *scope_struct, std::string function_name, std::string var_name);
 void Set_Pointer_Stack(Value *scope_struct, std::string function_name, std::string var_name, Value *val);

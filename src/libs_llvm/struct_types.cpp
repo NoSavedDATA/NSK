@@ -24,6 +24,83 @@ void Generate_Struct_Types() {
     llvm::Type *intPtrTy = Type::getInt32Ty(*TheContext)->getPointerTo();
 
 
+
+
+
+    // std::vector<void*>
+    StructType *void_vecTy = StructType::create(
+        *TheContext,
+        {int8PtrTy, longTy, longTy},
+        "std.vector.int"
+    );
+
+
+    // --- DT_int_vecs ---
+    // std::vector<int>
+    StructType *vecIntTy = StructType::create(
+        *TheContext,
+        {intPtrTy, longTy, longTy},
+        "std.vector.int"
+    );
+    // DT_int_vecs
+    StructType *int_vecTy  = StructType::create(
+        *TheContext,
+        {intTy, vecIntTy, intPtrTy},
+        "DT_int_vec"
+    );
+    struct_types["int_vec"] = int_vecTy;
+
+    // DT_str
+    struct_types["DT_str"] = StructType::create(
+        *TheContext,
+        {int8PtrTy, intTy},
+        "DT_str"
+    ); 
+
+    // array
+    struct_types["array"] = StructType::create(
+        *TheContext,
+        {intTy, intTy, intTy, int8PtrTy},
+        "DT_array"
+    ); 
+
+    // --- map ---
+    struct_types["map_node"]  = StructType::create(
+        *TheContext,
+        {int8PtrTy, int8PtrTy, int8PtrTy},
+        "DT_map"
+    );
+    // map
+    struct_types["map"]  = StructType::create(
+        *TheContext,
+        {intTy, intTy, intTy, intTy, intTy, struct_types["map_node"]->getPointerTo()->getPointerTo()},
+        "DT_map"
+    );
+    
+    // --- Scope_Struct --- 
+    // GC
+    StructType *GC_Struct_Type = StructType::create(
+        *TheContext,
+        {intTy, longTy, void_vecTy},
+        "GC"
+    );
+    // Scope_Struct
+    StructType *Scope_Struct_Type = StructType::create(
+        *TheContext,
+        // {intTy, intTy, GC_Struct_Type},
+        {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize),
+         intTy, int8PtrTy, GC_Struct_Type,
+         ArrayType::get(int8Ty, PrintBufferSize)},
+        "scope_struct"
+    );
+    struct_types["GC"] = GC_Struct_Type;
+    struct_types["scope_struct"] = Scope_Struct_Type;
+
+
+
+
+
+
     // high-level classes
     for (auto &class_pair : ClassSize) {
         const std::string &class_name = class_pair.first;
@@ -72,77 +149,5 @@ void Generate_Struct_Types() {
             }
         }
     }
-
-
-
-
-    // std::vector<void*>
-    StructType *void_vecTy = StructType::create(
-        *TheContext,
-        {int8PtrTy, longTy, longTy},
-        "std.vector.int"
-    );
-
-
-    // --- DT_int_vecs ---
-    // std::vector<int>
-    StructType *vecIntTy = StructType::create(
-        *TheContext,
-        {intPtrTy, longTy, longTy},
-        "std.vector.int"
-    );
-    // DT_int_vecs
-    StructType *int_vecTy  = StructType::create(
-        *TheContext,
-        {intTy, vecIntTy, intPtrTy},
-        "DT_int_vec"
-    );
-    struct_types["int_vec"] = int_vecTy;
-
-    // str_view
-    struct_types["str_view"] = StructType::create(
-        *TheContext,
-        {int8PtrTy, intTy},
-        "DT_str_view"
-    ); 
-
-    // array
-    struct_types["array"] = StructType::create(
-        *TheContext,
-        {intTy, intTy, intTy, int8PtrTy},
-        "DT_array"
-    ); 
-
-    // --- map ---
-    struct_types["map_node"]  = StructType::create(
-        *TheContext,
-        {int8PtrTy, int8PtrTy, int8PtrTy},
-        "DT_map"
-    );
-    // map
-    struct_types["map"]  = StructType::create(
-        *TheContext,
-        {intTy, intTy, intTy, intTy, intTy, struct_types["map_node"]->getPointerTo()->getPointerTo()},
-        "DT_map"
-    );
-    
-    // --- Scope_Struct --- 
-    // GC
-    StructType *GC_Struct_Type = StructType::create(
-        *TheContext,
-        {intTy, longTy, void_vecTy},
-        "GC"
-    );
-    // Scope_Struct
-    StructType *Scope_Struct_Type = StructType::create(
-        *TheContext,
-        // {intTy, intTy, GC_Struct_Type},
-        {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize),
-         intTy, int8PtrTy, GC_Struct_Type,
-         ArrayType::get(int8Ty, PrintBufferSize)},
-        "scope_struct"
-    );
-    struct_types["GC"] = GC_Struct_Type;
-    struct_types["scope_struct"] = Scope_Struct_Type;
 
 }

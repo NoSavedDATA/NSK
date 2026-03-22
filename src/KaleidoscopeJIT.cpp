@@ -155,8 +155,6 @@ Expected<std::unique_ptr<KaleidoscopeJIT>> KaleidoscopeJIT::Create() {
   // enable portable SIMD level
   JTMB.addFeatures({"+sse2"});
 
-
-
   auto DL = JTMB.getDefaultDataLayoutForTarget();
   if (!DL)
     return DL.takeError();

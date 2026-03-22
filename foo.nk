@@ -60,14 +60,11 @@ class Csv
 		
 
 	def float process_delimiter(int offset, int pos, int size)
-		#print("off ", offset, " size ", size)
 		char delimiter = self.buf[pos]
-
 
 		if self.elem.size()<=self.col
 			array<str> new_col
 			self.elem.append(new_col)
-			#self.col_to_id[aux] = self.col
 		else
 			self.elem[self.col].append({self.cur_buffer.offset(offset), size})
 
@@ -89,9 +86,7 @@ class Csv
 				vec<i8,32> v_break = vec_make('\n', 32)
 
 				vec<i8,32> v_mask = (v_comma==bytes) or (v_break==bytes)
-				#print("pre ", last_pos)
 				mask = v_mask.movemask()
-				#int_print_bits(mask)
 				if mask==0
 					pos = pos + 32
 				else
@@ -128,13 +123,55 @@ def float foo()
 	col.print()
 	return 0
 
+
+class T
+	int x
+	str y
+	float z
+	ctor(int x)
+		self.x = x
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.z = 2.3
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+		self.y = "hi"
+	def float print()
+		print("x ", self.x)
+		print("y ", self.y)
+		print("z ", self.z)
+
+
 main
 	print(1)
 	print(1)
 	print(2)
-	str x = "a very fancy car"
-	print(x)
-	str b = {x.offset(3), 5}
-	print(b)
 
-
+	T t(3)
+	t.print()
