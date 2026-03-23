@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../compiler_frontend/modules.h"
+#include "../nsk_cpp.h"
 
 #include "functions_args.h"
 #include "functions_return.h"

@@ -5,19 +5,17 @@
 #include <string>
 #include <vector>
 
+#include "../nsk_cpp.h"
 #include "codegen.h"
 #include "expressions.h"
 #include "function_ast.h"
-#include "global_vars.h"
 #include "libs_parser.h"
 #include "logging.h"
-#include "logging_execution.h"
 #include "modules.h"
-#include "name_solver.h"
 #include "parser.h"
 #include "tokenizer.h"
 
-#include "../threads/include.h"
+// #include "../threads/include.h"
 #include "../KaleidoscopeJIT.h"
 
 
@@ -39,7 +37,6 @@ extern std::map<std::string, Data_Tree> Idx_Fn_Return;
 
 extern std::vector<std::string> Sys_Arguments;
  
-extern std::map<std::string, std::vector<std::string>> Equivalent_Types;
 
 
 extern std::vector<std::string> imported_libs;

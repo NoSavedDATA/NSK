@@ -8,10 +8,9 @@
 #include <unordered_map>
 #include <vector>
 
-#include "../data_types/include.h"
+#include "../runtime/data_types/include.h"
+#include "../runtime/compiler_frontend/parser_struct.h"
 #include "../KaleidoscopeJIT.h"
-#include "../notators/include.h"
-#include "parser_struct.h"
 #include "tokenizer.h"
 
 #include "include.h"
@@ -170,7 +169,7 @@ std::unique_ptr<ExprAST> ParseUnary(Parser_Struct parser_struct, std::string cla
   
   /// binoprhs
   ///   ::= ('+' unary)*
-std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec,
+std::unique_ptr<ExprAST> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec,
                                                 std::unique_ptr<ExprAST> LHS,
                                                 std::string class_name=""); 
   

@@ -4,6 +4,7 @@ CXXFLAGS := -O3 -rdynamic -march=native -mavx -mavx2 -fno-exceptions
 LLVM_CONFIG := llvm-config-19 --link-static --libs core orcjit native
 SYSTEM_LIBS := -ldl -lrt -pthread
 # OTHER_FLAGS := -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -fsanitize=address -w
+RUNTIME_FLAGS := -lc -lstdc++ -lgcc_s -lgcc -lm
 OTHER_FLAGS := -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -w
 
 # Get LLVM flags (must be from static LLVM build)
@@ -29,6 +30,7 @@ LIB_PARSER_OBJ_DIR = lib_parser_obj
 LIB_PARSER_SRC_DIR = lib_parser
 OBJ_DIR = obj
 BIN_DIR = bin
+STATIC_DIR = static
 SRC_DIR = src
 LIB_DIR := obj_static
 
@@ -41,6 +43,10 @@ CXX_DIR = $(sort $(dir $(CXX_OBJ)))
 
 OBJ_DIRS := $(sort $(CXX_DIR))
 
+# Runtime obj
+#RUNTIME_CPP_OBJ := $(foreach obj,$(CXX_OBJ), \
+  $(if $(shell grep -l "nsk_cpp.h" $(obj:.o=.d)), $(obj)))
+
 
 # Lib Parser Object Files
 LIB_PARSER_SRC = $(shell find $(LIB_PARSER_SRC_DIR) -name "*.cpp")
@@ -49,7 +55,10 @@ LIB_PARSER_SRC = $(shell find $(LIB_PARSER_SRC_DIR) -name "*.cpp")
 
 
 
-
+# Runtime
+RUNTIME_OBJ := runtime.o
+RUNTIME_SRC := runtime.cpp
+RUNTIME_LIB := static/runtime.a
 # Executable name
 LIB_PARSER := bin/lib_parser.o
 OBJ := bin/nsk
@@ -69,6 +78,7 @@ $(foreach dir, $(OBJ_DIRS), \
 
 $(shell mkdir -p $(BIN_DIR);)
 $(shell mkdir -p $(LIB_DIR);)
+$(shell mkdir -p $(STATIC_DIR);)
 
 
 $(shell mkdir -p $(LIB_PARSER_OBJ_DIR);)
@@ -81,7 +91,6 @@ all: prebuild $(CXX_OBJ) $(OBJ) check_done
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | prebuild
 	$(CXX) $(CXXFLAGS) -MMD -MP -c -o $@ $<
-
 
 $(OBJ): $(SRC) $(CXX_OBJ)
 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(SRC) $(CXX_OBJ) $(LIBS) $(OTHER_FLAGS) -MMD -MP -o $(OBJ) 
@@ -107,6 +116,18 @@ check_done:
 		echo "\n\n\033[1;33mNo changes found [ ]\n\033[0m"; \
 	fi
 	@rm -f $(BUILD_FLAG)
+
+
+runtime: $(RUNTIME_OBJ) $(RUNTIME_LIB)
+	@echo "\033[1;32mRuntime build complete [✓]\033[0m"
+
+$(RUNTIME_OBJ): $(RUNTIME_SRC)
+	$(CXX) $(CXXFLAGS) -c $(RUNTIME_SRC) -o $(RUNTIME_OBJ)
+	@echo "\033[1;34mCompiled runtime.o\033[0m"
+$(RUNTIME_LIB): $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
+	ar rcs $(RUNTIME_LIB) $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
+	@echo "\033[1;34mCreated libruntime.a\033[0m"
+
 
 clean:
 	rm -rf $(BIN_DIR) $(OBJ_DIR) $(LIB_PARSER_OBJ_DIR)

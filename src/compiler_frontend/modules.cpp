@@ -23,5 +23,6 @@ std::unique_ptr<LLVMContext> GlobalContext = std::make_unique<LLVMContext>();
 std::unique_ptr<IRBuilder<>> Builder;
 std::unique_ptr<Module> TheModule;
 std::unique_ptr<Module> GlobalModule;
+std::unique_ptr<TargetMachine> CTM;
 
 

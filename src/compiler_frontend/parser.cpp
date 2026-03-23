@@ -14,9 +14,9 @@
 
 
 #include "../../lsp/json.hpp"
-#include "../codegen/string.h"
+// #include "../codegen/string.h"
 #include "../common/include.h"
-#include "../data_types/data_tree.h"
+#include "../runtime/data_types/data_tree.h"
 #include "include.h"
 
 
@@ -37,9 +37,6 @@ void print_caller() {
 
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
-std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"float", "i64"}},
-                                                                    {"i64", {"int"}},
-                                                                    {"char", {"i8"}}};
 
 std::map<std::string, int> Function_Arg_Count;
 std::map<std::string, int> Function_Required_Arg_Count;
@@ -439,7 +436,6 @@ std::unique_ptr<ExprAST> ParseIdentifierListExpr(Parser_Struct parser_struct, st
   std::vector<std::string> types;
   std::string IdName = IdentifierStr;
 
-  std::vector<std::unique_ptr<ExprAST>> name_solvers;
 
   
 
@@ -449,8 +445,6 @@ std::unique_ptr<ExprAST> ParseIdentifierListExpr(Parser_Struct parser_struct, st
 
   types.push_back(type);
 
-  auto name_solver_expr = std::make_unique<NameSolverAST>(std::move(Names));
-  name_solvers.push_back(std::move(name_solver_expr));
   Names.clear();
 
   
@@ -1920,22 +1914,15 @@ std::unique_ptr<ExprAST> ParseUnary(Parser_Struct parser_struct, std::string cla
 
 /// binoprhs
 ///   ::= ('+' unary)*
-std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec,
+std::unique_ptr<ExprAST> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec,
                                               std::unique_ptr<ExprAST> LHS,
                                               std::string class_name) {
-  
-  
   int LhsTok = 0;
   int RhsTok = 0;
-
-  int L_cuda = type_float;
-  int R_cuda = type_float;
 
   std::string LName, RName;
   
 
-  std::string L_type="";
-  std::string R_type="";
 
   while (true)
   {
@@ -1948,7 +1935,7 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
     
 
     if (TokPrec < ExprPrec)
-      return std::make_tuple(std::move(LHS), L_cuda, L_type);
+      return std::move(LHS);
     
       
 
@@ -1957,7 +1944,7 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
     {
       // std::cout << "Returning tok space with " << SeenTabs << " tabs. \n\n\n";
       getNextToken();
-      return std::make_tuple(std::move(LHS), L_cuda, L_type);
+      return std::move(LHS);
     }
 
     int BinOp = CurTok;
@@ -1967,7 +1954,7 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
 
 
     if (CurTok==')')
-      return std::make_tuple(std::move(LHS), L_cuda, L_type);
+      return std::move(LHS);
 
     
     getNextToken(); // eat binop
@@ -1983,12 +1970,8 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
     
     auto RHS = ParseUnary(parser_struct, class_name, false); // Returns an identifier, number or expression result
     if (!RHS)
-      return std::make_tuple(nullptr,0,"None");
+      return nullptr;
 
-
-    
-    R_type = RHS->GetType();
-    
     
 
     // If BinOp binds less tightly with RHS than the operator after RHS, let
@@ -1998,14 +1981,9 @@ std::tuple<std::unique_ptr<ExprAST>, int, std::string> ParseBinOpRHS(Parser_Stru
 
     if (TokPrec < NextPrec)
     {        
-      auto tuple = ParseBinOpRHS(parser_struct, TokPrec + 1, std::move(RHS));
-      RHS = std::move(std::get<0>(tuple));
-      R_cuda = std::get<1>(tuple);
-      R_type = std::get<2>(tuple);
-
-
+      RHS = ParseBinOpRHS(parser_struct, TokPrec + 1, std::move(RHS));
       if (!RHS)
-        return std::make_tuple(nullptr,0,"None");  
+        return nullptr;  
     }
      
     LHS = std::make_unique<BinaryExprAST>(BinOp, std::move(LHS), std::move(RHS), parser_struct);
@@ -2030,7 +2008,7 @@ std::unique_ptr<ExprAST> ParseExpression(Parser_Struct parser_struct, std::strin
   if (CurTok!=tok_space && pre_tabs!=SeenTabs)
     return std::move(LHS);
 
-  return std::get<0>(ParseBinOpRHS(parser_struct, 0, std::move(LHS), class_name));
+  return ParseBinOpRHS(parser_struct, 0, std::move(LHS), class_name);
 }
 
 /// prototype

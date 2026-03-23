@@ -1,2 +1,0 @@
-	functions_return_data_type["__idx__"] = Data_Tree("int");
-	functions_return_data_type["__sliced_idx__"] = Data_Tree("int");

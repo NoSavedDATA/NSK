@@ -13,6 +13,15 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm-c/TargetMachine.h"
+
+#include "llvm/MC/TargetRegistry.h"
+#include "llvm/Target/TargetMachine.h"
+#include "llvm/Target/TargetOptions.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/raw_ostream.h"
 
 #include "../../lsp/json.hpp"
 #include "../include.h"
@@ -21,13 +30,24 @@ ExitOnError ExitOnErr;
 std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
 
 void InitializeModule() {
-  //std::cout << "\nINITIALIZING A NEW MODULE"  << "\n\n";
-
   // Open a new context and module.
-
   TheContext = std::make_unique<LLVMContext>();
   TheModule = std::make_unique<Module>("my cool jit", *TheContext);
   TheModule->setDataLayout(TheJIT->getDataLayout());
+
+  // char *triple_c = LLVMGetDefaultTargetTriple();
+// std::string TargetTriple(triple_c);
+// LLVMDisposeErrorMessage(triple_c);
+
+// std::string Error;
+// auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+
+// TargetOptions opt;
+// auto RM = std::optional<Reloc::Model>();
+
+  //   CTM = std::unique_ptr<TargetMachine>(
+  //   Target->createTargetMachine(TargetTriple, "x86-64-v3", "+sse2", opt, RM)
+// );
 
   //std::cout << "Initialize Module\n";
   

@@ -11,9 +11,8 @@
 #include <fstream>
 
 
-#include "../common/extension_functions.h"
-#include "../data_types/include.h"
-#include "../notators/include.h"
+#include "../runtime/common/extension_functions.h"
+#include "../runtime/data_types/include.h"
 #include "../simd/codegen.h"
 #include "../KaleidoscopeJIT.h"
 
@@ -246,18 +245,6 @@ AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 }
 
 
-bool CheckIsEquivalent(std::string LType, std::string RType) {
-  if(LType==RType)
-    return true;
-
-  if (Equivalent_Types.count(RType)>0)
-  for(std::string equivalent : Equivalent_Types[RType])
-  {
-      if (LType==equivalent)
-          return true;
-  }
-  return false;
-}
 
 
 Value *NumberExprAST::codegen(Value *scope_struct) {
@@ -4082,16 +4069,6 @@ Value *NameableCall::codegen(Value *scope_struct) {
 }
 
 
-
-
-
-
-
-
-
-Value *CallExprAST::codegen(Value *scope_struct) {
-  return const_float(0);
-}
 
 
 

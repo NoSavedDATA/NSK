@@ -1,2 +1,0 @@
-	functions_return_data_type["print"] = Data_Tree("float");
-	functions_return_data_type["print_void_ptrC"] = Data_Tree("float");

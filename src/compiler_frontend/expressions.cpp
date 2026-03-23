@@ -10,7 +10,8 @@
 #include <vector>
 
 #include "include.h"
-#include "../data_types/data_tree.h"
+#include "../runtime/compiler_frontend/parser_struct.h"
+#include "../runtime/data_types/data_tree.h"
 
 
 using namespace llvm;
@@ -201,8 +202,6 @@ inline void Semantic_Arguments_Check(Parser_Struct parser_struct,
 
 
   
-NameSolverAST::NameSolverAST(std::vector<std::tuple<std::string, int, std::vector<std::unique_ptr<ExprAST>>>> Names)
-                : Names(std::move(Names)) {} 
  
   
   /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -825,23 +824,6 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   
  
   
-CallExprAST::CallExprAST(std::unique_ptr<ExprAST> NameSolver,
-            const std::string &Callee, const std::string &Name,
-            std::vector<std::unique_ptr<ExprAST>> Args,
-            const std::string &Class,
-            const std::string &PreDot,
-            const std::string &Load_Type,
-            bool IsVarForward,
-            const std::string &CalleeOverride,
-            const std::string &Scope_Random_Str,
-            const std::string &LoadOf,
-            Parser_Struct parser_struct
-          )
-    : NameSolver(std::move(NameSolver)), Callee(Callee), Name(Name), Args(std::move(Args)), Class(Class),
-      PreDot(PreDot), Load_Type(Load_Type), IsVarForward(IsVarForward), CalleeOverride(CalleeOverride),
-      Scope_Random_Str(Scope_Random_Str), LoadOf(LoadOf), parser_struct(parser_struct) {
-  SetType("float");
-}
 
 
 

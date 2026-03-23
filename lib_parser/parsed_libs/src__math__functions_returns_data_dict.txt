@@ -1,6 +1,0 @@
-	functions_return_data_type["min"] = Data_Tree("float");
-	functions_return_data_type["max"] = Data_Tree("float");
-	functions_return_data_type["logE2f"] = Data_Tree("float");
-	functions_return_data_type["roundE"] = Data_Tree("float");
-	functions_return_data_type["floorE"] = Data_Tree("float");
-	functions_return_data_type["logical_not"] = Data_Tree("float");

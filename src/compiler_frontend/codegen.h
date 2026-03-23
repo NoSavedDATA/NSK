@@ -7,8 +7,7 @@
 
 
 
-#include "../data_types/include.h"
-#include "../notators/include.h"
+#include "../nsk_cpp.h"
 #include "../KaleidoscopeJIT.h"
 #include "include.h"
 #include "modules.h"

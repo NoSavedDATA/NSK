@@ -12,7 +12,7 @@
 
 
 #include "../KaleidoscopeJIT.h"
-#include "global_vars.h"
+#include "../nsk_cpp.h"
 #include "logging.h"
 
 
@@ -27,6 +27,7 @@ extern std::unique_ptr<LLVMContext> GlobalContext;
 extern std::unique_ptr<IRBuilder<>> Builder;
 extern std::unique_ptr<Module> TheModule;
 extern std::unique_ptr<Module> GlobalModule;
+extern std::unique_ptr<TargetMachine> CTM;
 
 
 extern std::map<std::string, StructType*> struct_types;

@@ -12,6 +12,7 @@
 #include <unordered_map>
 
 
+#include "../runtime/compiler_frontend/global_vars.h"
 
 
 
@@ -162,9 +163,6 @@ extern int LineCounter;
 extern int SeenTabs;
 extern int LastSeenTabs;
 
-extern std::vector<std::string> data_tokens, compound_tokens, primary_data_tokens;
-extern std::vector<uint16_t> primary_data_types;
-extern std::vector<uint16_t> compound_types;
 
 
 /// CurTok/getNextToken - Provide a simple token buffer.  CurTok is the current

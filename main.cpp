@@ -12,6 +12,13 @@
 #include "llvm/IR/Verifier.h"
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
+#include "llvm/Support/TargetSelect.h"
+#include "llvm/Support/CodeGen.h"
+#include "llvm/Support/FileSystem.h"
+#include "llvm/Support/raw_ostream.h"
+#include "llvm/IR/LegacyPassManager.h"
+#include "llvm/Target/TargetMachine.h"
+
 
 #include "src/KaleidoscopeJIT.h"
 
@@ -146,9 +153,57 @@ static void HandleExtern() {
   }
 }
 
-std::vector<std::thread> all_threads;
+
+void linkExecutable() {
+    std::string out = "ld.lld-19 \
+                          /usr/lib/x86_64-linux-gnu/crt1.o \
+                          /usr/lib/x86_64-linux-gnu/crti.o \
+                          /usr/lib/gcc/x86_64-linux-gnu/9/crtbegin.o \
+                          output.o static/runtime.a \
+                          -L/usr/lib/gcc/x86_64-linux-gnu/9 -lstdc++ \
+                          -L/lib/x86_64-linux-gnu -lgcc_s -lgcc -lc -lm \
+                          /usr/lib/gcc/x86_64-linux-gnu/9/crtend.o \
+                          /usr/lib/x86_64-linux-gnu/crtn.o \
+                          --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+                          -o output";
+    std::cout << "" << out << "\n";
+    system(out.c_str());
+    // std::vector<const char*> args;
+
+    // args.push_back("ld.lld");     // argv[0]
+    // args.push_back("output.o");   // input
+    // args.push_back("-o");
+    // args.push_back("output");
+
+    // bool success = lld::lldMain(
+    //     args,
+    //     llvm::outs(),
+    //     llvm::errs(),
+    //     { {lld::Gnu, &lld::elf::link} }
+    // );
+     
+    // if (!success) {
+    //     llvm::errs() << "Linking failed\n";
+    // }
+}
 
 static void CodegenTopLevelExpression(std::unique_ptr<FunctionAST> &FnAST) {
+    // auto *FnIR =  FnAST->codegen();
+// std::error_code EC;
+// raw_fd_ostream dest("output.o", EC, sys::fs::OF_None);
+
+// legacy::PassManager pass;
+
+// if (CTM->addPassesToEmitFile(pass, dest, nullptr,
+    //                          llvm::CodeGenFileType::ObjectFile)) {
+    // errs() << "TargetMachine can't emit object file\n";
+    // return;
+// }
+
+// pass.run(*TheModule);
+// dest.flush();
+    // linkExecutable();
+
 
     auto *FnIR =  FnAST->codegen();
     // Create a ResourceTracker for memory managment
@@ -161,8 +216,6 @@ static void CodegenTopLevelExpression(std::unique_ptr<FunctionAST> &FnAST) {
     InitializeModule();
     // Points __anon_expr
     auto Sym = ExitOnErr(TheJIT->lookup("__anon_expr"));
-    //assert(Sym && "Function not found");
-      
     // Get the symbol's address and cast it to the right type (takes no
     // arguments, returns a float) so we can call it as a native function.
     auto *FP = Sym.getAddress().toPtr<float (*)()>();
@@ -663,16 +716,11 @@ int main(int argc, char* argv[]) {
 
 
   // Prime the first token.
-
-
   InitializeTokenizer();
 
   TheJIT = ExitOnErr(KaleidoscopeJIT::Create());
   InitializeModule();
-
-
   MainLoop();
-
   return 0;
 }
 

@@ -1,8 +1,0 @@
-1822-03-10 17:00:28
-
-	FunctionType *scope_struct_Alloc_GCTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Alloc_GC", scope_struct_Alloc_GCTy);

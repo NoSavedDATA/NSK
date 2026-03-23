@@ -1,8 +1,0 @@
-1821-09-04 00:59:33
-
-	FunctionType *Delete_PtrTy= FunctionType::get(
-		Type::getVoidTy(*TheContext),
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("Delete_Ptr", Delete_PtrTy);

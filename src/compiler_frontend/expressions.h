@@ -4,9 +4,8 @@
 #include <vector>
 #include "llvm/IR/Value.h"
 
-#include "../data_types/data_tree.h"
-// #include "../../lsp/json.hpp"
-#include "parser_struct.h"
+#include "../runtime/data_types/data_tree.h"
+#include "../runtime/compiler_frontend/parser_struct.h"
 
 using namespace llvm;
 
@@ -99,15 +98,6 @@ class IndexExprAST : public ExprAST {
     }
 }; 
 
-class NameSolverAST : public ExprAST {
-
-  public:
-    std::vector<std::tuple<std::string, int, std::vector<std::unique_ptr<ExprAST>>>> Names;
-    NameSolverAST(std::vector<std::tuple<std::string, int, std::vector<std::unique_ptr<ExprAST>>>> Names);
-  
-
-  Value *codegen(Value *scope_struct) override;
-};
   
   
 /// NumberExprAST - Expression class for numeric literals like "1.0".
@@ -647,39 +637,6 @@ class NestedCallExprAST : public ExprAST {
 };
   
   
-/// CallExprAST - Expression class for function calls.
-class CallExprAST : public ExprAST {
-  std::vector<std::string> Expr_String;
-  std::string Callee;
-  std::vector<std::unique_ptr<ExprAST>> Args;
-  std::string Class;
-  std::string Name;
-  std::string PreDot;
-  std::string LoadOf;
-  std::string Scope_Random_Str;
-  std::string Load_Type="none";
-  bool IsVarForward;
-  std::string CalleeOverride;
-  std::unique_ptr<ExprAST> NameSolver;
-  Parser_Struct parser_struct;
-
-  public:
-    CallExprAST(std::unique_ptr<ExprAST> NameSolver,
-                const std::string &Callee, const std::string &Name,
-                std::vector<std::unique_ptr<ExprAST>> Args,
-                const std::string &Class,
-                const std::string &PreDot,
-                const std::string &Load_Type,
-                bool IsVarForward,
-                const std::string &CalleeOverride,
-                const std::string &Scope_Random_Str,
-                const std::string &LoadOf,
-                Parser_Struct parser_struct
-              );
-
-  Value *codegen(Value *scope_struct) override;
-};
-
 
   
 

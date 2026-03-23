@@ -14,9 +14,7 @@
 
 
 
-#include "../clean_up/clean_up.h"
-#include "../common/extension_functions.h"
-#include "../data_types/data_tree.h"
+#include "../nsk_cpp.h"
 #include "../libs_llvm/so_libs.h"
 #include "include.h"
 

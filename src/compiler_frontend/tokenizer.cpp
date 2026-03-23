@@ -13,8 +13,8 @@
 #include <string>
 #include <vector>
 
-#include "../common/extension_functions.h"
-#include "logging_v.h"
+#include "../runtime/common/extension_functions.h"
+#include "../runtime/compiler_frontend/logging_v.h"
 #include "tokenizer.h"
 
 
@@ -214,15 +214,9 @@ std::vector<char> terminal_tokens = {';', tok_constructor, tok_def, tok_extern, 
 
 extern std::vector<std::string> LLVM_IR_Functions = {"pow", "sqrt"};
 
-std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec", "MHSA", "LSTM", "Linear", "tuple",
-										"list", "map", "array",
-                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8", "str_view"};
-std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
-std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "vec"};
-std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "foreach_control_var", "i64", "int8", "char"};
 
-std::vector<uint16_t> primary_data_types = {2, 3, 4, 6, 15, 16, 17, 18, 21};
-std::vector<uint16_t> compound_types = {6, 7, 8, 9, 12};
+std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
+
 
 std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 16}, {"str_view", 16}};
 
@@ -256,7 +250,8 @@ std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self
 											 {"unlock", tok_unlock}, {"binary", tok_binary}, {"unary", tok_unary},
                                              {"return", tok_ret},
 											 {"as", tok_as}, {"spawn", tok_spawn}, {"channel", tok_channel},
-                                             {"main", tok_main}, {"and", tok_and},
+                                             {"main", tok_main},
+                                             {"and", tok_and},
 										     {"not", tok_not}, {"or", tok_or}, {"xor", tok_xor}, {"break", tok_break},
                                              {"offby", tok_offby},
                                              {"new", tok_new}};
@@ -328,6 +323,7 @@ char Tokenizer::get() {
             current = inputStack.empty() ? &std::cin : inputStack.top().get();
             current_dir = dirs.top();
             current_file = files.top();
+            CurrentFile = current_file;
             LineCounter = line_counters.top();
 
             if(must_return)
@@ -357,6 +353,7 @@ bool Tokenizer::openFile(std::string filename) {
     }
     
     current_file = filename;
+    CurrentFile = current_file;
     std::string base = fs::path(filename).parent_path().string();
     if(filename[0]=='/')
       current_dir = base;
@@ -387,6 +384,7 @@ bool Tokenizer::importFile(std::string filename, int dots) {
     }
     
     current_file = filename;
+    CurrentFile = current_file;
     current_dir = fs::path(filename).parent_path().string();
 
 
