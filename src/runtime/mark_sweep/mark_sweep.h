@@ -152,7 +152,9 @@ struct GC {
     GC(int);
     inline void *Allocate(Scope_Struct *scope_struct, int size, uint16_t type_id, int tid) {
 
+        // std::cout << "Allocate " << scope_struct << " | " << size << " - " << type_id << " | " << tid << "\n";
         int obj_class = GC_size_to_c[(size+7)/8];
+        // std::cout << "obj class " << obj_class << "\n";
 
         if(size>GC_max_object_size) {
             LogErrorC(-1, "Allocated object of size " + std::to_string(size) + ", but the maximum supported object size is " + std::to_string(GC_max_object_size) + ".");

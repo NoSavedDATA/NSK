@@ -171,9 +171,6 @@ extern int LastSeenTabs;
 extern int CurTok;
 int getNextToken(bool block=false);
 
-/// BinopPrecedence - This holds the precedence for each binary operator that is
-/// defined.
-extern std::map<char, int> BinopPrecedence;
 
 /// get_tokenPrecedence - Get the precedence of the pending binary operator token.
 int get_tokenPrecedence();

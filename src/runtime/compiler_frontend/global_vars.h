@@ -7,7 +7,22 @@
 #include <vector>
 #include <unordered_map>
 
+#include "../data_types/data_tree.h"
 
+
+extern std::vector<std::string> return_tensor_functions, return_tensor_methods, return_tensor_fn, native_modules,
+return_pinned_methods, vararg_methods, string_methods, native_methods, native_functions, native_fn, tensor_inits,
+return_string_fn, threaded_tensor_functions, int_types, require_scope_functions, notators_str, user_cpp_functions, template_fn;
+
+extern std::map<std::string, int> Function_Arg_Count;
+extern std::map<std::string, int> Function_Required_Arg_Count;
+extern std::map<std::string, std::map<std::string, std::string>> Function_Arg_Types;
+extern std::map<std::string, std::map<std::string, Data_Tree>> Function_Arg_DataTypes;
+extern std::map<std::string, std::vector<std::string>> Function_Arg_Names;
+
+extern std::map<std::string, std::string> elements_type_return, ops_type_return;
+extern std::map<int, std::string> op_map;
+extern std::vector<std::string> op_map_names;
 
 constexpr int32_t TERMINATE_VARARG = -2147483647;
 constexpr int32_t COPY_TO_END_INST = 0x7FADBEEF;
@@ -17,6 +32,7 @@ extern bool Shall_Exit;
 extern bool has_main;
 extern std::string CurrentFile;
 
+extern std::map<char, int> BinopPrecedence;
 
 extern std::unordered_map<uint16_t, std::string> data_type_to_name;
 extern std::unordered_map<std::string, uint16_t> data_name_to_type;

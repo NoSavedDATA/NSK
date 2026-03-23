@@ -38,11 +38,6 @@ void print_caller() {
 
 std::map<std::string, std::map<std::string, Data_Tree>> Object_toClass;
 
-std::map<std::string, int> Function_Arg_Count;
-std::map<std::string, int> Function_Required_Arg_Count;
-std::map<std::string, std::map<std::string, Data_Tree>> Function_Arg_DataTypes;
-std::map<std::string, std::map<std::string, std::string>> Function_Arg_Types;
-std::map<std::string, std::vector<std::string>> Function_Arg_Names;
 std::map<std::string, std::map<std::string, std::unique_ptr<ExprAST>>> ArgsInit;
 
 std::map<std::string, std::map<std::string, int>> ChannelDirections;
@@ -56,9 +51,6 @@ using namespace llvm;
 
 
 
-std::map<std::string, std::string> elements_type_return, ops_type_return;
-std::map<int, std::string> op_map;
-std::vector<std::string> op_map_names;
 
 std::map<std::string, std::map<std::string, Data_Tree>> data_typeVars;
 std::map<std::string, std::map<std::string, std::string>> typeVars;

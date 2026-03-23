@@ -740,7 +740,6 @@ Function *FunctionAST::codegen() {
   
 
   
-  
 
   Value *scope_struct;
   if(function_name=="__anon_expr") {
@@ -752,7 +751,6 @@ Function *FunctionAST::codegen() {
   // else
   //   scope_struct = callret("scope_struct_Create", {});
   
-
   
 
 
@@ -791,6 +789,15 @@ Function *FunctionAST::codegen() {
   }
   
   Value *RetVal;
+
+  if(function_name=="main") {
+    scope_struct = callret("scope_struct_CreateFirst", {}); 
+    call("prebuild", {});
+    call("scope_struct_Alloc_GC", {scope_struct});
+    // stack_top_value = const_int(0);
+    function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
+  }
+
   for (auto &body : Body)
     RetVal = body->codegen(scope_struct);
   cur_self = nullptr;

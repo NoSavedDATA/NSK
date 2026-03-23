@@ -4,7 +4,7 @@
 #include <string>
 #include <vector>
 #include "../nsk_cpp.h"
-#include "../compiler_frontend/include.h"
+
 
 
 std::map<std::string, std::string> functions_return_type;
@@ -27,10 +27,9 @@ void set_functions_return_type() {
 						{"object_Load_float", "float"}, {"object_Load_int", "int"}, {"object_Load_on_Offset_float", "float"}, {"object_Load_on_Offset_int", "int"}, 
 						{"min", "float"}, {"max", "float"}, {"logE2f", "float"}, {"roundE", "float"}, {"floorE", "float"}, {"logical_not", "float"}, 
 						{"LenStrVec", "int"}, {"ShuffleStrVec", "str_vec"}, {"shuffle_str", "str"}, {"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"str_vec_CalculateIdx", "int"}, {"str_vec_print", "float"}, 
-						{"float_vec_first_nonzero", "float"}, {"float_vec_print", "float"}, {"float_vec_pow", "float_vec"}, {"float_vec_sum", "float"}, {"float_vec_int_add", "float_vec"}, {"float_vec_int_div", "float_vec"}, {"float_vec_float_vec_add", "float_vec"}, {"float_vec_float_vec_sub", "float_vec"}, {"float_vec_Split_Parallel", "float_vec"}, {"float_vec_Split_Strided_Parallel", "float_vec"}, {"float_vec_size", "int"}, 
 						{"bool_to_str", "str"}, {"bool_to_str_buffer", "int64_t"}, 
 						{"print", "float"}, {"print_void_ptrC", "float"}, 
-						{"list_New", "list"}, {"list_append", "float"}, {"list_print", "float"}, {"tuple_print", "float"}, {"list_Create", "list"}, {"list_shuffle", "float"}, {"list_size", "int"}, {"list_as_float_vec", "float_vec"}, {"list_CalculateIdx", "int"}, {"to_int", "int"}, {"to_float", "float"}, {"to_bool", "bool"}, {"list_CalculateSliceIdx", ""}, {"list_Slice", "list"}, {"int_list_Store_Idx", "float"}, {"float_list_Store_Idx", "float"}, {"list_Store_Idx", "float"}, {"zip", "list"}, 
+						{"list_New", "list"}, {"list_append", "float"}, {"list_print", "float"}, {"tuple_print", "float"}, {"list_Create", "list"}, {"list_shuffle", "float"}, {"list_size", "int"}, {"list_CalculateIdx", "int"}, {"to_int", "int"}, {"to_float", "float"}, {"to_bool", "bool"}, {"int_list_Store_Idx", "float"}, {"float_list_Store_Idx", "float"}, {"list_Store_Idx", "float"}, {"zip", "list"}, 
 						{"_quit_", "float"}, {"fexists", "bool"}, 
 						{"scope_struct_spec", "float"}, {"scope_struct_CreateFirst", ""}, {"scope_struct_Create", ""}, {"scope_struct_Overwrite", ""}, {"get_scope_thread_id", "int"}, {"scope_struct_Reset_Threads", "float"}, {"scope_struct_Increment_Thread", "float"}, 
 						{"emerge_int", "int"}, {"emerge_float", "float"}, {"tid", "int"}, 
@@ -38,15 +37,15 @@ void set_functions_return_type() {
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"read_float", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"is_null", "bool"}, 
+						{"prebuild", "int"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"__idx__", "int"}, {"__sliced_idx__", "int"}, 
 						{"silent_sleep", "float"}, {"start_timer", "float"}, {"end_timer", "float"}, 
-						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int64_t"}, {"int_to_str_buffer", "int64_t"}, {"int_print_bits", "int"}, 
+						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int"}, {"int_to_str_buffer", "int"}, {"int_print_bits", "int"}, 
 						{"charv_print", "int"}, 
 						{"GetEmptyChar", "str"}, {"CopyString", "str"}, {"ConcatStr", "str"}, {"ConcatStrFreeLeft", "str"}, {"ConcatFloatToStr", "str"}, {"ConcatNumToStrFree", "str"}, 
 						{"CreateNotesVector", "list"}, {"Dispose_NotesVector", "float"}, {"Add_To_NotesVector_float", "list"}, {"Add_To_NotesVector_int", "list"}, {"Add_To_NotesVector_str", "list"}, 
 						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_print_str_view", "int"}, 
-						{"nsk_vec_size", "int"}, {"int_vec_CalculateSliceIdx", ""}, {"int_vec_Slice", "int_vec"}, {"int_vec_print", "int"}, {"int_vec_Split_Parallel", "int_vec"}, {"int_vec_Split_Strided_Parallel", "int_vec"}, {"int_vec_size", "int"}, 
 						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
 
 	};
@@ -55,6 +54,7 @@ void set_functions_return_type() {
 	functions_return_data_type["bool_to_str_buffer"] = Data_Tree("int64_t");
 	functions_return_data_type["_quit_"] = Data_Tree("float");
 	functions_return_data_type["fexists"] = Data_Tree("bool");
+	functions_return_data_type["prebuild"] = Data_Tree("int");
 	functions_return_data_type["list_New"] = Data_Tree("list");
 	functions_return_data_type["list_append"] = Data_Tree("float");
 	functions_return_data_type["list_print"] = Data_Tree("float");
@@ -62,16 +62,10 @@ void set_functions_return_type() {
 	functions_return_data_type["list_Create"] = Data_Tree("list");
 	functions_return_data_type["list_shuffle"] = Data_Tree("float");
 	functions_return_data_type["list_size"] = Data_Tree("int");
-
-	Data_Tree list_as_float_vec_vec = Data_Tree("vec");
-	list_as_float_vec_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["list_as_float_vec"] = list_as_float_vec_vec;
 	functions_return_data_type["list_CalculateIdx"] = Data_Tree("int");
 	functions_return_data_type["to_int"] = Data_Tree("int");
 	functions_return_data_type["to_float"] = Data_Tree("float");
 	functions_return_data_type["to_bool"] = Data_Tree("bool");
-	functions_return_data_type["list_CalculateSliceIdx"] = Data_Tree("");
-	functions_return_data_type["list_Slice"] = Data_Tree("list");
 	functions_return_data_type["int_list_Store_Idx"] = Data_Tree("float");
 	functions_return_data_type["float_list_Store_Idx"] = Data_Tree("float");
 	functions_return_data_type["list_Store_Idx"] = Data_Tree("float");
@@ -82,38 +76,6 @@ void set_functions_return_type() {
 	functions_return_data_type["ConcatStrFreeLeft"] = Data_Tree("str");
 	functions_return_data_type["ConcatFloatToStr"] = Data_Tree("str");
 	functions_return_data_type["ConcatNumToStrFree"] = Data_Tree("str");
-	functions_return_data_type["float_vec_first_nonzero"] = Data_Tree("float");
-	functions_return_data_type["float_vec_print"] = Data_Tree("float");
-
-	Data_Tree float_vec_pow_vec = Data_Tree("vec");
-	float_vec_pow_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_pow"] = float_vec_pow_vec;
-	functions_return_data_type["float_vec_sum"] = Data_Tree("float");
-
-	Data_Tree float_vec_int_add_vec = Data_Tree("vec");
-	float_vec_int_add_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_int_add"] = float_vec_int_add_vec;
-
-	Data_Tree float_vec_int_div_vec = Data_Tree("vec");
-	float_vec_int_div_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_int_div"] = float_vec_int_div_vec;
-
-	Data_Tree float_vec_float_vec_add_vec = Data_Tree("vec");
-	float_vec_float_vec_add_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_float_vec_add"] = float_vec_float_vec_add_vec;
-
-	Data_Tree float_vec_float_vec_sub_vec = Data_Tree("vec");
-	float_vec_float_vec_sub_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_float_vec_sub"] = float_vec_float_vec_sub_vec;
-
-	Data_Tree float_vec_Split_Parallel_vec = Data_Tree("vec");
-	float_vec_Split_Parallel_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_Split_Parallel"] = float_vec_Split_Parallel_vec;
-
-	Data_Tree float_vec_Split_Strided_Parallel_vec = Data_Tree("vec");
-	float_vec_Split_Strided_Parallel_vec.Nested_Data.push_back(Data_Tree("float"));
-	functions_return_data_type["float_vec_Split_Strided_Parallel"] = float_vec_Split_Strided_Parallel_vec;
-	functions_return_data_type["float_vec_size"] = Data_Tree("int");
 	functions_return_data_type["scope_struct_spec"] = Data_Tree("float");
 	functions_return_data_type["scope_struct_CreateFirst"] = Data_Tree("");
 	functions_return_data_type["scope_struct_Create"] = Data_Tree("");
@@ -207,22 +169,6 @@ void set_functions_return_type() {
 	functions_return_data_type["int_channel_alive"] = Data_Tree("bool");
 	functions_return_data_type["print_randoms"] = Data_Tree("float");
 	functions_return_data_type["randint"] = Data_Tree("int");
-	functions_return_data_type["nsk_vec_size"] = Data_Tree("int");
-	functions_return_data_type["int_vec_CalculateSliceIdx"] = Data_Tree("");
-
-	Data_Tree int_vec_Slice_vec = Data_Tree("vec");
-	int_vec_Slice_vec.Nested_Data.push_back(Data_Tree("int"));
-	functions_return_data_type["int_vec_Slice"] = int_vec_Slice_vec;
-	functions_return_data_type["int_vec_print"] = Data_Tree("int");
-
-	Data_Tree int_vec_Split_Parallel_vec = Data_Tree("vec");
-	int_vec_Split_Parallel_vec.Nested_Data.push_back(Data_Tree("int"));
-	functions_return_data_type["int_vec_Split_Parallel"] = int_vec_Split_Parallel_vec;
-
-	Data_Tree int_vec_Split_Strided_Parallel_vec = Data_Tree("vec");
-	int_vec_Split_Strided_Parallel_vec.Nested_Data.push_back(Data_Tree("int"));
-	functions_return_data_type["int_vec_Split_Strided_Parallel"] = int_vec_Split_Strided_Parallel_vec;
-	functions_return_data_type["int_vec_size"] = Data_Tree("int");
 	functions_return_data_type["dir_exists"] = Data_Tree("float");
 	functions_return_data_type["path_exists"] = Data_Tree("float");
 	functions_return_data_type["print"] = Data_Tree("float");
@@ -230,8 +176,8 @@ void set_functions_return_type() {
 	functions_return_data_type["is_null"] = Data_Tree("bool");
 	functions_return_data_type["read_int"] = Data_Tree("int");
 	functions_return_data_type["int_to_str"] = Data_Tree("str");
-	functions_return_data_type["i64_to_str_buffer"] = Data_Tree("int64_t");
-	functions_return_data_type["int_to_str_buffer"] = Data_Tree("int64_t");
+	functions_return_data_type["i64_to_str_buffer"] = Data_Tree("int");
+	functions_return_data_type["int_to_str_buffer"] = Data_Tree("int");
 	functions_return_data_type["int_print_bits"] = Data_Tree("int");
 	functions_return_data_type["CreateNotesVector"] = Data_Tree("list");
 	functions_return_data_type["Dispose_NotesVector"] = Data_Tree("float");

@@ -19,7 +19,6 @@ void DT_array::New(int size, int elem_size, int tid, std::string type) {
 
     size = ((size + 7) / 8)*8;
     this->size = size;
-    
     // data = (void*)malloc(size*elem_size);
     data = cache_pop(size*elem_size, tid);
 }
@@ -137,6 +136,7 @@ extern "C" DT_array *zeros_int(Scope_Struct *scope_struct, int N) {
 
 
 extern "C" DT_array *randint_array(Scope_Struct *scope_struct, int size, int min_val, int max_val) {
+    // std::cout << "new array " << scope_struct << "|" << size << " " << min_val << " " << max_val << "\n";
     DT_array *vec = newT<DT_array>(scope_struct, "array");
     vec->New(size,4, scope_struct->thread_id, "int");
 

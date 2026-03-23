@@ -219,22 +219,9 @@ Value *LogErrorV(int line, std::string Str) {
 }
 
 
-extern "C" void LogErrorCall(int line, char *msg) {
-  LogErrorS(line, msg);
-}
 
 
 
-extern "C" void print_codegen(char *msg)
-{
-  std::cout << "~~" << msg << ".\n";
-}
-
-
-extern "C" void print_codegen_silent(char *msg)
-{
-  std::cout << msg << "\n";
-}
 
 void p2n() {
 

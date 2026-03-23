@@ -88,6 +88,7 @@ GC::GC(int tid) {
 
 extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
     scope_struct->gc = new GC(scope_struct->thread_id);
+    // std::cout << "alloc gc " << scope_struct->gc << " for " << scope_struct << "\n";
 }
 
 

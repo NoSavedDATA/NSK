@@ -7,6 +7,7 @@
 #include <unordered_map>
 #include <vector>
 
+#include "../data_types/data_tree.h"
 
 bool Shall_Exit = false;
 
@@ -18,14 +19,23 @@ return_string_fn, threaded_tensor_functions, require_scope_functions, notators_s
 
 std::map<std::string, std::string> reverse_ops;
 
+std::vector<std::string> user_cpp_functions;
+std::map<std::string, int> Function_Arg_Count;
+std::map<std::string, int> Function_Required_Arg_Count;
+std::map<std::string, std::map<std::string, Data_Tree>> Function_Arg_DataTypes;
+std::map<std::string, std::map<std::string, std::string>> Function_Arg_Types;
+std::map<std::string, std::vector<std::string>> Function_Arg_Names;
 std::vector<std::string> Sys_Arguments;
 
 
+std::map<std::string, std::string> elements_type_return, ops_type_return;
+std::map<int, std::string> op_map;
+std::vector<std::string> op_map_names;
 std::string CurrentFile = "main";
 
-std::map<std::string, std::string> floatFunctions;
 bool has_main=false;
 
+std::map<char, int> BinopPrecedence;
 
 
 
@@ -37,6 +47,27 @@ std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"fl
                                                                     {"i64", {"int"}},
                                                                     {"char", {"i8"}}};
 
+std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
+
+
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 16}, {"str_view", 16}};
+
+std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"str", 5},
+                                                               {"list", 6},
+                                                               {"tuple", 7}, {"map", 8}, {"channel", 9}, {"int_vec", 10},
+                                                               {"float_vec", 11}, {"array", 12}, {"map_node", 13},
+                                                               {"char", 15},  {"charv", 16},
+                                                               {"i64", 17}, {"i8", 18}, {"i16", 19}, {"vec", 20},
+                                                               {"str_view", 21}};
+
+std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "float"}, {4, "bool"}, {5, "str"},
+                                                               {6, "list"},
+                                                               {7, "tuple"}, {8, "map"}, {9, "channel"}, {10, "int_vec"},
+                                                               {11, "float_vec"}, {12, "array"}, {13, "map_node"},
+                                                               {15, "char"}, {16, "charv"},
+                                                               {17, "i64"}, {18, "i8"}, {19, "i16"}, {20, "vec"},
+                                                               {21, "str_view"}};
+uint16_t data_type_count=22;
 
 
 

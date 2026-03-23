@@ -79,9 +79,9 @@ extern "C" int __sliced_idx__(Nsk_Vector *vec, int first_idx, ...) {
 
 
 
-Vec_Slices::Vec_Slices() : Nsk_Vector(0) {}
+// Vec_Slices::Vec_Slices() : Nsk_Vector(0) {}
 
-void Vec_Slices::push_back(DT_int_vec vec) {
-    size++;
-    slices.push_back(vec);
-}
+// void Vec_Slices::push_back(DT_int_vec vec) {
+//     size++;
+//     slices.push_back(vec);
+// }

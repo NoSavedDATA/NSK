@@ -1,5 +1,5 @@
 CXX := clang++-19 -std=c++17
-CXXFLAGS := -O3 -rdynamic -march=native -mavx -mavx2 -fno-exceptions
+MAIN_CXXFLAGS := -O3 -rdynamic -march=native -mavx -mavx2 -fno-exceptions
 # CXXFLAGS := -O0 -g -rdynamic
 LLVM_CONFIG := llvm-config-19 --link-static --libs core orcjit native
 SYSTEM_LIBS := -ldl -lrt -pthread
@@ -15,7 +15,7 @@ LLVM_LIBS := $(shell $(LLVM_CONFIG) --libs core orcjit native)
 
 
 # Combine all flags
-CXXFLAGS += $(LLVM_CXXFLAGS) -mavx -w
+CXXFLAGS := $(MAIN_CXXFLAGS) $(LLVM_CXXFLAGS) -mavx -w
 LDFLAGS := $(LLVM_LDFLAGS) -static-libstdc++ -static-libgcc
 LIBS := $(LLVM_LIBS) $(LLVM_SYSTEM_LIBS) $(SYSTEM_LIBS)
 
@@ -28,6 +28,8 @@ LDFLAGS += $(SYS_LIBS)
 # Directories
 LIB_PARSER_OBJ_DIR = lib_parser_obj
 LIB_PARSER_SRC_DIR = lib_parser
+RUNTIME_DIR = src/runtime
+RUNTIME_OBJ_DIR = obj/runtime
 OBJ_DIR = obj
 BIN_DIR = bin
 STATIC_DIR = static
@@ -47,6 +49,7 @@ OBJ_DIRS := $(sort $(CXX_DIR))
 #RUNTIME_CPP_OBJ := $(foreach obj,$(CXX_OBJ), \
   $(if $(shell grep -l "nsk_cpp.h" $(obj:.o=.d)), $(obj)))
 
+RUNTIME_CPP_OBJ = $(shell find $(RUNTIME_OBJ_DIR) -name "*.o")
 
 # Lib Parser Object Files
 LIB_PARSER_SRC = $(shell find $(LIB_PARSER_SRC_DIR) -name "*.cpp")
@@ -122,7 +125,7 @@ runtime: $(RUNTIME_OBJ) $(RUNTIME_LIB)
 	@echo "\033[1;32mRuntime build complete [✓]\033[0m"
 
 $(RUNTIME_OBJ): $(RUNTIME_SRC)
-	$(CXX) $(CXXFLAGS) -c $(RUNTIME_SRC) -o $(RUNTIME_OBJ)
+	$(CXX) $(MAIN_CXXFLAGS) -c $(RUNTIME_SRC) -o $(RUNTIME_OBJ)
 	@echo "\033[1;34mCompiled runtime.o\033[0m"
 $(RUNTIME_LIB): $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
 	ar rcs $(RUNTIME_LIB) $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
@@ -130,7 +133,7 @@ $(RUNTIME_LIB): $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
 
 
 clean:
-	rm -rf $(BIN_DIR) $(OBJ_DIR) $(LIB_PARSER_OBJ_DIR)
+	rm -rf $(BIN_DIR) $(OBJ_DIR) $(LIB_PARSER_OBJ_DIR) $(STATIC_DIR)
 
 # Track dependencies
 -include $(CXX_OBJ:.o=.d)

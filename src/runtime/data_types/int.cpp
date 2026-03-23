@@ -79,8 +79,10 @@ extern "C" char* int_to_str(Scope_Struct *scope_struct, int value)
 }
 
 
-extern "C" int64_t i64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, char *buffer)
+extern "C" int i64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, char *buffer)
 {
+    // printf("scope=%p buffer=%p value=%d\n", scope_struct, buffer, value);
+    // fflush(stdout);
     if (value == std::numeric_limits<int64_t>::min()) {
         const char* min_str = "-9223372036854775808";
         std::memcpy(buffer, min_str, 20);
@@ -112,7 +114,7 @@ extern "C" int64_t i64_to_str_buffer(Scope_Struct *scope_struct, int64_t value, 
     return total_len;
 }
 
-extern "C" int64_t int_to_str_buffer(Scope_Struct *scope_struct, int value, char *buffer)
+extern "C" int int_to_str_buffer(Scope_Struct *scope_struct, int value, char *buffer)
 {
     if (value == std::numeric_limits<int>::min()) {
         const char* min_str = "-2147483648";

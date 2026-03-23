@@ -1,7 +1,6 @@
 #pragma once
 
 #include <vector>
-#include "int_vec.h"
 
 
 class Nsk_Vector {
@@ -19,8 +18,8 @@ class Nsk_Vector {
 class Vec_Slices : public Nsk_Vector {
 
     public:
-        std::vector<DT_int_vec> slices;
+        // std::vector<DT_int_vec> slices;
         Vec_Slices();
 
-        void push_back(DT_int_vec);
+        // void push_back(DT_int_vec);
 };

@@ -19,17 +19,6 @@
 #include "../KaleidoscopeJIT.h"
 
 
-extern std::vector<std::string> return_tensor_functions, return_tensor_methods, return_tensor_fn, native_modules,
-return_pinned_methods, vararg_methods, string_methods, native_methods, native_functions, native_fn, tensor_inits,
-return_string_fn, threaded_tensor_functions, int_types, require_scope_functions, notators_str, user_cpp_functions, template_fn;
-
-
-extern std::map<std::string, int> Function_Arg_Count;
-extern std::map<std::string, int> Function_Required_Arg_Count;
-extern std::map<std::string, std::map<std::string, std::string>> Function_Arg_Types;
-extern std::map<std::string, std::map<std::string, Data_Tree>> Function_Arg_DataTypes;
-extern std::map<std::string, std::vector<std::string>> Function_Arg_Names;
-extern std::map<std::string, std::map<std::string, std::unique_ptr<ExprAST>>> ArgsInit;
 
 
 extern std::map<std::string, Data_Tree> Idx_Fn_Return;
@@ -38,6 +27,7 @@ extern std::map<std::string, Data_Tree> Idx_Fn_Return;
 extern std::vector<std::string> Sys_Arguments;
  
 
+extern std::map<std::string, std::map<std::string, std::unique_ptr<ExprAST>>> ArgsInit;
 
 extern std::vector<std::string> imported_libs;
 extern std::map<std::string, std::vector<std::string>> lib_submodules;

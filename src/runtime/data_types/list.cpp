@@ -15,7 +15,6 @@
 #include "../mangler/scope_struct.h"
 #include "../pool/include.h"
 
-#include "float_vec.h"
 
 #include "codegen_notes.h"
 
@@ -152,17 +151,6 @@ extern "C" int list_size(Scope_Struct *scope_struct, DT_list *list) {
   return list->size;
 }
 
-extern "C" DT_float_vec *list_as_float_vec(Scope_Struct *scope_struct, DT_list *list) {
-  int size = list->size;
-
-  DT_float_vec *vec = newT<DT_float_vec>(scope_struct, "float_vec");
-  vec->New(size);
-
-  for (int i=0; i<size; ++i)
-    vec->vec[i] = list->get<float>(i);
-
-  return vec;
-}
 
 
 void list_Clean_Up(void *data_ptr, int tid) {
@@ -199,68 +187,68 @@ extern "C" bool to_bool(Scope_Struct *scope_struct, void *ptr) {
   return *static_cast<bool*>(ptr);
 }
 
-extern "C" Vec_Slices *list_CalculateSliceIdx(DT_list *vec, int first_idx, ...) {
+// extern "C" Vec_Slices *list_CalculateSliceIdx(DT_list *vec, int first_idx, ...) {
 
 
-  int second_idx;
+//   int second_idx;
 
-  va_list args;
-  va_start(args, first_idx);
-  va_arg(args, int); // get terminate symbol
-  second_idx = va_arg(args, int); // get second idx
-  va_end(args);
+//   va_list args;
+//   va_start(args, first_idx);
+//   va_arg(args, int); // get terminate symbol
+//   second_idx = va_arg(args, int); // get second idx
+//   va_end(args);
 
 
-  int size = vec->size;
-  if (first_idx<0)
-    first_idx = size + first_idx;
-  if (second_idx<0)
-    second_idx = size + second_idx;
+//   int size = vec->size;
+//   if (first_idx<0)
+//     first_idx = size + first_idx;
+//   if (second_idx<0)
+//     second_idx = size + second_idx;
 
-  Vec_Slices *vec_slices = new Vec_Slices();
+//   Vec_Slices *vec_slices = new Vec_Slices();
 
-  DT_int_vec slices = DT_int_vec(2);
-  slices.vec[0] = first_idx;
-  slices.vec[1] = second_idx;
+//   DT_int_vec slices = DT_int_vec(2);
+//   slices.vec[0] = first_idx;
+//   slices.vec[1] = second_idx;
 
-  vec_slices->push_back(slices);
+//   vec_slices->push_back(slices);
 
  
-  return vec_slices;
-}
+//   return vec_slices;
+// }
 
 
 
-extern "C" DT_list *list_Slice(Scope_Struct *scope_struct, DT_list *vec, Vec_Slices *slices) {
+// extern "C" DT_list *list_Slice(Scope_Struct *scope_struct, DT_list *vec, Vec_Slices *slices) {
 
-  int start = slices->slices[0].vec[0], end=slices->slices[0].vec[1];
+//   int start = slices->slices[0].vec[0], end=slices->slices[0].vec[1];
 
-  if (end==COPY_TO_END_INST)
-    end = vec->size;
+//   if (end==COPY_TO_END_INST)
+//     end = vec->size;
 
 
-  int size = end-start;
+//   int size = end-start;
 
-  DT_list *out_vec = new DT_list();
+//   DT_list *out_vec = new DT_list();
 
-  for (int i=0; i<size; ++i)
-  {
-    int idx = start+i;
-    std::string data_type = vec->data_types->at(idx);
+//   for (int i=0; i<size; ++i)
+//   {
+//     int idx = start+i;
+//     std::string data_type = vec->data_types->at(idx);
 
-    if (data_type=="float")
-      out_vec->append(vec->get<float>(idx), data_type);
-    else if (data_type=="int")
-      out_vec->append(vec->get<int>(idx), data_type);
-    else if (data_type=="bool")
-      out_vec->append(vec->get<bool>(idx), data_type);
-    else 
-      out_vec->append(vec->get<void *>(idx), data_type);
+//     if (data_type=="float")
+//       out_vec->append(vec->get<float>(idx), data_type);
+//     else if (data_type=="int")
+//       out_vec->append(vec->get<int>(idx), data_type);
+//     else if (data_type=="bool")
+//       out_vec->append(vec->get<bool>(idx), data_type);
+//     else 
+//       out_vec->append(vec->get<void *>(idx), data_type);
 
-  }
+//   }
 
-  return out_vec;
-}
+//   return out_vec;
+// }
 
 
 

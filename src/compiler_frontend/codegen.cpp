@@ -3937,7 +3937,6 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
             size = callret(call, {scope_struct, print_val, print_gep});
         }
 
-
         offset = Builder->CreateAdd(offset, size);
     }
     Value *print_gep = Builder->CreateInBoundsGEP(bufferTy,

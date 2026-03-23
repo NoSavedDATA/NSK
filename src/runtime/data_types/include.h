@@ -1,7 +1,5 @@
 #pragma once
 
-#include "llvm/IR/Value.h"
-#include "llvm/IR/Instructions.h"
 #include <vector>
 #include <map>
 
@@ -12,9 +10,7 @@
 #include "codegen_notes.h"
 #include "data_tree.h"
 #include "float.h"
-#include "float_vec.h"
 #include "int.h"
-#include "int_vec.h"
 #include "list.h"
 #include "map.h"
 #include "nsk_vector.h"
@@ -24,13 +20,10 @@
 #include "str_vec.h"
 #include "type_info.h"
 
-using namespace llvm;
 
 extern std::map<std::string, std::vector<char *>> ClassStrVecs;
-extern std::map<std::string, DT_float_vec *> ClassFloatVecs;
 extern std::map<std::string, float> NamedClassValues;
 extern std::map<std::string, int> NamedInts;
-extern std::map<std::string, DT_int_vec *> NamedIntVecs;
 extern std::map<std::string, std::string> NamedObjects;
 extern std::map<std::string, std::vector<std::pair<std::string, std::string>>> ScopeVarsToClean;
 extern std::map<std::string, char *> ScopeNamesToClean;
