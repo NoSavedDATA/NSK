@@ -33,24 +33,24 @@ void InitializeModule() {
   // Open a new context and module.
   TheContext = std::make_unique<LLVMContext>();
   TheModule = std::make_unique<Module>("my cool jit", *TheContext);
-  TheModule->setDataLayout(TheJIT->getDataLayout());
+  if (IsJIT)  // As jit
+      TheModule->setDataLayout(TheJIT->getDataLayout());
+  else { // As compiler
+      char *triple_c = LLVMGetDefaultTargetTriple();
+      std::string TargetTriple(triple_c);
+      LLVMDisposeErrorMessage(triple_c);
 
-  // char *triple_c = LLVMGetDefaultTargetTriple();
-// std::string TargetTriple(triple_c);
-// LLVMDisposeErrorMessage(triple_c);
+      std::string Error;
+      auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
 
-// std::string Error;
-// auto Target = TargetRegistry::lookupTarget(TargetTriple, Error);
+      TargetOptions opt;
+      auto RM = std::optional<Reloc::Model>();
 
-// TargetOptions opt;
-// auto RM = std::optional<Reloc::Model>();
-
-  //   CTM = std::unique_ptr<TargetMachine>(
-  //   Target->createTargetMachine(TargetTriple, "x86-64-v3", "+sse2", opt, RM)
-// );
-
+      CTM = std::unique_ptr<TargetMachine>(
+        Target->createTargetMachine(TargetTriple, "x86-64-v3", "+sse2", opt, RM)
+    );
+  }
   //std::cout << "Initialize Module\n";
-  
 
   // Create a new builder for the module.
   Builder = std::make_unique<IRBuilder<>>(*TheContext);

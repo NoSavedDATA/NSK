@@ -64,6 +64,53 @@ using namespace llvm::orc;
 // Top-Level parsing and JIT Driver
 //===----------------------------------------------------------------------===//
 
+
+
+void linkExecutable() {
+    // std::string out = R"(ld.lld-19 \
+    //   /usr/lib/x86_64-linux-gnu/crt1.o \
+    //   /usr/lib/x86_64-linux-gnu/crti.o \
+    //   /usr/lib/gcc/x86_64-linux-gnu/9/crtbegin.o \
+    //   output.o \
+    //   --start-group static/runtime.a --end-group \
+    //   -L/usr/lib/gcc/x86_64-linux-gnu/9 -lstdc++ \
+    //   -L/lib/x86_64-linux-gnu -lgcc_s -lgcc -lc -lm \
+    //   /usr/lib/gcc/x86_64-linux-gnu/9/crtend.o \
+    //   /usr/lib/x86_64-linux-gnu/crtn.o \
+    //   --dynamic-linker /lib64/ld-linux-x86-64.so.2 \
+    //   -o output)";
+    
+    // std::string out = "clang++-19 -no-pie output.o static/runtime.a -o output";
+    std::string out = "clang++-19 -static -static-libstdc++ -static-libgcc \
+    output.o static/runtime.a -o output";
+    std::cout << "" << out << "\n";
+    system(out.c_str());
+}
+
+static void Compile() {
+    for (auto &FuncAST : AllFunctions)
+        FuncAST->codegen();
+    
+    std::error_code EC;
+    raw_fd_ostream dest("output.o", EC, sys::fs::OF_None);
+
+    legacy::PassManager pass;
+
+    if (CTM->addPassesToEmitFile(pass, dest, nullptr,
+                                 llvm::CodeGenFileType::ObjectFile)) {
+        errs() << "TargetMachine can't emit object file\n";
+        return;
+    }
+
+    pass.run(*TheModule);
+    dest.flush();
+    linkExecutable();
+}
+
+
+
+
+
 __attribute__((constructor))
 void early_init() {
     // std::cout << "Constructor Function Executed\n";
@@ -73,6 +120,8 @@ void early_init() {
 }
 
 int main(int argc, char* argv[]) {
+    IsJIT = false;
+
     for (int i = 1; i < argc; i++) {
         // std::cout << "Argument " << i << ": " << argv[i] << "\n";
         Sys_Arguments.push_back(argv[i]);
@@ -83,10 +132,10 @@ int main(int argc, char* argv[]) {
     }
 
     build_dicts();
-
   TheJIT = ExitOnErr(KaleidoscopeJIT::Create());
   InitializeModule();
   MainLoop();
+  Compile();
   return 0;
 }
 

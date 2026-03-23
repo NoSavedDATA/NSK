@@ -30,6 +30,8 @@ constexpr int32_t COPY_TO_END_INST = 0x7FADBEEF;
 extern bool Shall_Exit;
 
 extern bool has_main;
+extern bool IsJIT;
+
 extern std::string CurrentFile;
 
 extern std::map<char, int> BinopPrecedence;

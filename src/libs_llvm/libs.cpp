@@ -17,6 +17,20 @@ void Generate_LLVM_Functions() {
     int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
     
 
+	FunctionType *putchardTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("putchard", putchardTy);
+
+	FunctionType *printdTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("printd", printdTy);
+
 	FunctionType *CreateNotesVectorTy= FunctionType::get(
 		int8PtrTy,
 		{},

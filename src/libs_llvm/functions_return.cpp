@@ -35,6 +35,7 @@ void set_functions_return_type() {
 						{"emerge_int", "int"}, {"emerge_float", "float"}, {"tid", "int"}, 
 						{"str_Copy", "str"}, {"str_CopyArg", "str"}, {"str_str_add", "str"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
+						{"putchard", "float"}, {"printd", "float"}, 
 						{"read_float", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"is_null", "bool"}, 
 						{"prebuild", "int"}, 
@@ -174,6 +175,8 @@ void set_functions_return_type() {
 	functions_return_data_type["print"] = Data_Tree("float");
 	functions_return_data_type["print_void_ptrC"] = Data_Tree("float");
 	functions_return_data_type["is_null"] = Data_Tree("bool");
+	functions_return_data_type["putchard"] = Data_Tree("float");
+	functions_return_data_type["printd"] = Data_Tree("float");
 	functions_return_data_type["read_int"] = Data_Tree("int");
 	functions_return_data_type["int_to_str"] = Data_Tree("str");
 	functions_return_data_type["i64_to_str_buffer"] = Data_Tree("int");

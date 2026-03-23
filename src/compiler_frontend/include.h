@@ -6,6 +6,7 @@
 #include <vector>
 
 #include "../nsk_cpp.h"
+#include "tokenizers/include.h"
 #include "codegen.h"
 #include "expressions.h"
 #include "function_ast.h"

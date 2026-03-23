@@ -2057,9 +2057,9 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   method = "";
   _class = parser_struct.class_name;
 
-  
+  bool is_compiler_main = (CurTok==tok_main&&!IsJIT);
 
-  if (!in_str(IdentifierStr, data_tokens) && !from_ctor) {
+  if (!in_vec(IdentifierStr, data_tokens) && !from_ctor &&!is_compiler_main) {
     LogErrorNextFloatingBlock(parser_struct.line, "Expected function return type.");
     return nullptr;
   }
@@ -2067,6 +2067,10 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   std::string return_type;
   Data_Tree return_data_type;
   if (from_ctor) {
+      return_type = "int";
+      return_data_type = Data_Tree("int");
+  } else if (is_compiler_main) {
+      LogBlue("hi");
       return_type = "int";
       return_data_type = Data_Tree("int");
   } else {  
@@ -2085,6 +2089,12 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   case tok_constructor:
     FnName += "__init__";
     method =  "__init__";
+    Kind = 0;
+    getNextToken();
+    break;
+  case tok_main:
+    FnName += "main";
+    method =  "main";
     Kind = 0;
     getNextToken();
     break;
@@ -2122,17 +2132,12 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
     break;
   }
 
-  if (CurTok != '(')
-    return LogErrorProto(parser_struct.line, "Expected \"(\" at function prototype.");
-  getNextToken(); // eat (
 
 
 
   std::string type;
   std::vector<std::string> ArgNames, Types;
   std::vector<Data_Tree> TypeTrees;
-
-  
 
 
   Types.push_back("s");
@@ -2142,6 +2147,13 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   Function_Arg_Types[FnName]["0"] = "Scope_Struct";
   Function_Arg_DataTypes[FnName]["0"] = Data_Tree("Scope_Struct");
 
+  if(is_compiler_main)
+      return std::make_unique<PrototypeAST>(FnName, return_type, _class, method, ArgNames,
+                                            Types, TypeTrees, Kind != 0,
+                                            BinaryPrecedence);
+  if (CurTok != '(')
+    return LogErrorProto(parser_struct.line, "Expected \"(\" at function prototype.");
+  getNextToken(); // eat (
 
   int args_count=0, required_args=0;
   while (CurTok != ')')

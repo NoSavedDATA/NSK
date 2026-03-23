@@ -34,6 +34,7 @@ std::vector<std::string> op_map_names;
 std::string CurrentFile = "main";
 
 bool has_main=false;
+bool IsJIT = true;
 
 std::map<char, int> BinopPrecedence;
 

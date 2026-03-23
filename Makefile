@@ -66,6 +66,8 @@ RUNTIME_LIB := static/runtime.a
 LIB_PARSER := bin/lib_parser.o
 OBJ := bin/nsk
 SRC := main.cpp
+COMPILER_OBJ := bin/nsc
+COMPILER_SRC := main_compiler.cpp
 
 .PHONY: prebuild
 
@@ -89,7 +91,7 @@ $(shell mkdir -p $(LIB_PARSER_OBJ_DIR);)
 
 
 
-all: prebuild $(CXX_OBJ) $(OBJ) check_done
+all: prebuild $(CXX_OBJ) $(OBJ) $(COMPILER_OBJ) runtime check_done
 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | prebuild
@@ -100,6 +102,10 @@ $(OBJ): $(SRC) $(CXX_OBJ)
 	@echo "\033[1;32m\nBuild completed [✓]\n\033[0m"
 	@touch $(BUILD_FLAG)
 
+$(COMPILER_OBJ): $(COMPILER_SRC) $(CXX_OBJ)
+	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(COMPILER_SRC) $(CXX_OBJ) $(LIBS) $(OTHER_FLAGS) -MMD -MP -o $(COMPILER_OBJ) 
+	@echo "\033[1;32m\nBuild completed [✓]\n\033[0m"
+	@touch $(BUILD_FLAG)
 
 prebuild: $(LIB_PARSER)
 	@echo ">>> PREBUILD STEP <<<"
@@ -121,12 +127,8 @@ check_done:
 	@rm -f $(BUILD_FLAG)
 
 
-runtime: $(RUNTIME_OBJ) $(RUNTIME_LIB)
+runtime: $(RUNTIME_LIB)
 	@echo "\033[1;32mRuntime build complete [✓]\033[0m"
-
-$(RUNTIME_OBJ): $(RUNTIME_SRC)
-	$(CXX) $(MAIN_CXXFLAGS) -c $(RUNTIME_SRC) -o $(RUNTIME_OBJ)
-	@echo "\033[1;34mCompiled runtime.o\033[0m"
 $(RUNTIME_LIB): $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
 	ar rcs $(RUNTIME_LIB) $(RUNTIME_OBJ) $(RUNTIME_CPP_OBJ)
 	@echo "\033[1;34mCreated libruntime.a\033[0m"

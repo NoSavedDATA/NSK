@@ -34,6 +34,7 @@ void set_user_functions() {
 		"print_randoms", "randint", 
 		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", "array_print_str_view", 
 		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "scope_struct_Overwrite", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_Sweep", "scope_struct_Delete", 
+		"putchard", "printd", 
 		"dir_exists", "path_exists", 
 		"GetEmptyChar", "FreeCharFromFunc", "FreeChar", "CopyString", "ConcatStr", "ConcatStrFreeLeft", "ConcatFloatToStr", "ConcatNumToStrFree", 
 		"offset_object_ptr", "object_Attr_float", "object_Attr_int", "object_Load_float", "object_Load_int", "object_Load_slot", "tie_object_to_object", "object_Attr_on_Offset_float", "object_Attr_on_Offset_int", "object_Attr_on_Offset", "object_Load_on_Offset_float", "object_Load_on_Offset_int", "object_Load_on_Offset", "object_ptr_Load_on_Offset", "object_ptr_Attribute_object", 
