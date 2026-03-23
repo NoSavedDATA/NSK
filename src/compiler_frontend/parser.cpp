@@ -1034,6 +1034,46 @@ std::unique_ptr<ExprAST> ParseFinishExpr(Parser_Struct parser_struct, std::strin
 
 
 
+std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string class_name) { 
+    getNextToken(); // eat proto
+    Data_Tree Return;
+    std::string Name;
+    std::vector<Data_Tree> Args;
+ 
+    if(CurTok!=tok_data)
+        LogError(parser_struct.line, "Prototype expected return type.");
+
+    bool is_struct=(CurTok==tok_struct);
+    std::string data_type = IdentifierStr; 
+    Return = ParseDataTree(data_type, is_struct, parser_struct);
+
+    if(CurTok!=tok_identifier)
+        LogError(parser_struct.line, "Prototype expected name.");
+
+    Name = IdentifierStr;
+    getNextToken(); // eat name
+                    
+    if(CurTok!='(')
+        LogError(parser_struct.line, "Prototype expected (.");
+    getNextToken(); // eat (
+    
+    if(CurTok!=tok_data&&CurTok!=')')
+        LogError(parser_struct.line, "Prototype expected either a data type or ).");
+
+    while (CurTok==tok_data) {
+        is_struct=(CurTok==tok_struct);
+        data_type = IdentifierStr; 
+        Args.push_back(ParseDataTree(data_type, is_struct, parser_struct));
+        if (CurTok==',')
+            getNextToken();
+    }
+
+    if(CurTok!=')')
+        LogError(parser_struct.line, "Prototype expected ).");
+    getNextToken(); // eat )
+     
+    return std::make_unique<ProtoExprAST>(Return, Name, std::move(Args));
+}
 
 
 std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string class_name) { 
@@ -1840,6 +1880,8 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseSpawnExpr(parser_struct, class_name);
   case tok_lock:
     return ParseLockExpr(parser_struct, class_name);
+  case tok_proto:
+    return ParseProtoExpr(parser_struct, class_name);
   case tok_main:
     return ParseMainExpr(parser_struct, class_name);
   case tok_ret:

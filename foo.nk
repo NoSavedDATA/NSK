@@ -1,3 +1,6 @@
+proto int memcpy(any, int)
+
+
 
 def int particionar(array<int> arr, int baixo, int alto)
     int pivo = arr[alto]
@@ -29,7 +32,7 @@ def array<int> quick_sort(array<int> arr)
     quick_sort_rec(arr, 0, arr.size()-1)
     return arr
 
-def int main()
+main
     start_timer()
     array<int> array_teste = randint_array(1000000,1,100)
     end_timer()

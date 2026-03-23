@@ -50,7 +50,7 @@ std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"fl
 std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
 
 
-std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"double", 8}, {"str", 16}, {"str_view", 16}};
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}};
 
 std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"str", 5},
                                                                {"list", 6},
@@ -58,7 +58,7 @@ std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"flo
                                                                {"float_vec", 11}, {"array", 12}, {"map_node", 13},
                                                                {"char", 15},  {"charv", 16},
                                                                {"i64", 17}, {"i8", 18}, {"i16", 19}, {"vec", 20},
-                                                               {"str_view", 21}};
+                                                               {"str_view", 21}, {"any", 22}};
 
 std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "float"}, {4, "bool"}, {5, "str"},
                                                                {6, "list"},
@@ -66,12 +66,14 @@ std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "
                                                                {11, "float_vec"}, {12, "array"}, {13, "map_node"},
                                                                {15, "char"}, {16, "charv"},
                                                                {17, "i64"}, {18, "i8"}, {19, "i16"}, {20, "vec"},
-                                                               {21, "str_view"}};
-uint16_t data_type_count=22;
+                                                               {21, "str_view"}, {22, "any"}};
+uint16_t data_type_count=23;
 
 
 
-std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec", "MHSA", "LSTM", "Linear", "tuple",
+std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec",
+                                        "MHSA", "LSTM", "Linear", "tuple",
+                                        "any",
 										"list", "map", "array",
                                         "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8", "str_view"};
 std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "vec"};

@@ -67,6 +67,7 @@ std::unique_ptr<ExprAST> ParseParenExpr(Parser_Struct parser_struct, std::string
 
 std::unique_ptr<ExprAST> ParseObjectInstantiationExpr(Parser_Struct parser_struct, std::string _class, std::string class_name);
 
+std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string class_name);
 
 
 std::unique_ptr<IndexExprAST> ParseIdx(Parser_Struct parser_struct, std::string class_name="");

@@ -29,6 +29,7 @@ enum Token {
     tok_finish = -52,
 
     // functions/classes
+    tok_proto = -71,
     tok_def = -2,
     tok_constructor = -66,
     tok_class = -77,
@@ -45,6 +46,7 @@ enum Token {
     tok_str = -40, // ""
     tok_char = -69, // ""
     tok_bool = -58,
+    tok_any = -72,
 
 
     // bools

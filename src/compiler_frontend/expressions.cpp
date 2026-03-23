@@ -992,6 +992,21 @@ LockExprAST::LockExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies,
 
   
   
+ProtoExprAST::ProtoExprAST(Data_Tree Return, std::string Name, std::vector<Data_Tree> Args) {
+    functions_return_data_type[Name] = Return;
+
+    int arg_count=0;
+    std::vector<std::string> arg_names = {"0"};
+    Function_Arg_DataTypes[Name]["0"] = Data_Tree("Scope_Struct");
+    for (auto arg : Args) {
+        arg_count++;
+        std::string arg_name = std::to_string(arg_count);
+        Function_Arg_DataTypes[Name][arg_name] = arg;
+        arg_names.push_back(arg_name);
+    }
+    Function_Arg_Names[Name] = arg_names;
+    Function_Required_Arg_Count[Name] = arg_count;
+}
   
   
 MainExprAST::MainExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies)

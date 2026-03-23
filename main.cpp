@@ -557,7 +557,7 @@ int main(int argc, char* argv[]) {
   TheJIT = ExitOnErr(KaleidoscopeJIT::Create());
   InitializeModule();
   MainLoop();
-  Compile();
+  // Compile();
   return 0;
 }
 

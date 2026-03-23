@@ -885,6 +885,15 @@ class SplitStridedParallelExprAST : public ExprAST {
 };
 
 
+class ProtoExprAST : public ExprAST {
+  std::string Name;
+  public:
+    ProtoExprAST(Data_Tree, std::string, std::vector<Data_Tree>);
+
+  Value* codegen(Value *scope_struct) override;
+};
+
+
 class MainExprAST : public ExprAST {
   std::vector<std::unique_ptr<ExprAST>> Bodies;
 

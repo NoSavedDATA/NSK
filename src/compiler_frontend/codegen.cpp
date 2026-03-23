@@ -2892,6 +2892,10 @@ Value *LockExprAST::codegen(Value *scope_struct){
 
 
 
+Value *ProtoExprAST::codegen(Value *scope_struct) {
+    return const_float(0);
+}
+    
 
 Value *MainExprAST::codegen(Value *scope_struct) {
     if (not ShallCodegen)
