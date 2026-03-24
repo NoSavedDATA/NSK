@@ -6,4 +6,5 @@
 #include "parser.h"
 #include "expressions.h"
 #include "reader.h"
+#include "std_parser.h"
 #include "tokenizer.h"

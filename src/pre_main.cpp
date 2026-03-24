@@ -280,13 +280,11 @@ extern "C" float printd(float X) {
 
 void build_dicts() {
   // DT_charv
-  struct_create_fn["DT_charv"] = DT_charv_create;
   Function_Arg_DataTypes["charv_Create"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["charv_Create"]["1"] = Data_Tree("int");
   Function_Arg_Names["charv_Create"] = {"0", "1"};
 
   // DT_vec
-  struct_create_fn["DT_vec"] = DT_vec_create;
   Function_Arg_DataTypes["vec_Create"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["vec_Create"]["1"] = Data_Tree("int");
   Function_Arg_DataTypes["vec_Create"]["2"] = Data_Tree("int");
@@ -296,7 +294,6 @@ void build_dicts() {
 
   // c_open
   functions_return_data_type["c_open"] = Data_Tree("int");
-  llvm_callee["c_open"] = c_open;
   Function_Arg_DataTypes["c_open"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_open"]["1"] = Data_Tree("str");
   Function_Arg_Names["c_open"] = {"0", "1"};
@@ -304,7 +301,6 @@ void build_dicts() {
 
   // c_read
   functions_return_data_type["c_read"] = Data_Tree("i64");
-  llvm_callee["c_read"] = c_read;
   Function_Arg_DataTypes["c_read"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_read"]["1"] = Data_Tree("int");
   Function_Arg_DataTypes["c_read"]["2"] = Data_Tree("charv");
@@ -315,7 +311,6 @@ void build_dicts() {
 
   // c_memchr
   functions_return_data_type["c_memchr"] = Data_Tree("i64");
-  llvm_callee["c_memchr"] = c_memchr;
   Function_Arg_DataTypes["c_memchr"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_memchr"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("char");
@@ -325,7 +320,6 @@ void build_dicts() {
 
   // c_strlen
   functions_return_data_type["c_strlen"] = Data_Tree("i64");
-  llvm_callee["c_strlen"] = c_strlen;
   Function_Arg_DataTypes["c_strlen"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_strlen"]["1"] = Data_Tree("str");
   Function_Arg_Names["c_strlen"] = {"0", "1"};
@@ -334,7 +328,6 @@ void build_dicts() {
 
   // c_memcpy
   functions_return_data_type["c_memcpy"] = Data_Tree("int");
-  llvm_callee["c_memcpy"] = c_memcpy;
   Function_Arg_DataTypes["c_memcpy"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["c_memcpy"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["c_memcpy"]["2"] = Data_Tree("charv");
@@ -345,7 +338,6 @@ void build_dicts() {
 
   // str_set
   functions_return_data_type["str_set"] = Data_Tree("int");
-  llvm_callee["str_set"] = str_set;
   Function_Arg_DataTypes["str_set"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["str_set"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["str_set"]["2"] = Data_Tree("int");
@@ -355,7 +347,6 @@ void build_dicts() {
 
   // str_offset
   functions_return_data_type["str_offset"] = Data_Tree("str");
-  llvm_callee["str_offset"] = str_offset;
   Function_Arg_DataTypes["str_offset"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["str_offset"]["1"] = Data_Tree("str");
   Function_Arg_DataTypes["str_offset"]["2"] = Data_Tree("int");
@@ -364,7 +355,6 @@ void build_dicts() {
 
   // err
   functions_return_data_type["err"] = Data_Tree("int");
-  llvm_callee["err"] = err;
   Function_Arg_DataTypes["err"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["err"]["1"] = Data_Tree("str");
   Function_Arg_Names["err"] = {"0", "1"};
@@ -372,7 +362,6 @@ void build_dicts() {
 
   // _malloc
   functions_return_data_type["_malloc"] = Data_Tree("any");
-  llvm_callee["_malloc"] = _malloc;
   Function_Arg_DataTypes["_malloc"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["_malloc"]["1"] = Data_Tree("int");
   Function_Arg_Names["_malloc"] = {"0", "1"};
@@ -380,7 +369,6 @@ void build_dicts() {
 
   // allocate
   functions_return_data_type["alloc"] = Data_Tree("any");
-  llvm_callee["alloc"] = alloc;
   Function_Arg_DataTypes["alloc"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["alloc"]["1"] = Data_Tree("int");
   Function_Arg_DataTypes["alloc"]["2"] = Data_Tree("str");
@@ -389,28 +377,24 @@ void build_dicts() {
   
   // i8
   functions_return_data_type["i8"] = Data_Tree("i8");
-  llvm_callee["i8"] = parse_i8;
   Function_Arg_DataTypes["i8"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["i8"]["1"] = Data_Tree("any");
   Function_Arg_Names["i8"] = {"0", "1"};
   Function_Required_Arg_Count["i8"] = 1;
   // i16
   functions_return_data_type["i16"] = Data_Tree("i16");
-  llvm_callee["i16"] = parse_i16;
   Function_Arg_DataTypes["i16"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["i16"]["1"] = Data_Tree("any");
   Function_Arg_Names["i16"] = {"0", "1"};
   Function_Required_Arg_Count["i16"] = 1;
   // int
   functions_return_data_type["int"] = Data_Tree("int");
-  llvm_callee["int"] = parse_int;
   Function_Arg_DataTypes["int"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["int"]["1"] = Data_Tree("any");
   Function_Arg_Names["int"] = {"0", "1"};
   Function_Required_Arg_Count["int"] = 1;
   // i64
   functions_return_data_type["i64"] = Data_Tree("i64");
-  llvm_callee["i64"] = parse_i64;
   Function_Arg_DataTypes["i64"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["i64"]["1"] = Data_Tree("any");
   Function_Arg_Names["i64"] = {"0", "1"};
@@ -418,7 +402,6 @@ void build_dicts() {
 
   // ctz
   functions_return_data_type["ctz"] = Data_Tree("int");
-  llvm_callee["ctz"] = ctz;
   Function_Arg_DataTypes["ctz"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["ctz"]["1"] = Data_Tree("any");
   Function_Arg_Names["ctz"] = {"0", "1"};
@@ -426,7 +409,6 @@ void build_dicts() {
 
   // swap_bit
   function_return_overwrite["swap_bit"] = swap_bit_ret;
-  llvm_callee["swap_bit"] = swap_bit;
   Function_Arg_DataTypes["swap_bit"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["swap_bit"]["1"] = Data_Tree("any");
   Function_Arg_DataTypes["swap_bit"]["2"] = Data_Tree("int");
@@ -435,7 +417,6 @@ void build_dicts() {
 
   // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
-  llvm_callee["simd_load"] = simd_load;
   Function_Arg_DataTypes["simd_load"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["simd_load"]["1"] = Data_Tree("any");
   Function_Arg_DataTypes["simd_load"]["2"] = Data_Tree("int");
@@ -445,7 +426,6 @@ void build_dicts() {
 
   // vec_make
   function_return_overwrite["vec_make"] = vec_make_ret;
-  llvm_callee["vec_make"] = vec_make;
   Function_Arg_DataTypes["vec_make"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["vec_make"]["1"] = Data_Tree("any");
   Function_Arg_DataTypes["vec_make"]["2"] = Data_Tree("int");
@@ -454,7 +434,6 @@ void build_dicts() {
 
   // vec_movemask
   functions_return_data_type["vec_movemask"] = Data_Tree("int");
-  llvm_callee["vec_movemask"] = vec_movemask;
   Function_Arg_DataTypes["vec_movemask"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["vec_movemask"]["1"] = Data_Tree("any");
   Function_Arg_Names["vec_movemask"] = {"0", "1"};
@@ -462,7 +441,6 @@ void build_dicts() {
 
   // vec_print
   functions_return_data_type["vec_print"] = Data_Tree("int");
-  llvm_callee["vec_print"] = vec_print;
   Function_Arg_DataTypes["vec_print"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["vec_print"]["1"] = Data_Tree("vec");
   Function_Arg_Names["vec_print"] = {"0", "1"};
@@ -473,7 +451,6 @@ void build_dicts() {
 
   // print
   functions_return_data_type["print"] = Data_Tree("void");
-  llvm_callee["print"] = print;
 
   Function_Arg_DataTypes["print"]["0"] = Data_Tree("Scope_Struct");
   Function_Arg_DataTypes["print"]["1"] = Data_Tree("str");

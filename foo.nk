@@ -41,3 +41,5 @@ main
     array<int> array_ordenado = quick_sort(array_teste)
 
     end_timer()
+
+

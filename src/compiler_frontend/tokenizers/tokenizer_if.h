@@ -14,19 +14,20 @@
 
 struct TokenizerIF {
     // std::stack<std::string> dirs, files;
-    int line, NumVal, LastSeenTabs, SeenTabs;
-    std::istream* current;
-    std::string current_dir, current_file, IdentifierStr;
-    char cur_c=' ', LastChar=' ';
     
     public:
+        virtual ~TokenizerIF() = default;
+        int line, NumVal, LastSeenTabs=-1, SeenTabs=-1;
+        std::istream* current;
+        std::unique_ptr<std::istream> current_stream;
+        std::string current_dir, current_file, IdentifierStr;
+        char cur_c=' ', LastChar=' ';
+
         TokenizerIF(std::string);
 
-        char get();
-        std::istream& get_word();
-        bool openFile(std::string);
-        bool importFile(std::string, int);
-        int getToken();
+        virtual char get();
+        virtual bool openFile(std::string);
+        virtual int getToken();
 };
 
 enum TokenizerIFTokens {

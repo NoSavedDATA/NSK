@@ -16,6 +16,8 @@
 #include "llvm/Support/TargetSelect.h"
 #include "llvm/Target/TargetMachine.h"
 
+using namespace llvm::orc;
+
 void InitializeModule();
 
 ThreadSafeModule irgenAndTakeOwnership(FunctionAST &FnAST,

@@ -13,8 +13,6 @@
 #include <string>
 #include <vector>
 
-#include "../../runtime/common/extension_functions.h"
-#include "../../runtime/compiler_frontend/logging_v.h"
 #include "tokenizer_if.h"
 
 
@@ -39,19 +37,7 @@ TokenizerIF::TokenizerIF(std::string file) {
 
 
 
-// std::istream& TokenizerIF::get_word() {
-//     while ((current == nullptr || current->eof()) && !inputStack.empty()) {
-//         inputStack.pop();
-//         current = inputStack.empty() ? nullptr : inputStack.top().get();
-//     }
-//     return *current;
-// }
-
-
-
-
 char TokenizerIF::get() {
-
     while (true) {
         if (!current) return if_tok_eof;
  
@@ -70,7 +56,7 @@ bool TokenizerIF::openFile(std::string filename) {
     auto file = std::make_unique<std::ifstream>(filename);
     if (!file->is_open())
     {
-      LogErrorC(-1, "Failed to open file: " + filename);
+        std::cout << "Failed to open file: " << filename << "\n";
       return false;
     }
     current_file = filename;
@@ -79,11 +65,11 @@ bool TokenizerIF::openFile(std::string filename) {
       current_dir = base;
     else
       current_dir = current_dir + "/" + base;
+    current = file.get();
+    current_stream = std::move(file);
 
     return true;
 }
-
-
 
 
 
@@ -120,7 +106,7 @@ int TokenizerIF::getToken() {
             case '\\': NumVal = '\\'; break;
             case '\'': NumVal = '\''; break;
             default:
-                LogErrorC(line, "Unknown escape sequence");
+                std::cout << line << " - Unknown escape sequence\n";
         }
     } else {
         NumVal = LastChar;               // normal char
@@ -129,7 +115,7 @@ int TokenizerIF::getToken() {
     LastChar = get();
 
     if (LastChar!='\'')
-        LogErrorC(line, "Could not find matching '");
+        std::cout << line << " - Could not find matching \'\n";
 
     LastChar = get();
     return if_tok_char;

@@ -29,7 +29,10 @@ LIB_DIR := obj_static
 
 
 # C++ Source and Object Files
-CXX_SRC = $(shell find ./ -name "*.cpp")
+CXX_SRC_MAIN := $(shell find ./ -name "*.cpp")
+CXX_SRC_TOKENIZERS := $(shell find ../src/compiler_fronted/tokenizers -name "*.cpp")
+
+CXX_SRC := $(CXX_SRC_MAIN) $(CXX_SRC_TOKENIZERS)
 CXX_OBJ = $(CXX_SRC:./%.cpp=./%.o)
 
 

@@ -2070,7 +2070,6 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       return_type = "int";
       return_data_type = Data_Tree("int");
   } else if (is_compiler_main) {
-      LogBlue("hi");
       return_type = "int";
       return_data_type = Data_Tree("int");
   } else {  
@@ -2078,7 +2077,6 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       return_data_type = ParseDataTree(return_type, in_str(IdentifierStr,compound_tokens), parser_struct);
   }
   
-
 
   unsigned Kind = 0; // 0 = identifier, 1 = unary, 2 = binary.
   unsigned BinaryPrecedence = 30;

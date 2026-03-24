@@ -29,6 +29,7 @@ LDFLAGS += $(SYS_LIBS)
 LIB_PARSER_OBJ_DIR = lib_parser_obj
 LIB_PARSER_SRC_DIR = lib_parser
 RUNTIME_DIR = src/runtime
+TOKENIZERS_DIR = src/compiler_frontend/tokenizers
 RUNTIME_OBJ_DIR = obj/runtime
 OBJ_DIR = obj
 BIN_DIR = bin
@@ -46,13 +47,12 @@ CXX_DIR = $(sort $(dir $(CXX_OBJ)))
 OBJ_DIRS := $(sort $(CXX_DIR))
 
 # Runtime obj
-#RUNTIME_CPP_OBJ := $(foreach obj,$(CXX_OBJ), \
-  $(if $(shell grep -l "nsk_cpp.h" $(obj:.o=.d)), $(obj)))
-
 RUNTIME_CPP_OBJ = $(shell find $(RUNTIME_OBJ_DIR) -name "*.o")
+#RUNTIME_CPP_OBJ = $(wildcard $(RUNTIME_OBJ_DIR)/*.o)
 
 # Lib Parser Object Files
 LIB_PARSER_SRC = $(shell find $(LIB_PARSER_SRC_DIR) -name "*.cpp")
+TOKENIZERS_SRC = $(shell find $(TOKENIZERS_DIR) -name "*.cpp")
 
 
 
@@ -115,7 +115,7 @@ $(LIB_PARSER_OBJ_DIR)/%.o: $(LIB_PARSER_SRC_DIR)/%.cpp
 	$(CXX) $(CXXFLAGS) -c -o $@ $<
 
 $(LIB_PARSER) : $(LIB_PARSER_SRC)
-	$(CXX) $(CXXFLAGS) $(LIB_PARSER_SRC) -o $(LIB_PARSER)
+	$(CXX) $(CXXFLAGS) $(LIB_PARSER_SRC) $(TOKENIZERS_SRC) -o $(LIB_PARSER)
 	@echo "------------PREBUILD DONE DEON DEONDEON DEON ODENDEON"
 
 

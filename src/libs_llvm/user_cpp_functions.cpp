@@ -52,6 +52,23 @@ void set_user_functions() {
 	};
 
 
+		struct_create_fn["DT_charv_Create"] = DT_charv_Create;
+		struct_create_fn["DT_vec_Create"] = DT_vec_Create;
+		llvm_callee["print"] = print;
+		llvm_callee["parse_i8"] = parse_i8;
+		llvm_callee["parse_i16"] = parse_i16;
+		llvm_callee["parse_int"] = parse_int;
+		llvm_callee["parse_i64"] = parse_i64;
+		llvm_callee["c_open"] = c_open;
+		llvm_callee["c_read"] = c_read;
+		llvm_callee["err"] = err;
+		llvm_callee["_malloc"] = _malloc;
+		llvm_callee["c_strlen"] = c_strlen;
+		llvm_callee["c_memcpy"] = c_memcpy;
+		llvm_callee["c_memchr"] = c_memchr;
+		llvm_callee["str_set"] = str_set;
+		llvm_callee["str_offset"] = str_offset;
+		llvm_callee["alloc"] = alloc;
 	clean_up_functions["map_node"] = map_node_Clean_Up;
 
 	clean_up_functions["map"] = map_Clean_Up;

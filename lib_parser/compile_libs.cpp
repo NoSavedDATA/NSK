@@ -73,6 +73,7 @@ int main() {
 
     
     Parse_Libs();
+    auto std_fn = BuildSTD();
 
     if (files.size()==0)
     {
@@ -124,6 +125,10 @@ int main() {
             all_cpp = all_cpp + "\t\t" + line + "\n";
         file.close();
     }
+    all_cpp = all_cpp + "\n\t};\n\n\n";
+
+    for (auto &std_lib : std_fn)
+        all_cpp = all_cpp + std_lib.GetLine(all_cpp);
 
     for (auto &parsed_file : dict_files)
     {
@@ -133,7 +138,6 @@ int main() {
             all_return_dicts = all_return_dicts + "\t\t\t\t\t\t" + line + "\n";
         file.close();
     }
-    
     all_return_dicts = all_return_dicts + "\n\t};\n\n";
 
     for (auto &parsed_file : return_data_files)
@@ -144,7 +148,6 @@ int main() {
             all_return_dicts = all_return_dicts + line + "\n";
         file.close();
     }
-
     all_return_dicts = all_return_dicts + "\n}";
 
 
@@ -178,7 +181,6 @@ int main() {
     all_args_dicts = all_args_dicts + "\n}";
 
     
-    all_cpp = all_cpp + "\n\t};\n\n\n";
     all_cpp = all_cpp + all_function_dicts;
     all_cpp = all_cpp + "\n}";
 
