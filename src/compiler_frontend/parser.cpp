@@ -2490,6 +2490,8 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
       if (is_object) {
         Object_toClass[Name][IdentifierStr] = Data_Tree(data_type);
       }
+
+
       typeVars[Name][IdentifierStr] = data_type; 
       data_typeVars[Name][IdentifierStr] = data_tree; 
       ClassVariables[Name][IdentifierStr] = last_offset;
@@ -2536,12 +2538,8 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
   ClassSize[Name] = last_offset;
 
 
-
-
   if (last_offset==0)
     return LogErrorNextBlock(parser_struct.line, "Class " + Name + " missing attributes field.");
-
-
 
 
   if (CurTok!=tok_constructor)

@@ -26,8 +26,8 @@ class Csv
 	int fd, bytes_offset, col
 	charv[8192] buf
 	i64 bytes_read
-	str line, cur_buffer
-	array<str> buffers
+	str cur_buffer
+	array<str> header
 	array<array<str>> elem
 	map<str, int> col_to_id
 	char sep
@@ -37,50 +37,46 @@ class Csv
 			err("File " + fname + " does not exist.")
 		
 		self.fd = c_open(fname)
-		self.line = alloc(2048, "str")
 		self.bytes_offset = 0
 		self.col = 0
 		self.bytes_read = -1
 		self.sep = sep
-		
-		array<str> buffers
-		self.buffers = buffers
-		array<array<str>> elem
-		self.elem = elem
-		map<str, int> col_to_id
-		self.col_to_id = col_to_id
+
+		self.read()
 
 		
 	def float get_buff()
 		self.bytes_read = c_read(self.fd, self.buf, 8192)
 		str buffer = alloc(self.bytes_read, "str")
 		c_memcpy(buffer, self.buf, self.bytes_read)
-		self.buffers.append(buffer)
 		self.cur_buffer = buffer
 		
 
 	def float process_delimiter(int offset, int pos, int size)
 		char delimiter = self.buf[pos]
 
+		str view = {self.cur_buffer.offset(offset), size}
 		if self.elem.size()<=self.col
 			array<str> new_col
 			self.elem.append(new_col)
+			self.header.append(view)
+			self.col_to_id[view] = self.col
 		else
-			self.elem[self.col].append({self.cur_buffer.offset(offset), size})
+			self.elem[self.col].append(view)
 
 		self.col = self.col + 1
 		if delimiter=='\n'
 			self.col = 0
 
 
-	def str read()
+	def float read()
 		if self.bytes_read==-1
 			self.bytes_offset = 0
 
 		while self.bytes_read!=0
 			self.get_buff()
 			int mask = 0, pos = 0, last_pos = 0
-			while pos<8192
+			while pos<self.bytes_read
 				vec<i8,32> bytes = simd_load(self.buf+pos, i8,32)
 				vec<i8,32> v_comma = vec_make(',', 32)
 				vec<i8,32> v_break = vec_make('\n', 32)
@@ -94,15 +90,20 @@ class Csv
 					while mask!=0
 						int idx = ctz(mask)
 						pos = offset + idx
+						if pos>self.bytes_read
+							break
 						self.process_delimiter(last_pos, pos, pos-last_pos)
 						last_pos = pos + 1
 						mask = swap_bit(mask, idx)
 					pos = pos + 1
-		return " "
+
+	def array<str> get_cols(str col_name)
+		return self.header
 
 	def array<str> get_col(str col_name)
-		#return self.elem[self.col_to_id[col_name]]
-		return self.elem[1]
+		print("get row ", col_name)
+		print("get row ", self.col_to_id[col_name])
+		return self.elem[self.col_to_id[col_name]]
 
 	def bool opened()
 		return self.bytes_read!=0 
@@ -111,16 +112,10 @@ class Csv
 def float foo()
 	Csv f("games.csv", ',')
 
-	int i=0
-	while f.opened()
-		print("i ", i)
-		str line = f.read()
-		i = i + 1
-		if i>0
-			break
-
 	array<str> col = f.get_col("gender")
 	col.print()
+	for c in f.get_cols()
+		print(c)
 	return 0
 
 
@@ -128,3 +123,4 @@ def float foo()
 
 main
 	foo()
+

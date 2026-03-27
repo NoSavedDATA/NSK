@@ -293,6 +293,18 @@ Value *StringExprAST::codegen(Value *scope_struct) {
   return view_val;
 }
 
+Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
+    Value *str = Builder->CreateExtractValue(DT_str_Val,{0});
+    Value *size = Builder->CreateExtractValue(DT_str_Val, {1});
+
+    Value *type_id = const_uint16(data_name_to_type["str"]);
+    Value *str_copy = callret("allocate_pool", {scope_struct, size, type_id});
+    
+    call("memcpy", {str_copy, str, size});
+
+    return str_copy;
+}
+
 Value *CharExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
     return const_float(0.0f);
@@ -1785,6 +1797,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
                 if (R_dt.Type=="int"&&key_type=="float")
                     query = Builder->CreateSIToFP(query, floatTy);
+                if (key_type=="str")
+                    query = CopyStrVal(scope_struct, query);
 
 
                 Value *nullPtr = ConstantPointerNull::get(
@@ -1814,7 +1828,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     Builder->CreateStore(Val, float_ptr);
                     Builder->CreateStore(float_ptr, new_node_value_gep);
                 } else if (value_type=="str") {
-                    Builder->CreateStore(callret("CopyString", {scope_struct, Val}), new_node_value_gep);
+                    Builder->CreateStore(CopyStrVal(scope_struct, Val), new_node_value_gep);
                 } else
                     Builder->CreateStore(Val, new_node_value_gep);
 
@@ -2052,24 +2066,15 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 Value *old_val = function_values[parser_struct.function_name][Lname];
                 Val = callret(store_trigger, {scope_struct, old_val, Val});
             }
-
-
-
             // if (LType=="array")
             //     Cache_Array(parser_struct, Val);
 
-
-            if(!in_str(LType, primary_data_tokens)) {
+            if(!in_str(LType, primary_data_tokens))
                 Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, Val);
-            }
-
             function_values[parser_struct.function_name][Lname] = Val;
-
-
 
         } else {
             if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) { // self|attr
-                
                 LType = L_dt.Type;
                 LHSV->Load_Last=false;
                 
@@ -2965,17 +2970,12 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
 
     // Register all variables and emit their initializer.
-
     Value *previous_obj;
     bool has_init=false;
     for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
     {
         const std::string &VarName = VarNames[i].first;
         ExprAST *Init = VarNames[i].second.get();
-
-
-        Value *var_name, *obj_name;
-
 
         if(!isSelf&&!isAttribute)
         {   
@@ -2999,6 +2999,27 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
 
                 std::string Callee = ClassName + "___init__";
                 std::vector<Data_Tree> ArgTypes;
+
+                
+                StructType *st = struct_types["class_"+ClassName]; 
+                for (auto attr : ClassAttrsName[ClassName]) {
+                  Data_Tree dt = data_typeVars[ClassName][attr];
+                  std::string type = dt.Type;
+                  std::string create_fn = type+"_Create";
+                  if (in_vec(type, compound_tokens)) {
+                    int attr_idx = ClassAttrs[ClassName][attr];
+                    std::vector<Value *> ArgsDT_Create = {scope_struct};
+                    Data_Tree *dt_ptr = new Data_Tree(type);
+                    dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+                    if(type=="map")
+                        dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+                    ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+                    Value *compound = callret(create_fn, ArgsDT_Create);
+                    Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
+                    Builder->CreateStore(compound, compound_gep);
+                  }
+                }
+
                 ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args[i], ArgTypes, scope_struct, \
                         Callee, false, arg_type_check_offset); 
                 Set_Stack_Top(scope_struct, parser_struct.function_name);
@@ -3006,10 +3027,8 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
             }
         }      
     }
-
     if(has_init) 
         set_scope_obj(scope_struct, previous_obj);
-
     return const_float(0.0f);
 }
 
@@ -3467,11 +3486,14 @@ Value *NameableIdx::codegen(Value *scope_struct) {
         BasicBlock *LoadValBB = BasicBlock::Create(*TheContext, "map.get_val.bb", TheFunction);
 
 
+         
 
 
         Value *query_hash;
-        if (key_type=="str")
+        if (key_type=="str") {
+            query = CopyStrVal(scope_struct, query);
             query_hash = str_llvm_hash(query, TheFunction); 
+        }
         if (key_type=="float")
             query_hash = float_llvm_hash(query);
         if (key_type=="int")

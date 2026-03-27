@@ -305,7 +305,6 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
     return out_vector;
 }
 
-
 // extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
 //     char **data = static_cast<char**>(arr->data);
 //     int len = arr->virtual_size;
@@ -315,21 +314,25 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
 //     std::cout << "\n";
 //     return 0;
 // }
-
 extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     DT_str *data = static_cast<DT_str*>(arr->data);
     int len = arr->virtual_size;
 
     int offset = 0, elem_size=data[0].size;
     memcpy(scope_struct->print_buffer, data[0].str, elem_size);
-    write(1, scope_struct->print_buffer, elem_size);
+    offset+=elem_size;
     for (int i = 1; i < len; ++i) {
-        scope_struct->print_buffer[0] = ',';
-        write(1, scope_struct->print_buffer, 1);
-
+        scope_struct->print_buffer[offset++] = ',';
         elem_size = data[i].size;
-        memcpy(scope_struct->print_buffer, data[i].str, elem_size);
-        write(1, scope_struct->print_buffer, elem_size);
+        if(offset+elem_size>PrintBufferSize) {
+            write(1, scope_struct->print_buffer, offset);
+            offset=0;
+        }
+        memcpy(scope_struct->print_buffer+offset, data[i].str, elem_size);
+        offset+=elem_size;
     }
+    write(1, scope_struct->print_buffer, offset);
+    scope_struct->print_buffer[0] = '\n';
+    write(1, scope_struct->print_buffer, 1);
     return 0;
 }

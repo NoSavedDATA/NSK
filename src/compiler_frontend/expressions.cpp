@@ -1335,8 +1335,10 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
   // check if exists
-  if (functions_return_data_type.count(Callee)==0&&function_return_overwrite.count(Callee)==0) {
-    std::cout << "" << Callee << "|" << std::to_string(!in_vec(Callee, template_fn)) << "\n";
+  if (functions_return_data_type.count(Callee)==0&&function_return_overwrite.count(Callee)==0\
+          &&!this->isSelf) {
+    // std::cout << "" << Callee << "|" << std::to_string(!in_vec(Callee, template_fn)) << "\n";
+    // std::cout << "" << this->isSelf << "\n";
       LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
       return;
   }
