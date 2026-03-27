@@ -742,13 +742,6 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
 
-	FunctionType *array_print_str_viewTy= FunctionType::get(
-		Type::getInt32Ty(*TheContext),
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("array_print_str_view", array_print_str_viewTy);
-
 	FunctionType *nullptr_getTy= FunctionType::get(
 		int8PtrTy,
 		{},

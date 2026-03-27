@@ -46,7 +46,7 @@ void set_functions_return_type() {
 						{"charv_print", "int"}, 
 						{"GetEmptyChar", "str"}, {"CopyString", "str"}, {"ConcatStr", "str"}, {"ConcatStrFreeLeft", "str"}, {"ConcatFloatToStr", "str"}, {"ConcatNumToStrFree", "str"}, 
 						{"CreateNotesVector", "list"}, {"Dispose_NotesVector", "float"}, {"Add_To_NotesVector_float", "list"}, {"Add_To_NotesVector_int", "list"}, {"Add_To_NotesVector_str", "list"}, 
-						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_print_str_view", "int"}, 
+						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
 						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
 
 	};
@@ -107,7 +107,6 @@ void set_functions_return_type() {
 	functions_return_data_type["ones_float"] = Data_Tree("array");
 	functions_return_data_type["array_Split_Parallel"] = Data_Tree("array");
 	functions_return_data_type["array_print_str"] = Data_Tree("int");
-	functions_return_data_type["array_print_str_view"] = Data_Tree("int");
 	functions_return_data_type["str_Copy"] = Data_Tree("str");
 	functions_return_data_type["str_CopyArg"] = Data_Tree("str");
 	functions_return_data_type["str_str_add"] = Data_Tree("str");

@@ -992,21 +992,6 @@ LockExprAST::LockExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies,
 
   
   
-ProtoExprAST::ProtoExprAST(Data_Tree Return, std::string Name, std::vector<Data_Tree> Args) {
-    functions_return_data_type[Name] = Return;
-
-    int arg_count=0;
-    std::vector<std::string> arg_names = {"0"};
-    Function_Arg_DataTypes[Name]["0"] = Data_Tree("Scope_Struct");
-    for (auto arg : Args) {
-        arg_count++;
-        std::string arg_name = std::to_string(arg_count);
-        Function_Arg_DataTypes[Name][arg_name] = arg;
-        arg_names.push_back(arg_name);
-    }
-    Function_Arg_Names[Name] = arg_names;
-    Function_Required_Arg_Count[Name] = arg_count;
-}
   
   
 MainExprAST::MainExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies)
@@ -1015,14 +1000,31 @@ MainExprAST::MainExprAST(std::vector<std::unique_ptr<ExprAST>> Bodies)
   
   
   
-PrototypeAST::PrototypeAST(const std::string &Name, const std::string &Return_Type, const std::string &Class, const std::string &Method,
+PrototypeAST::PrototypeAST(const std::string &Name, Data_Tree ReturnType, const std::string &Class,
+              const std::string &Method,
               std::vector<std::string> Args,
-              std::vector<std::string> Types,
-              std::vector<Data_Tree> TypeTrees,
+              std::vector<Data_Tree> Types,
               bool IsOperator, unsigned Prec)
-      : Name(Name), Return_Type(Return_Type), Class(Class), Method(Method), Args(std::move(Args)), Types(std::move(Types)),
-        TypeTrees(std::move(TypeTrees)),
-        IsOperator(IsOperator), Precedence(Prec) {}
+      : Name(Name), ReturnType(ReturnType), Class(Class), Method(Method), Args(std::move(Args)), Types(std::move(Types)),
+        IsOperator(IsOperator), Precedence(Prec) {
+
+    functions_return_data_type[Name] = ReturnType;
+    // std::cout << Name << "|" << this->Types.size() << "|" << this->Args.size() << "\n";
+
+    std::vector<std::string> arg_names;
+    int arg_count=0; 
+    for (auto arg : this->Types) {
+        std::string arg_name = this->Args[arg_count++];
+        Function_Arg_DataTypes[Name][arg_name] = arg;
+        // std::cout << "proto e " << Name << " add " << arg_name << "\n";
+        arg_names.push_back(arg_name);
+        data_typeVars[Name][arg_name] = arg;
+    }
+    Function_Arg_Names[Name] = std::move(arg_names);
+    Function_Required_Arg_Count[Name] = arg_count-1; // Desconsider scope_struct
+    native_fn.push_back(Name);
+    // std::cout << "proto " << Name << " has " << arg_count-1 << " args\n";
+}
 
 const std::string &PrototypeAST::getName() const { return Name; }
 const std::string &PrototypeAST::getClass() const { return Class; }
@@ -1355,10 +1357,6 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
           this->Args.push_back(std::make_unique<StringExprAST>("TERMINATE_VARARG"));
     }
   }
- 
-
- 
-
  
   is_nsk_fn = in_str(Callee, native_methods);
   int sent_args = this->Args.size();

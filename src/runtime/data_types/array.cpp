@@ -306,17 +306,17 @@ extern "C" DT_array *array_Split_Parallel(Scope_Struct *scope_struct, DT_array *
 }
 
 
-extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
-    char **data = static_cast<char**>(arr->data);
-    int len = arr->virtual_size;
-    std::cout << data[0];
-    for (int i=1; i<len; ++i)
-        std::cout << ", " << data[i];
-    std::cout << "\n";
-    return 0;
-}
+// extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
+//     char **data = static_cast<char**>(arr->data);
+//     int len = arr->virtual_size;
+//     std::cout << data[0];
+//     for (int i=1; i<len; ++i)
+//         std::cout << ", " << data[i];
+//     std::cout << "\n";
+//     return 0;
+// }
 
-extern "C" int array_print_str_view(Scope_Struct *scope_struct, DT_array *arr) {
+extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     DT_str *data = static_cast<DT_str*>(arr->data);
     int len = arr->virtual_size;
 

@@ -13,7 +13,7 @@
 
 #include "../runtime/common/extension_functions.h"
 #include "../runtime/data_types/include.h"
-#include "../simd/codegen.h"
+#include "../simd/include.h"
 #include "../KaleidoscopeJIT.h"
 
 #include "include.h"
@@ -170,6 +170,11 @@ Function *getFunction(std::string Name) {
   auto FI = FunctionProtos.find(Name);
   if (FI != FunctionProtos.end())
     return FI->second->codegen();
+
+  // auto FP = FunctionUserProtos.find(Name);
+  // if (FP != FunctionUserProtos.end())
+  //   return FP->second->codegen();
+  LogError(-1, "The function " + Name + " was not found.");
 
   // If no existing prototype exists, return null.
   return nullptr;
@@ -2691,10 +2696,6 @@ Value *LockExprAST::codegen(Value *scope_struct){
 
 
 
-Value *ProtoExprAST::codegen(Value *scope_struct) {
-    return const_float(0);
-}
-    
 
 Value *MainExprAST::codegen(Value *scope_struct) {
     if (not ShallCodegen)
@@ -3048,29 +3049,14 @@ Function *PrototypeAST::codegen() {
         return nullptr;
     // Make the function type:  float(float,float) etc.
 
-    std::vector<Type *> types;
 
+    std::vector<llvm::Type *> types;
     for (auto &type : Types)
-    {
-        if (type=="f"||type=="float")
-            types.push_back(floatTy);
-        else if(type=="i"||type=="int")
-            types.push_back(intTy);
-        else if(type=="b"||type=="bool")
-            types.push_back(boolTy);
-        else
-            types.push_back(int8PtrTy);
-    }
+        types.push_back(get_type_from_data(type));
+    
+    llvm::Type *retTy = get_type_from_data(ReturnType);
 
-    FunctionType *FT;
-    if (Return_Type=="float")
-        FT = FunctionType::get(floatTy, types, false);
-    else if (Return_Type=="int")
-        FT = FunctionType::get(intTy, types, false);
-    else if (Return_Type=="bool")
-        FT = FunctionType::get(boolTy, types, false);
-    else
-        FT = FunctionType::get(int8PtrTy, types, false); 
+    FunctionType *FT = FunctionType::get(retTy, types, false); 
 
 
     Function *F =
@@ -3079,7 +3065,14 @@ Function *PrototypeAST::codegen() {
     // Set names for all arguments.
     unsigned Idx = 0;
     for (auto &Arg : F->args()) {
-        Arg.setName(Args[Idx++]);
+        std::string ArgName;
+        if(Idx>=Args.size())
+            ArgName = std::to_string(Idx++); // proto case
+        else
+            ArgName = Args[Idx++];           // def case
+        // std::cout << "add arg " << ArgName << " to " << Name << "\n";
+        Arg.setName(ArgName);
+
         // if (!Arg.getType()->isPointerTy()) {
         //     continue;
         // }
@@ -3130,7 +3123,6 @@ std::string Get_Nested_Name(std::vector<std::string> expressions_string_vec, Par
             return _class;
         _class = next_class;
     }
-
     return _class;
 }
 

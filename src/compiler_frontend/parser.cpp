@@ -1038,7 +1038,8 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     getNextToken(); // eat proto
     Data_Tree Return;
     std::string Name;
-    std::vector<Data_Tree> Args;
+    std::vector<std::string> ArgNames = {"scope_struct"};
+    std::vector<Data_Tree> Types = {Data_Tree("Scope_Struct")};
  
     if(CurTok!=tok_data)
         LogError(parser_struct.line, "Prototype expected return type.");
@@ -1059,11 +1060,12 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     
     if(CurTok!=tok_data&&CurTok!=')')
         LogError(parser_struct.line, "Prototype expected either a data type or ).");
-
+    int arg_id = 1;
     while (CurTok==tok_data) {
         is_struct=(CurTok==tok_struct);
         data_type = IdentifierStr; 
-        Args.push_back(ParseDataTree(data_type, is_struct, parser_struct));
+        Types.push_back(ParseDataTree(data_type, is_struct, parser_struct));
+        ArgNames.push_back(std::to_string(arg_id++));
         if (CurTok==',')
             getNextToken();
     }
@@ -1071,8 +1073,11 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     if(CurTok!=')')
         LogError(parser_struct.line, "Prototype expected ).");
     getNextToken(); // eat )
-     
-    return std::make_unique<ProtoExprAST>(Return, Name, std::move(Args));
+
+    FunctionProtos[Name] = std::make_unique<PrototypeAST>(Name, Return, "", "",
+                                                std::move(ArgNames),
+                                                std::move(Types));
+    return std::make_unique<NumberExprAST>(0.0f);
 }
 
 
@@ -2134,26 +2139,18 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
 
 
   std::string type;
-  std::vector<std::string> ArgNames, Types;
-  std::vector<Data_Tree> TypeTrees;
-
-
-  Types.push_back("s");
-  ArgNames.push_back("scope_struct");
-
-  Function_Arg_Names[FnName].push_back("0");
-  Function_Arg_Types[FnName]["0"] = "Scope_Struct";
-  Function_Arg_DataTypes[FnName]["0"] = Data_Tree("Scope_Struct");
+  std::vector<std::string> ArgNames = {"scope_struct"};
+  std::vector<Data_Tree> Types = {Data_Tree("Scope_Struct")};
 
   if(is_compiler_main)
-      return std::make_unique<PrototypeAST>(FnName, return_type, _class, method, ArgNames,
-                                            Types, TypeTrees, Kind != 0,
+      return std::make_unique<PrototypeAST>(FnName, return_type, _class, method, std::move(ArgNames),
+                                            std::move(Types), Kind != 0,
                                             BinaryPrecedence);
   if (CurTok != '(')
     return LogErrorProto(parser_struct.line, "Expected \"(\" at function prototype.");
   getNextToken(); // eat (
 
-  int args_count=0, required_args=0;
+  int required_args=0;
   while (CurTok != ')')
   {
     if (IdentifierStr=="s"||IdentifierStr=="str")
@@ -2180,8 +2177,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       std::string IdName = IdentifierStr;
 
       if(CurTok==tok_identifier) { 
-        if(!has_main)
-          TypeTrees.push_back(data_tree);
+        Types.push_back(data_tree);
         getNextToken(); // get arg name;
       }
       else if(CurTok==tok_channel)
@@ -2191,8 +2187,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
         data_tree = channel_data_tree;
         data_type = data_type + "_channel";
 
-        if(!has_main)
-          TypeTrees.push_back(data_tree);
+        Types.push_back(data_tree);
 
         int channel_direction = ch_both;
 
@@ -2221,14 +2216,11 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
           LogError(parser_struct.line, "Unexpected token " + ReverseToken(CurTok) + ". Expected argument name.");
      
 
-      Types.push_back(data_type);
       ArgNames.push_back(IdName);
-      args_count++;
 
-
-      Function_Arg_Names[FnName].push_back(IdName);
-      Function_Arg_Types[FnName][IdName] = data_type;
-      Function_Arg_DataTypes[FnName][IdName] = data_tree;
+      // Function_Arg_Names[FnName].push_back(IdName);
+      // Function_Arg_Types[FnName][IdName] = data_type;
+      // Function_Arg_DataTypes[FnName][IdName] = data_tree;
 
       typeVars[FnName][IdName] = data_type;
       data_typeVars[FnName][IdName] = data_tree;
@@ -2251,8 +2243,6 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       
     if (CurTok != ',')
       return LogErrorProto(parser_struct.line, "Expected ')' or ',' at prototype arguments list.");
-      
-    
     getNextToken();
   }
   getNextToken(); // eat ')'.
@@ -2266,14 +2256,13 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
   getNextToken();
 
 
-  Function_Arg_Count[FnName] = args_count;
   Function_Required_Arg_Count[FnName] = required_args;
 
   functions_return_type[FnName] = return_type;
-  functions_return_data_type[FnName] = return_data_type;
 
 
-  return std::make_unique<PrototypeAST>(FnName, return_type, _class, method, ArgNames, Types, TypeTrees, Kind != 0,
+  return std::make_unique<PrototypeAST>(FnName, return_data_type, _class, method, std::move(ArgNames),
+                                         std::move(Types), Kind != 0,
                                          BinaryPrecedence);
 }
 
@@ -2413,8 +2402,7 @@ std::unique_ptr<FunctionAST> ParseTopLevelExpr(Parser_Struct parser_struct) {
 
   // Make an anonymous proto.
   
-  auto Proto = std::make_unique<PrototypeAST>("__anon_expr", "float", "", "",
-                                                std::vector<std::string>(),
+  auto Proto = std::make_unique<PrototypeAST>("__anon_expr", Data_Tree("float"), "", "",
                                                 std::vector<std::string>(),
                                                 std::vector<Data_Tree>());
     
@@ -2582,17 +2570,16 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
     std::string proto_name = proto.getName();
 
     if(!has_main) { // LSP info
-      fn_descriptor fn_d = fn_descriptor(remove_substring(proto_name, Name+"_"), proto.Return_Type); 
+      fn_descriptor fn_d = fn_descriptor(remove_substring(proto_name, Name+"_"), proto.ReturnType.Type); 
       for (int i=1; i<proto.Types.size(); ++i) {
-        fn_d.ArgTypes.push_back(proto.TypeTrees[i-1].toString());
+        fn_d.ArgTypes.push_back(proto.Types[i-1].toString());
         fn_d.ArgNames.push_back(proto.Args[i]);
       }
       Functions.push_back(fn_d);
     }
 
-
     FunctionProtos[proto_name] =
-      std::make_unique<PrototypeAST>(Func->getProto());
+      std::make_unique<PrototypeAST>(proto);
 
     if(has_main)
       ExitOnErr(TheJIT->addAST(std::move(Func)));

@@ -415,14 +415,14 @@ void build_dicts() {
   Function_Arg_Names["swap_bit"] = {"0", "1", "2"};
   Function_Required_Arg_Count["swap_bit"] = 2;
 
-  // simd_load
+  // // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
-  Function_Arg_DataTypes["simd_load"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["simd_load"]["1"] = Data_Tree("any");
-  Function_Arg_DataTypes["simd_load"]["2"] = Data_Tree("int");
-  Function_Arg_DataTypes["simd_load"]["3"] = Data_Tree("int");
-  Function_Arg_Names["simd_load"] = {"0", "1", "2", "3"};
-  Function_Required_Arg_Count["simd_load"] = 3;
+  // Function_Arg_DataTypes["simd_load"]["0"] = Data_Tree("Scope_Struct");
+  // Function_Arg_DataTypes["simd_load"]["1"] = Data_Tree("any");
+  // Function_Arg_DataTypes["simd_load"]["2"] = Data_Tree("int");
+  // Function_Arg_DataTypes["simd_load"]["3"] = Data_Tree("int");
+  // Function_Arg_Names["simd_load"] = {"0", "1", "2", "3"};
+  // Function_Required_Arg_Count["simd_load"] = 3;
 
   // vec_make
   function_return_overwrite["vec_make"] = vec_make_ret;

@@ -164,13 +164,13 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("str_Delete", str_DeleteTy);
 
-  //
-  FunctionType *strcmpTy = FunctionType::get(
-      intTy,
-      {int8PtrTy, int8PtrTy},
-      false
-  );
-  TheModule->getOrInsertFunction("strcmp", strcmpTy);
+  // //
+  // FunctionType *strcmpTy = FunctionType::get(
+  //     intTy,
+  //     {int8PtrTy, int8PtrTy},
+  //     false
+  // );
+  // TheModule->getOrInsertFunction("strcmp", strcmpTy);
 
   //  
   FunctionType *sleepTy = FunctionType::get(
@@ -495,47 +495,32 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("fexists", fexistsTy);
 
-  //
-  FunctionType *writeTy = FunctionType::get(
-      voidTy,
-      {intTy, int8PtrTy, int64Ty},
-      false 
-  );
-  TheModule->getOrInsertFunction("write", writeTy);
 
-  //
-  FunctionType *strlenTy = FunctionType::get(
-      int64Ty,
-      {int8PtrTy},
-      false 
-  );
-  TheModule->getOrInsertFunction("strlen", strlenTy);
+  // //
+  // FunctionType *strlenTy = FunctionType::get(
+  //     int64Ty,
+  //     {int8PtrTy},
+  //     false 
+  // );
+  // TheModule->getOrInsertFunction("strlen", strlenTy);
   
-  FunctionType *memcpyTy = FunctionType::get(
-      int8PtrTy,
-      {int8PtrTy, int8PtrTy, int64Ty},
-      false 
-  );
-  TheModule->getOrInsertFunction("memcpy", memcpyTy);
+  // FunctionType *memcpyTy = FunctionType::get(
+  //     int8PtrTy,
+  //     {int8PtrTy, int8PtrTy, int64Ty},
+  //     false 
+  // );
+  // TheModule->getOrInsertFunction("memcpy", memcpyTy);
 
-  TheModule->getOrInsertFunction(
-    "memchr",
-    FunctionType::get(
-        int8PtrTy,
-        { int8PtrTy, intTy, int64Ty },
-        false
-    )
-  );
+  // TheModule->getOrInsertFunction(
+  //   "memchr",
+  //   FunctionType::get(
+  //       int8PtrTy,
+  //       { int8PtrTy, intTy, int64Ty },
+  //       false
+  //   )
+  // );
 
 
-  TheModule->getOrInsertFunction(
-    "_mm256_loadu_si256",
-    FunctionType::get(
-        m256Ty,
-        { int8PtrTy },
-        false
-    )
-  );
 
 
   //===----------------------------------------------------------------------===//
@@ -687,14 +672,14 @@ nlohmann::json FunctionAST::toJSON() {
     nlohmann::json j;
     j["type"] = "function";
     j["name"] = Proto->getName();
-    j["return"] = Proto->Return_Type;
+    j["return"] = Proto->ReturnType.Type;
 
     j["args"] = nlohmann::json::array();
     int len = Proto->Args.size();
     for (int i=1; i<len; ++i) {
         nlohmann::json arg_j;
         arg_j["name"] = Proto->Args[i];
-        arg_j["type"] = Proto->TypeTrees[i-1].toString();
+        arg_j["type"] = Proto->Types[i-1].toString();
         j["args"].push_back(arg_j);
     }
     return j;
@@ -765,7 +750,7 @@ Function *FunctionAST::codegen() {
     llvm::Argument &Arg = *it;
 
     std::string arg_name = Arg.getName().str();
-    // std::cout << "FUNCTION ARG IS: " << arg_name  << "\n";
+    // std::cout << "FUNCTION " << current_codegen_function << " ARG IS: " << arg_name  << "\n";
 
     // Default args
     if (arg_name == "scope_struct")
@@ -776,15 +761,7 @@ Function *FunctionAST::codegen() {
         // stack_top_value = Builder->CreateLoad(intTy, stack_top_value_gep);
         function_values[current_codegen_function]["QQ_stack_top"] = Builder->CreateLoad(intTy, stack_top_value_gep);
     } else { 
-        std::string type = "";
-        if (data_typeVars[function_name].find(arg_name) != data_typeVars[function_name].end())
-            type = UnmangleVec(data_typeVars[function_name][arg_name]);
-        else
-            LogError(-1, "error at argument " + arg_name + " of function " + function_name);
-
         function_values[current_codegen_function][arg_name] = &Arg;
-        // if(type=="array")
-        //     Cache_Array(parser_struct, &Arg);
    }
   }
   

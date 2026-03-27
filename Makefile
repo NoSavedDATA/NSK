@@ -91,7 +91,8 @@ $(shell mkdir -p $(LIB_PARSER_OBJ_DIR);)
 
 
 
-all: prebuild $(CXX_OBJ) $(OBJ) $(COMPILER_OBJ) runtime check_done
+#all: prebuild $(CXX_OBJ) $(OBJ) $(COMPILER_OBJ) runtime check_done
+all: prebuild $(CXX_OBJ) $(OBJ) runtime check_done
 
 
 $(OBJ_DIR)/%.o: $(SRC_DIR)/%.cpp | prebuild
@@ -102,10 +103,10 @@ $(OBJ): $(SRC) $(CXX_OBJ)
 	@echo "\033[1;32m\nBuild completed [✓]\n\033[0m"
 	@touch $(BUILD_FLAG)
 
-$(COMPILER_OBJ): $(COMPILER_SRC) $(CXX_OBJ)
-	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(COMPILER_SRC) $(CXX_OBJ) $(LIBS) $(OTHER_FLAGS) -MMD -MP -o $(COMPILER_OBJ) 
-	@echo "\033[1;32m\nBuild completed [✓]\n\033[0m"
-	@touch $(BUILD_FLAG)
+# $(COMPILER_OBJ): $(COMPILER_SRC) $(CXX_OBJ)
+# 	$(CXX) $(CXXFLAGS) $(LDFLAGS) $(COMPILER_SRC) $(CXX_OBJ) $(LIBS) $(OTHER_FLAGS) -MMD -MP -o $(COMPILER_OBJ) 
+# 	@echo "\033[1;32m\nBuild completed [✓]\n\033[0m"
+# 	@touch $(BUILD_FLAG)
 
 prebuild: $(LIB_PARSER)
 	@echo ">>> PREBUILD STEP <<<"

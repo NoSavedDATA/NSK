@@ -32,7 +32,7 @@ void set_user_functions() {
 		"allocate_void", "allocate_pool", 
 		"read_float", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
 		"print_randoms", "randint", 
-		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", "array_print_str_view", 
+		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", 
 		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "scope_struct_Overwrite", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_Sweep", "scope_struct_Delete", 
 		"putchard", "printd", 
 		"dir_exists", "path_exists", 
@@ -52,23 +52,29 @@ void set_user_functions() {
 	};
 
 
-		struct_create_fn["DT_charv_Create"] = DT_charv_Create;
-		struct_create_fn["DT_vec_Create"] = DT_vec_Create;
-		llvm_callee["print"] = print;
-		llvm_callee["parse_i8"] = parse_i8;
-		llvm_callee["parse_i16"] = parse_i16;
-		llvm_callee["parse_int"] = parse_int;
-		llvm_callee["parse_i64"] = parse_i64;
-		llvm_callee["c_open"] = c_open;
-		llvm_callee["c_read"] = c_read;
-		llvm_callee["err"] = err;
-		llvm_callee["_malloc"] = _malloc;
-		llvm_callee["c_strlen"] = c_strlen;
-		llvm_callee["c_memcpy"] = c_memcpy;
-		llvm_callee["c_memchr"] = c_memchr;
-		llvm_callee["str_set"] = str_set;
-		llvm_callee["str_offset"] = str_offset;
-		llvm_callee["alloc"] = alloc;
+	struct_create_fn["DT_charv_Create"] = DT_charv_Create;
+	struct_create_fn["DT_vec_Create"] = DT_vec_Create;
+	llvm_callee["print"] = print;
+	llvm_callee["parse_i8"] = parse_i8;
+	llvm_callee["parse_i16"] = parse_i16;
+	llvm_callee["parse_int"] = parse_int;
+	llvm_callee["parse_i64"] = parse_i64;
+	llvm_callee["c_open"] = c_open;
+	llvm_callee["c_read"] = c_read;
+	llvm_callee["err"] = err;
+	llvm_callee["_malloc"] = _malloc;
+	llvm_callee["c_strlen"] = c_strlen;
+	llvm_callee["c_memcpy"] = c_memcpy;
+	llvm_callee["c_memchr"] = c_memchr;
+	llvm_callee["str_set"] = str_set;
+	llvm_callee["str_offset"] = str_offset;
+	llvm_callee["alloc"] = alloc;
+	llvm_callee["swap_bit"] = swap_bit;
+	llvm_callee["ctz"] = ctz;
+	llvm_callee["simd_load"] = simd_load;
+	llvm_callee["vec_make"] = vec_make;
+	llvm_callee["vec_movemask"] = vec_movemask;
+	llvm_callee["vec_print"] = vec_print;
 	clean_up_functions["map_node"] = map_node_Clean_Up;
 
 	clean_up_functions["map"] = map_Clean_Up;

@@ -25,7 +25,3 @@ Value *vec_print(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
  
-
-Value *simd_equal(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R);
-Value *simd_and(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R);
-Value *simd_or(std::unique_ptr<ExprAST> &LHS, std::unique_ptr<ExprAST> &RHS, Value *L, Value *R);

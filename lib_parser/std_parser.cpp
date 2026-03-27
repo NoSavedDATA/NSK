@@ -29,9 +29,8 @@ void ParseSTDFN(TokenizerSTD &tokenizer, std::vector<STD_FN_Expr> &std_fn) {
 }
 
 
-std::vector<STD_FN_Expr> ParseSTD(TokenizerSTD &tokenizer) {
+void ParseSTD(TokenizerSTD &tokenizer, std::vector<STD_FN_Expr> &std_fn) {
     int CurTok = 0;
-    std::vector<STD_FN_Expr> std_fn;
     do {
         CurTok = tokenizer.getToken();
 
@@ -44,10 +43,16 @@ std::vector<STD_FN_Expr> ParseSTD(TokenizerSTD &tokenizer) {
         }
 
     } while(CurTok!=std_tok_eof);
-    return std::move(std_fn);
 }
 
 std::vector<STD_FN_Expr> BuildSTD() {
+    std::vector<STD_FN_Expr> std_fn;
+
     TokenizerSTD tokenizer = TokenizerSTD("src/std/codegen.h");
-    return ParseSTD(tokenizer);
+    ParseSTD(tokenizer, std_fn);
+    TokenizerSTD tokenizer_simd = TokenizerSTD("src/simd/codegen.h");
+    ParseSTD(tokenizer_simd, std_fn);
+    
+
+    return std::move(std_fn);
 }

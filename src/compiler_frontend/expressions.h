@@ -885,13 +885,6 @@ class SplitStridedParallelExprAST : public ExprAST {
 };
 
 
-class ProtoExprAST : public ExprAST {
-  std::string Name;
-  public:
-    ProtoExprAST(Data_Tree, std::string, std::vector<Data_Tree>);
-
-  Value* codegen(Value *scope_struct) override;
-};
 
 
 class MainExprAST : public ExprAST {
@@ -915,15 +908,14 @@ class PrototypeAST {
     unsigned Precedence; // Precedence if a binary op.
   
     public:
-      std::string Return_Type;
+      Data_Tree ReturnType;
       std::vector<std::string> Args;
-      std::vector<std::string> Types;
-      std::vector<Data_Tree> TypeTrees;
+      std::vector<Data_Tree> Types;
 
-      PrototypeAST(const std::string &Name, const std::string &Return_Type, const std::string &Class, const std::string &Method,
+      PrototypeAST(const std::string &Name, Data_Tree ReturnType,
+                  const std::string &Class, const std::string &Method,
                   std::vector<std::string> Args,
-                  std::vector<std::string> Types,
-                  std::vector<Data_Tree> TypeTrees,
+                  std::vector<Data_Tree> Types,
                   bool IsOperator = false, unsigned Prec = 0);
   
     Function *codegen();
