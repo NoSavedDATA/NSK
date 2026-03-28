@@ -30,6 +30,7 @@ std::map<std::string, std::map<std::string, Value *>> function_values;
 std::map<std::string, std::map<Value *, Value *>> function_vecs;
 std::map<std::string, std::map<Value *, Value *>> function_vecs_size;
 std::map<std::string, std::map<std::string, Value *>> function_pointers;
+std::unordered_map<std::string, llvm::Type*> str_toTy;
 std::unordered_map<std::string, Function *> async_fn;
 std::string current_codegen_function;
 std::unordered_map<std::string, std::function<Data_Tree(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&)>>function_return_overwrite;
@@ -324,20 +325,8 @@ Value *VarExprAST::codegen(Value *scope_struct) {
 
 llvm::Type *get_type_from_str(std::string type) {
   llvm::Type *llvm_type;
-  if (type=="float")
-    llvm_type = floatTy;
-  else if (type=="int")
-    llvm_type = intTy;
-  else if (type=="i64")
-    llvm_type = int64Ty;
-  else if (type=="i8")
-    llvm_type = int8Ty;
-  else if (type=="i16")
-    llvm_type = int16Ty;
-  else if (type=="bool")
-    llvm_type = boolTy;
-  else if (type=="str")
-    llvm_type = struct_types["DT_str"];
+  if (str_toTy.count(type)>0)
+      llvm_type = str_toTy[type];
   else
     llvm_type = int8PtrTy;
   return llvm_type;
@@ -350,20 +339,8 @@ bool is_type_array(Data_Tree dt) {
 llvm::Type *get_type_from_data(Data_Tree dt) {
   std::string type = dt.Type;
   llvm::Type *llvm_type;
-  if (type=="float")
-    llvm_type = floatTy;
-  else if (type=="int")
-    llvm_type = intTy;
-  else if (type=="i64")
-    llvm_type = int64Ty;
-  else if (type=="i8")
-    llvm_type = int8Ty;
-  else if (type=="i16")
-    llvm_type = int16Ty;
-  else if (type=="bool")
-    llvm_type = boolTy;
-  else if (type=="str")
-    llvm_type = struct_types["DT_str"];
+  if (str_toTy.count(type)>0)
+      llvm_type = str_toTy[type];
   else if (type=="charv") {
     int size = std::stoi(dt.Nested_Data[0].Type);
     llvm_type = ArrayType::get(int8Ty, size);
@@ -378,6 +355,68 @@ llvm::Type *get_type_from_data(Data_Tree dt) {
   }
   return llvm_type;
 }
+
+// llvm::Type *get_type_from_str(std::string type) {
+//   llvm::Type *llvm_type;
+//   if (type=="float")
+//     llvm_type = floatTy;
+//   else if (type=="int")
+//     llvm_type = intTy;
+//   else if (type=="i64")
+//     llvm_type = int64Ty;
+//   else if (type=="i8")
+//     llvm_type = int8Ty;
+//   else if (type=="char")
+//     llvm_type = int8Ty;
+//   else if (type=="i16")
+//     llvm_type = int16Ty;
+//   else if (type=="bool")
+//     llvm_type = boolTy;
+//   else if (type=="str")
+//     llvm_type = struct_types["DT_str"];
+//   else
+//     llvm_type = int8PtrTy;
+//   return llvm_type;
+// }
+
+// bool is_type_array(Data_Tree dt) {
+//     return dt.Type=="charv";
+// }
+
+// llvm::Type *get_type_from_data(Data_Tree dt) {
+//   std::string type = dt.Type;
+//   llvm::Type *llvm_type;
+//   if (type=="float")
+//     llvm_type = floatTy;
+//   else if (type=="int")
+//     llvm_type = intTy;
+//   else if (type=="i64")
+//     llvm_type = int64Ty;
+//   else if (type=="i8")
+//     llvm_type = int8Ty;
+//   else if (type=="char")
+//     llvm_type = int8Ty;
+//   else if (type=="i16")
+//     llvm_type = int16Ty;
+//   else if (type=="bool")
+//     llvm_type = boolTy;
+//   else if (type=="str")
+//     llvm_type = struct_types["DT_str"];
+//   else if (type=="charv") {
+//     int size = std::stoi(dt.Nested_Data[0].Type);
+//     llvm_type = ArrayType::get(int8Ty, size);
+//   }
+//   else if (type=="vec") {
+//     llvm::Type *inner_dt = get_type_from_str(dt.Nested_Data[0].Type);
+//     int size = std::stoi(dt.Nested_Data[1].Type);
+//     llvm_type = VectorType::get(inner_dt, size, false);
+//   }
+//   else {
+//     llvm_type = int8PtrTy;
+//   }
+//   return llvm_type;
+// }
+
 
 StructType *tupleTy_of(const std::vector<llvm::Type*> &types) {
     return StructType::create(
@@ -920,7 +959,6 @@ Value *DataExprAST::codegen(Value *scope_struct) {
             continue;
         }
 
-        Value *var_name, *scopeless_name;
 
         // if(!IsStruct||Type=="list"||Type=="array"||Type=="map") {
         if(DtHasCreateFn) {
@@ -1283,15 +1321,14 @@ Value *ForExprAST::codegen(Value *scope_struct) {
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
     check_scope_struct_sweep(TheFunction, scope_struct, parser_struct);
 
-    std::string start_type = Start->GetDataTree().Type;
-    llvm::Type *llvm_type = get_type_from_str(start_type);
+    Data_Tree start_dt = Start->GetDataTree();
+    std::string start_type = start_dt.Type;
+    llvm::Type *llvm_type = get_type_from_data(start_type);
 
 
     Value *StartVal = Start->codegen(scope_struct);
     if (!StartVal)
         return nullptr;
-
-
 
 
     // Make the new basic block for the loop header, inserting after current
@@ -1662,8 +1699,14 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
     if (cast_R_to=="int_to_float")
         R = Builder->CreateSIToFP(R, floatTy, "lfp");
 
-    if (cast_R_to=="i64_to_int")
+    if (cast_R_to=="to_int")
         R = Builder->CreateIntCast(R, intTy, true);
+    if (cast_R_to=="to_i8")
+        R = Builder->CreateIntCast(R, int8Ty, true);
+    if (cast_R_to=="to_i16")
+        R = Builder->CreateIntCast(R, int16Ty, true);
+    if (cast_R_to=="to_i64")
+        R = Builder->CreateIntCast(R, int64Ty, true);
 
 
     if (Op == '=' || (Op==tok_arrow&&!begins_with(Elements, "channel"))) {
@@ -2139,7 +2182,10 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
         if(Op=='+') {
             llvm::Type *arrTy = get_type_from_data(L_dt);
-            return Builder->CreateInBoundsGEP(int8Ty, L, R);
+            Value *view_val = UndefValue::get(struct_types["DT_str"]);
+            view_val = Builder->CreateInsertValue(view_val, Builder->CreateInBoundsGEP(int8Ty, L, R), {0});
+            view_val = Builder->CreateInsertValue(view_val, const_int(0), {1});
+            return view_val;
         } 
     }
 
@@ -2147,9 +2193,16 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         switch (Op) {
             case tok_offby: {
                 Value *str_ptr = Builder->CreateExtractValue(L, {0});
+                Value *old_size = Builder->CreateExtractValue(L, {1});
+
                 Value *offset_val = Builder->CreateGEP(int8Ty, str_ptr, R);
-                return offset_val;
-            }
+                Value *new_size = Builder->CreateSub(old_size, R);
+                
+                Value *view_val = UndefValue::get(struct_types["DT_str"]);
+                view_val = Builder->CreateInsertValue(view_val, offset_val, {0});
+                view_val = Builder->CreateInsertValue(view_val, new_size, {1});
+                return view_val;
+                }
             default:
                 break;
         }
@@ -3306,7 +3359,10 @@ Value *NestedVariableExprAST::codegen(Value *scope_struct) {
 Value *ViewExprAST::codegen(Value *scope_struct) {
     Value *view_val = UndefValue::get(struct_types["DT_str"]);
     Value *inner = LHS->codegen(scope_struct);
+    inner = Builder->CreateExtractValue(inner, {0});
     Value *size_val = RHS->codegen(scope_struct);
+    if (has_R_cast)
+        size_val = Builder->CreateIntCast(size_val, intTy, true);
     view_val = Builder->CreateInsertValue(view_val, inner, {0});
     view_val = Builder->CreateInsertValue(view_val, size_val, {1});
     return view_val;

@@ -422,6 +422,7 @@ class ViewExprAST : public ExprAST {
 public:
   std::unique_ptr<ExprAST> LHS;
   std::unique_ptr<ExprAST> RHS;
+  bool has_R_cast=false;
   ViewExprAST(std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS, Parser_Struct);
   Value *codegen(Value *scope_struct) override;

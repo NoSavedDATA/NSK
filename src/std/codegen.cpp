@@ -26,6 +26,11 @@ using namespace llvm;
 namespace fs = std::filesystem;
 
 
+inline void printTy(Value *v) {
+    llvm::Type *ty = v->getType();
+    ty->print(llvm::errs());
+    llvm::errs() << "\n";
+}
 
 
 Value *DT_charv_Create(Parser_Struct parser_struct, Function *TheFunction,
@@ -150,29 +155,45 @@ Value *alloc(Parser_Struct parser_struct, Function *TheFunction,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     
     Value *type_id;
-    if(auto *str_expr = dynamic_cast<StringExprAST*>(Args[1].get()))
-        type_id = const_uint16(data_name_to_type[str_expr->Val]);
+    std::string type;
+    if(auto *str_expr = dynamic_cast<StringExprAST*>(Args[1].get())) {
+        type = str_expr->Val;
+        type_id = const_uint16(data_name_to_type[type]);
+    }
     else {
         LogErrorS(parser_struct.line, "alloc requires const string");
         std::exit(0);
     }
 
-    return callret("allocate_pool", {scope_struct, ArgsV[0], type_id});
+    Value *ret = callret("allocate_pool", {scope_struct, ArgsV[0], type_id});
+    if (type=="str") {
+        Value *view_val = UndefValue::get(struct_types["DT_str"]);
+        view_val = Builder->CreateInsertValue(view_val, ret, {0});
+        view_val = Builder->CreateInsertValue(view_val, ArgsV[0], {1});
+        ret = view_val;
+    }
+    return ret;
     // return callret("allocate_void", {scope_struct, ArgsV[1], ArgsV[2]});
+}
+
+Value *str_size(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
+    return Builder->CreateExtractValue(ArgsV[0], {1});
 }
 
 Value *c_strlen(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
-    return callret("strlen", {ArgsV[0]});
+    Value *str = Builder->CreateExtractValue(ArgsV[0], {0});
+    return callret("strlen", {str});
 }
 
 Value *c_memcpy(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
-    Builder->CreateMemCpy(ArgsV[0], Align(1), ArgsV[1], Align(1), ArgsV[2]);
-    // Value *last_c_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[1], ArgsV[3]);
-    // Builder->CreateStore(const_int8('\0'), last_c_gep);
+    Value *str = Builder->CreateExtractValue(ArgsV[0], {0});
+    Builder->CreateMemCpy(str, Align(1), ArgsV[1], Align(1), ArgsV[2]);
     return const_int(0);
 }
 
@@ -196,9 +217,9 @@ Value *c_memchr(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     Value *buf = ArgsV[0];
+    buf = Builder->CreateExtractValue(buf, {0});
+
     Value* newlineVal = Builder->CreateIntCast(ArgsV[1], intTy, /*isSigned=*/true);
-    // Value *split_gep = Builder->CreateInBoundsGEP(int8Ty, ArgsV[2], {const_int(0), const_int(0)});
-    // Value *newlineVal = Builder->CreateZExt(Builder->CreateLoad(int8Ty, split_gep), intTy);
     Value *len = ArgsV[2];
 
     Value* pos = callret("memchr", { buf, newlineVal, len });

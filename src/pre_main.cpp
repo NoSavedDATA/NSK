@@ -309,14 +309,6 @@ void build_dicts() {
   Function_Required_Arg_Count["c_read"] = 3;
 
 
-  // c_memchr
-  functions_return_data_type["c_memchr"] = Data_Tree("i64");
-  Function_Arg_DataTypes["c_memchr"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["c_memchr"]["1"] = Data_Tree("str");
-  Function_Arg_DataTypes["c_memchr"]["2"] = Data_Tree("char");
-  Function_Arg_DataTypes["c_memchr"]["3"] = Data_Tree("i64");
-  Function_Arg_Names["c_memchr"] = {"0", "1", "2", "3"};
-  Function_Required_Arg_Count["c_memchr"] = 3;
 
   // c_strlen
   functions_return_data_type["c_strlen"] = Data_Tree("i64");
@@ -325,15 +317,6 @@ void build_dicts() {
   Function_Arg_Names["c_strlen"] = {"0", "1"};
   Function_Required_Arg_Count["c_strlen"] = 1;
 
-
-  // c_memcpy
-  functions_return_data_type["c_memcpy"] = Data_Tree("int");
-  Function_Arg_DataTypes["c_memcpy"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["c_memcpy"]["1"] = Data_Tree("str");
-  Function_Arg_DataTypes["c_memcpy"]["2"] = Data_Tree("charv");
-  Function_Arg_DataTypes["c_memcpy"]["3"] = Data_Tree("i64");
-  Function_Arg_Names["c_memcpy"] = {"0", "1", "2", "3"};
-  Function_Required_Arg_Count["c_memcpy"] = 3;
 
 
   // str_set
@@ -367,13 +350,6 @@ void build_dicts() {
   Function_Arg_Names["_malloc"] = {"0", "1"};
   Function_Required_Arg_Count["_malloc"] = 1;
 
-  // allocate
-  functions_return_data_type["alloc"] = Data_Tree("any");
-  Function_Arg_DataTypes["alloc"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["alloc"]["1"] = Data_Tree("int");
-  Function_Arg_DataTypes["alloc"]["2"] = Data_Tree("str");
-  Function_Arg_Names["alloc"] = {"0", "1", "2"};
-  Function_Required_Arg_Count["alloc"] = 2;
   
   // i8
   functions_return_data_type["i8"] = Data_Tree("i8");
@@ -417,12 +393,6 @@ void build_dicts() {
 
   // // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
-  // Function_Arg_DataTypes["simd_load"]["0"] = Data_Tree("Scope_Struct");
-  // Function_Arg_DataTypes["simd_load"]["1"] = Data_Tree("any");
-  // Function_Arg_DataTypes["simd_load"]["2"] = Data_Tree("int");
-  // Function_Arg_DataTypes["simd_load"]["3"] = Data_Tree("int");
-  // Function_Arg_Names["simd_load"] = {"0", "1", "2", "3"};
-  // Function_Required_Arg_Count["simd_load"] = 3;
 
   // vec_make
   function_return_overwrite["vec_make"] = vec_make_ret;

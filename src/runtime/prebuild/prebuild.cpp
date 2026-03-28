@@ -144,8 +144,17 @@ extern "C" int prebuild() {
                      {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"i64_i64", "i64"}};
 
   ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"},
-                     {"int_int_equal", "bool"}, {"int_int_different", "bool"},
+                     {"int_int_equal", "bool"},  {"int_int_different", "bool"},
                      {"int_int_higher_eq", "bool"}, {"int_int_minor_eq", "bool"},
+                     {"i8_i8_higher", "bool"}, {"i8_i8_minor", "bool"},
+                     {"i8_i8_equal", "bool"},  {"i8_i8_different", "bool"},
+                     {"i8_i8_higher_eq", "bool"}, {"i8_i8_minor_eq", "bool"},
+                     {"i16_higher", "bool"}, {"i16_minor", "bool"},
+                     {"i16_equal", "bool"},  {"i16_different", "bool"},
+                     {"i16_higher_eq", "bool"}, {"i16_minor_eq", "bool"},
+                     {"i64_i64_higher", "bool"}, {"i64_i64_minor", "bool"},
+                     {"i64_i64_equal", "bool"},  {"i64_i64_different", "bool"},
+                     {"i64_i64_higher_eq", "bool"}, {"i64_i64_minor_eq", "bool"},
                      {"float_float_higher", "bool"}, {"float_float_minor", "bool"},
                      {"float_float_equal", "bool"}, {"float_float_different", "bool"},
                      {"float_float_higher_eq", "bool"}, {"float_float_minor_eq", "bool"},

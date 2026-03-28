@@ -1,25 +1,5 @@
 import std_lib
 
-def array<str> str_split(str s, str pattern)
-	array<str> ret
-	
-	i64 len = c_strlen(s)
-	i64 pos = c_memchr(s, ',', len)
-	
-	int offset=0, i=0
-	
-	while offset<len and pos>0
-		str v = alloc(pos+1, "str")
-		#str v = malloc_str(pos+1)
-		c_memcpy(v, s.offset(offset), pos)
-		v.set(pos,0)
-		ret.append(v)
-	
-		offset = offset+pos+1
-		pos = c_memchr(s.offset(offset), ',', len-offset)
-
-
-	return ret
 
 
 class Csv
@@ -119,8 +99,21 @@ def float foo()
 	return 0
 
 
+def float bar()
+	File f("games.csv")
+	while f.opened()
+		str line = f.read()
+		print("line: ", line)
+		array<str> v = line.split(',')
+		if (v.size()!=39)
+			_quit_()
+	return 0
 
 
 main
 	foo()
+	#bar()
 
+	str i = "um-dois-tres-quatro"
+	array<str> v = i.split('-')
+	v.print()

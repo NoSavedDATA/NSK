@@ -64,15 +64,16 @@ void InitializeModule() {
   floatTy = Type::getFloatTy(*TheContext);
   boolTy = Type::getInt1Ty(*TheContext);
   voidTy = Type::getVoidTy(*TheContext);
-  m256Ty = llvm::VectorType::get(Type::getInt8Ty(*TheContext), 32, false);
   ShallCodegen = true;
   seen_var_attr = false;
-
 
   Generate_LLVM_Functions();
   Generate_Lib_Functions();
   Generate_Struct_Types();
-
+  str_toTy = {{"char", int8Ty}, {"i8", int8Ty}, {"int", intTy}, {"i64", int64Ty}, {"i16", int16Ty},
+              {"bool", boolTy},
+                {"float", floatTy}, {"void", voidTy}, {"str", struct_types["DT_str"]}};
+  Generate_Class_Types();
 
   //===----------------------------------------------------------------------===//
   // Scalar   Operations
@@ -164,13 +165,6 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("str_Delete", str_DeleteTy);
 
-  // //
-  // FunctionType *strcmpTy = FunctionType::get(
-  //     intTy,
-  //     {int8PtrTy, int8PtrTy},
-  //     false
-  // );
-  // TheModule->getOrInsertFunction("strcmp", strcmpTy);
 
   //  
   FunctionType *sleepTy = FunctionType::get(
@@ -496,32 +490,7 @@ void InitializeModule() {
   TheModule->getOrInsertFunction("fexists", fexistsTy);
 
 
-  // //
-  // FunctionType *strlenTy = FunctionType::get(
-  //     int64Ty,
-  //     {int8PtrTy},
-  //     false 
-  // );
-  // TheModule->getOrInsertFunction("strlen", strlenTy);
   
-  // FunctionType *memcpyTy = FunctionType::get(
-  //     int8PtrTy,
-  //     {int8PtrTy, int8PtrTy, int64Ty},
-  //     false 
-  // );
-  // TheModule->getOrInsertFunction("memcpy", memcpyTy);
-
-  // TheModule->getOrInsertFunction(
-  //   "memchr",
-  //   FunctionType::get(
-  //       int8PtrTy,
-  //       { int8PtrTy, intTy, int64Ty },
-  //       false
-  //   )
-  // );
-
-
-
 
   //===----------------------------------------------------------------------===//
   // Other Ops
@@ -760,9 +729,9 @@ Function *FunctionAST::codegen() {
         Value *stack_top_value_gep = Builder->CreateStructGEP(st, scope_struct, 3); 
         // stack_top_value = Builder->CreateLoad(intTy, stack_top_value_gep);
         function_values[current_codegen_function]["QQ_stack_top"] = Builder->CreateLoad(intTy, stack_top_value_gep);
-    } else { 
+    } else
         function_values[current_codegen_function][arg_name] = &Arg;
-   }
+   
   }
   
   Value *RetVal;

@@ -8,8 +8,9 @@ if __name__=="__main__":
         for line in f:
             i+=1
             l = len(line.split(","))
-            if l!=39:
-                print(l)
+            # if l!=39:
+            print(line)
+
         
         print(i)
 

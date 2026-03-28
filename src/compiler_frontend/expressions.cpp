@@ -680,6 +680,11 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   Elements = LType + "_" + RType;    
 
   // casts
+  if (LType!=RType&&in_vec(LType, int_types)&&in_vec(RType, int_types)) {
+    Elements = LType+"_"+LType;
+    cast_R_to = "to_"+LType;
+    // std::cout << "turn " << LType << "_" << RType << " to " << Elements << "\n";
+  }
   if (Elements=="int_float") {
     Elements = "float_float"; 
     cast_L_to="int_to_float";
@@ -688,15 +693,20 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     Elements = "float_float"; 
     cast_R_to="int_to_float";
   }
-  if (Elements=="int_i64") {
-    Elements = "int_int"; 
-    cast_R_to="i64_to_int";
+  // if (Elements=="int_i64") {
+  //   Elements = "int_int"; 
+  //   cast_R_to="i64_to_int";
+  // }
+  // if (Elements=="i64_int") {
+  //   Elements = "int_int"; 
+  //   cast_L_to="i64_to_int";
+  // }
+  if (in_vec(LType, {"str", "charv"})) {
+      if (RType!="int"&&in_vec(RType, int_types))
+          cast_R_to="to_int";
+      Elements = LType+"_int";
+      // std::cout << Elements << " | " << Operation << "\n";
   }
-  if (Elements=="i64_int") {
-    Elements = "int_int"; 
-    cast_L_to="i64_to_int";
-  }
-  
   std::string operation = op_map[Op];
   Operation = Elements + "_" + operation;
 
@@ -705,7 +715,6 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   if (RType=="channel" && !in_str(LType, primary_data_tokens)&&LType!="str")
     Operation = "void_channel_message";
-  // std::cout << Elements << " | " << Operation << "\n";
   std::string type;
   if (Operation=="int_int_div")
     type = "float";
@@ -1051,6 +1060,13 @@ Data_Tree ViewExprAST::GetDataTree(bool from_assignment) {
 ViewExprAST::ViewExprAST(std::unique_ptr<ExprAST> LHS,
                 std::unique_ptr<ExprAST> RHS, Parser_Struct parser_struct) \
             : LHS(std::move(LHS)), RHS(std::move(RHS)), parser_struct(parser_struct) {
+    std::string R_Type = this->RHS->GetDataTree().Type;
+    if(R_Type!="int") {
+        if (!in_vec(R_Type, int_types))
+            LogErrorS(parser_struct.line, "Tried to set view size as " + R_Type);
+        else
+            has_R_cast=true;
+    }
 }
 
 

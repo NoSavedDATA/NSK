@@ -64,6 +64,7 @@ void set_user_functions() {
 	llvm_callee["err"] = err;
 	llvm_callee["_malloc"] = _malloc;
 	llvm_callee["c_strlen"] = c_strlen;
+	llvm_callee["str_size"] = str_size;
 	llvm_callee["c_memcpy"] = c_memcpy;
 	llvm_callee["c_memchr"] = c_memchr;
 	llvm_callee["str_set"] = str_set;

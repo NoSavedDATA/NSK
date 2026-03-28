@@ -23,10 +23,6 @@ void Generate_Struct_Types() {
     llvm::Type *intTy = Type::getInt32Ty(*TheContext);
     llvm::Type *intPtrTy = Type::getInt32Ty(*TheContext)->getPointerTo();
 
-
-
-
-
     // std::vector<void*>
     StructType *void_vecTy = StructType::create(
         *TheContext,
@@ -95,12 +91,9 @@ void Generate_Struct_Types() {
     );
     struct_types["GC"] = GC_Struct_Type;
     struct_types["scope_struct"] = Scope_Struct_Type;
+}
 
-
-
-
-
-
+void Generate_Class_Types() {
     // high-level classes
     for (auto &class_pair : ClassSize) {
         const std::string &class_name = class_pair.first;
@@ -109,7 +102,6 @@ void Generate_Struct_Types() {
         for (auto &attr : ClassAttrsName[class_name]) {
             Data_Tree dt = data_typeVars[class_name][attr];
             types.push_back(get_type_from_data(dt));
-            // std::cout << "--push: " << dt.Type << "\n";
         }
         StructType *st = StructType::create(
             *TheContext,

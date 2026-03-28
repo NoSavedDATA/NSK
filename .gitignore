@@ -6,6 +6,8 @@ experiments/
 include/
 samples/
 lib/
+!lib/std_lib/
+!lib/std_lib/**
 src_reference/
 sys_lib/
 Dockerfile

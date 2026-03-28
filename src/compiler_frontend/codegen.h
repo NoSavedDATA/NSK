@@ -24,6 +24,7 @@ extern std::map<std::string, std::map<std::string, AllocaInst *>> function_alloc
 extern std::map<std::string, std::map<std::string, Value *>> function_values;
 extern std::map<std::string, std::map<Value *, Value *>> function_vecs;
 extern std::map<std::string, std::map<std::string, Value *>> function_pointers;
+extern std::unordered_map<std::string, llvm::Type*> str_toTy;
 extern std::string current_codegen_function;
 
 

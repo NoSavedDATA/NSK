@@ -2502,6 +2502,8 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
       
       if (data_type=="float") {
           Ty = floatTy;
+      } else if(data_type=="i8"||data_type=="char") {
+          Ty = int8Ty;
       } else if(data_type=="int") {
           Ty = intTy;
       } else if(data_type=="i64") {
