@@ -13,6 +13,7 @@
 
 
 #include "../runtime/compiler_frontend/global_vars.h"
+#include "tokenizers/tokenizer_if.h"
 
 
 
@@ -115,36 +116,29 @@ enum Token {
 };
 
 
-struct Tokenizer {
-    std::stack<std::unique_ptr<std::istream>> inputStack;
-    std::stack<std::string> dirs, files;
-    std::stack<int> line_counters;
-    std::istream* current;
-    std::string current_dir = std::filesystem::current_path().string();
-    char cur_c=' ';
+struct Tokenizer : TokenizerIF {
+    int LastToken;
     bool has_main = false, has_lib_file = false, can_see_space = true;
     std::ifstream lib_file;
-
     std::string token;
-    std::string current_file = "main";
+
+    std::unique_ptr<Tokenizer> inner = nullptr;
     
     public:
-        Tokenizer();
-
-
-        char get();
-        std::istream& get_word();
-        bool openFile(std::string);
-        bool importFile(std::string, int);
+        Tokenizer(std::string);
+        Tokenizer(std::string, std::unique_ptr<Tokenizer>);
 };
   
+bool import_NSK_File(std::string filename);
+
 std::string ReverseToken(int _char);
 static int get_token(bool);
 
 
 
 
-extern Tokenizer tokenizer;
+extern std::stack<Tokenizer> tokenizer_stack;
+extern std::unique_ptr<Tokenizer> tokenizer;
 extern std::string cur_line;
 
 

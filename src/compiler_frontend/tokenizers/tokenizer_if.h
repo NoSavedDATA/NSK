@@ -11,16 +11,15 @@
 #include <vector>
 #include <unordered_map>
 
+// extern std::string line_read;
 
 struct TokenizerIF {
-    // std::stack<std::string> dirs, files;
-    
     public:
         virtual ~TokenizerIF() = default;
         int line, NumVal, LastSeenTabs=-1, SeenTabs=-1;
         std::istream* current;
         std::unique_ptr<std::istream> current_stream;
-        std::string current_dir, current_file, IdentifierStr;
+        std::string dir, file_name, IdentifierStr;
         char cur_c=' ', LastChar=' ';
 
         TokenizerIF(std::string);

@@ -119,6 +119,11 @@ void HandleExtern() {
   }
 }
 
+void HandleProto() {
+  Parser_Struct parser_struct;
+  ParseProtoExpr(parser_struct, "");
+}
+
 void HandleDefinition() {
   
   Parser_Struct parser_struct;
@@ -192,17 +197,6 @@ void HandleTopLevelExpression() {
   }
 }
 
-
-void InitializeTokenizer() {
-    if (Sys_Arguments.size()>0)
-    {
-        tokenizer.openFile(Sys_Arguments[0]);
-        getNextToken();
-
-    } else
-        getNextToken();
-}
-
 /// top ::= definition | external | expression | ';'
 void MainLoop() {
     while (true) {
@@ -212,6 +206,11 @@ void MainLoop() {
             std::cout << "FOUND CARRIAGE RETURN" << ".\n";
             break;
         case tok_eof:
+            if (tokenizer->inner) {
+                tokenizer = std::move(tokenizer->inner);
+                CurTok = tokenizer->LastToken;
+                break;
+            }
             return;
         case ';': // ignore top-level semicolons.
             getNextToken();
@@ -227,6 +226,9 @@ void MainLoop() {
             break;
         case tok_def:
             HandleDefinition();
+            break;
+        case tok_proto:
+            HandleProto();
             break;
         case tok_main:
             if(IsJIT)
@@ -254,6 +256,20 @@ void MainLoop() {
             break;
         }
     }
+}
+
+void InitializeTokenizer() {
+    std::string lib_path = std::getenv("NSK_LIBS");
+    std::string std_path = lib_path + "/std_lib/include.nk";
+    tokenizer = std::make_unique<Tokenizer>(std_path);
+    getNextToken();
+    MainLoop();
+
+    if (Sys_Arguments.size()>0)
+        tokenizer = std::make_unique<Tokenizer>(Sys_Arguments[0]);
+    else
+        tokenizer = std::make_unique<Tokenizer>(""); //todo: save stdin tokenizer
+    getNextToken();
 }
 
 
@@ -440,7 +456,6 @@ void build_dicts() {
   set_user_functions();
 
   // Prime the first token.
-  InitializeTokenizer();
   prebuild();
 }
 

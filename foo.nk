@@ -1,7 +1,4 @@
-import std_lib
 import csv
-
-
 
 def float foo()
 	Csv f("games.csv", ',')
@@ -10,7 +7,6 @@ def float foo()
 	for c in f.get_cols()
 		print(c)
 	return 0
-
 
 def float bar()
 	File f("games.csv")
@@ -27,6 +23,6 @@ main
 	#bar()
 
 	str i = "um-dois-tres-quatro"
-	array<str> v = i.split('-')
+	var v = i.split('-')
 	v.print()
 

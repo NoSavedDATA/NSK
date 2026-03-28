@@ -1710,7 +1710,7 @@ std::unique_ptr<ExprAST> ParseNewExpr(Parser_Struct parser_struct, std::string c
 
 
     if(CurTok!=tok_data) {
-        if (!(tokenizer.has_lib_file && CurTok==tok_identifier))
+        if (!(tokenizer->has_lib_file && CurTok==tok_identifier))
             return LogErrorBreakLine(parser_struct.line, "Expected data name at new expression. Got token: " + ReverseToken(CurTok));
     }
                 
@@ -2284,36 +2284,34 @@ std::unique_ptr<ExprAST> ParseImport(Parser_Struct parser_struct) {
   // Get lib name
   std::string lib_name = IdentifierStr;
   int dots=0; 
-  if (tokenizer.cur_c=='.') {
-      char c = tokenizer.get();
+  if (tokenizer->cur_c=='.') {
+      char c = tokenizer->get();
 
       while(c!=10&&c!=13) {
         lib_name += "/";
         dots++;
         while (isalnum(c)||c=='_') {
             lib_name += c;
-            c = tokenizer.get();
+            c = tokenizer->get();
         }
         // std::cout << "get: " << c << ".\n";
         if (c=='.')
-            c = tokenizer.get();
+            c = tokenizer->get();
       }
   }
   
   getNextToken(true);
   
-  std::string full_path_lib = tokenizer.current_dir+"/"+lib_name+".nk";
+  std::string full_path_lib = tokenizer->dir+"/"+lib_name+".nk";
+  // std::cout << "full_path_lib  " << full_path_lib<< "\n";
 
   // Import logic
   if(fs::exists(full_path_lib))
   {
-
     // getNextToken();
-  
-    tokenizer.importFile(full_path_lib, dots); // changed current
+    import_NSK_File(full_path_lib); // changed current
     // tokenizer.cur_c = ' ';
     // CurTok=tok_space;
-
     // if (CurTok=='.') {
     //     if(isalpha(tokenizer.cur_c)) {
     //         CurTok=tok_space;

@@ -55,8 +55,8 @@ std::unique_ptr<ExprAST> LogErrorS(int line, std::string Str) {
   
   if(line!=-1)
   {
-    if (tokenizer.current_file!="main file") {
-      std::cout << "\n\n" << tokenizer.current_file << "\n";
+    if (tokenizer->file_name!="main file") {
+      std::cout << "\n\n" << tokenizer->file_name << "\n";
 
       
       
@@ -64,7 +64,7 @@ std::unique_ptr<ExprAST> LogErrorS(int line, std::string Str) {
       std::string str_line;
       
       int l=0;
-      file.open(tokenizer.current_file);
+      file.open(tokenizer->file_name);
       while(l<line&&std::getline(file, str_line))
         l++;
 
@@ -74,7 +74,7 @@ std::unique_ptr<ExprAST> LogErrorS(int line, std::string Str) {
 
     std::cout << "\nLine: " << line << "\n   ";
   } else
-    std::cout << "\n\n" << tokenizer.current_file << "\n";
+    std::cout << "\n\n" << tokenizer->file_name << "\n";
 
 
   if (Str!=" ")
@@ -174,7 +174,7 @@ std::unique_ptr<ExprAST> LogErrorT(int line, int CurTok) {
   //char buf[100];
   //snprintf(buf, sizeof(buf), "token %d inesperado.", CurTok);
   //fprintf(stderr, "\033[31mError: \033[0m%s\n", buf);
-  std::cout << "\n\n" << tokenizer.current_file << "\n";
+  std::cout << "\n\n" << tokenizer->file_name << "\n";
   std::cout << "\nLine: " << line << "\n   \033[31m Error: \033[0mUnexpected token " << ReverseToken(CurTok) << ". Expected an expression.\n\n";
 
   // while (true) {

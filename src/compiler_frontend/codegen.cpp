@@ -590,7 +590,6 @@ Value *UnkVarExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
     return const_float(0.0f);
 
-
   Function *TheFunction = Builder->GetInsertBlock()->getParent();
 
   // Register all variables and emit their initializer.

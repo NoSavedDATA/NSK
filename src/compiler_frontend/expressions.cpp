@@ -589,7 +589,7 @@ LibImportExprAST::LibImportExprAST(std::string LibName, bool IsDefault, Parser_S
     if(fs::exists(include_path)) {
       has_nk=true;
       get_tok_until_space();
-      tokenizer.importFile(include_path, 0);
+      import_NSK_File(include_path);
     } else 
       getNextToken(); // eat lib name
     

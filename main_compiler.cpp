@@ -120,20 +120,16 @@ void early_init() {
 }
 
 int main(int argc, char* argv[]) {
-    IsJIT = false;
+  IsJIT = false;
+  for (int i = 1; i < argc; i++) {
+    // std::cout << "Argument " << i << ": " << argv[i] << "\n";
+    Sys_Arguments.push_back(argv[i]);
+  }
 
-    for (int i = 1; i < argc; i++) {
-        // std::cout << "Argument " << i << ": " << argv[i] << "\n";
-        Sys_Arguments.push_back(argv[i]);
-        if(i==1) {
-           tokenizer.files.pop();
-           tokenizer.files.push(argv[i]);
-        }
-    }
-
-    build_dicts();
+  build_dicts();
   TheJIT = ExitOnErr(KaleidoscopeJIT::Create());
   InitializeModule();
+  InitializeTokenizer();
   MainLoop();
   Compile();
   return 0;

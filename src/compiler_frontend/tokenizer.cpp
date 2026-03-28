@@ -18,26 +18,11 @@
 #include "tokenizer.h"
 
 
-
-
 namespace fs = std::filesystem;
-
-
-
 
 //===----------------------------------------------------------------------===//
 // Lexer
 //===----------------------------------------------------------------------===//
-
-
-
-Tokenizer::Tokenizer() : current(&std::cin) {
-  files.push("main file");
-  dirs.push(current_dir);
-  line_counters.push(1);
-}
-
-
 
 
 // The lexer returns tokens [0-255] if it is an unknown character, otherwise one
@@ -67,8 +52,6 @@ std::map<int, std::string> token_to_string = {
 
   { tok_new, "tok new" },
 
-  
-
   // control
   { tok_if, "if" },
   { tok_then, "then" },
@@ -90,13 +73,11 @@ std::map<int, std::string> token_to_string = {
   { tok_as, "tok as"},
   { tok_in, "tok in"},
 
-
   // operators
   { tok_binary, "tok binary" },
   { tok_unary, "tok unary" },
 
   { tok_main , "tok main" },
-
 
 
   { tok_post_class_attr_attr, ".attr."},
@@ -116,7 +97,6 @@ std::map<int, std::string> token_to_string = {
   { tok_no_grad, "no_grad"},
 
   { tok_arrow, "<-"},
-
   
 
   { 10, "tok space"},
@@ -211,12 +191,7 @@ std::vector<char> ops = {'+', '-', '*', '/', '@', '=', '>', '<', 10, -14, ',', '
                          tok_diff, tok_higher_eq, tok_minor_eq, tok_offby};
 std::vector<char> terminal_tokens = {';', tok_constructor, tok_def, tok_extern, tok_class, tok_eof};
 
-
 extern std::vector<std::string> LLVM_IR_Functions = {"pow", "sqrt"};
-
-
-
-
 
 std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self}, {"def", tok_def},
                                              {"ctor", tok_constructor}, {"class", tok_class}, {"extern", tok_extern},
@@ -243,10 +218,6 @@ bool BoolVal;
 
 std::string ReverseToken(int _char)
 {
-  /*
-  if (_char>=48 && _char<=57) // Handle number
-    return std::to_string(NumVal);
-  */
   if (_char==tok_identifier||_char==tok_data||_char==tok_struct)
     return IdentifierStr;
 
@@ -259,135 +230,27 @@ int SeenTabs = 0;
 int LastSeenTabs = 0;
 
 
+Tokenizer::Tokenizer(std::string file) : TokenizerIF(file) {
+}
 
-std::istream& Tokenizer::get_word() {
-    while ((current == nullptr || current->eof()) && !inputStack.empty()) {
-        inputStack.pop();
-        current = inputStack.empty() ? nullptr : inputStack.top().get();
-    }
-    return *current;
+Tokenizer::Tokenizer(std::string file, std::unique_ptr<Tokenizer> inner) 
+        : TokenizerIF(file), inner(std::move(inner)) {
 }
 
 
-
-std::string cur_line = "";
-char lib_ch;
-
-char Tokenizer::get() {
-    if (has_lib_file) {
-        lib_file.get(lib_ch);
-        // std::cout << "->: " << lib_ch << "\n";
-        cur_c = lib_ch;
-        return lib_ch;
-    }
-
-    while (true) {
-        if (!current) return tok_eof;
- 
-        char c = current->get();
-        if (c != EOF) {
-          cur_line += c;
-          cur_c = c;
-          return c;
-        }
-
-        // Handle EOF
-        if (!inputStack.empty()) {
-            bool must_return = false;
-
-            inputStack.pop();
-            dirs.pop(); 
-            files.pop();
-            line_counters.pop();
-            if (inputStack.empty()&&has_main)
-              must_return=true;
-            current = inputStack.empty() ? &std::cin : inputStack.top().get();
-            current_dir = dirs.top();
-            current_file = files.top();
-            CurrentFile = current_file;
-            LineCounter = line_counters.top();
-
-            if(must_return)
-              return tok_eof;
-            
-            
-            // Don't return EOF here - immediately try reading from the new source
-        } else if (has_main && current!=&std::cin) {
-            current = &std::cin;
-            // Don't return EOF here - immediately try reading from std::cin
-        } else {
-            // We're already at std::cin and got EOF - this is a real EOF
-            current = nullptr;
-            return tok_eof;
-        }
-    }
-}
-
-
-bool Tokenizer::openFile(std::string filename) {
-    has_main=true;
-    auto file = std::make_unique<std::ifstream>(filename);
-    if (!file->is_open())
-    {
-      LogErrorC(-1, "Failed to open file: " + filename);
-      return false;
-    }
+bool import_NSK_File(std::string filename) {
+    // std::cout << "current " << tokenizer->file_name << "\n";
+    // std::cout << "import of " << filename << "\n\n";
     
-    current_file = filename;
-    CurrentFile = current_file;
-    std::string base = fs::path(filename).parent_path().string();
-    if(filename[0]=='/')
-      current_dir = base;
-    else
-      current_dir = current_dir + "/" + base;
-
-
-    // Then push the new file
-    inputStack.push(std::move(file));
-    dirs.push(current_dir);
-    files.push(current_file);
-    current = inputStack.top().get(); // this get() turns std::unique_ptr<> as *
-
-    line_counters.top() = LineCounter;
-    line_counters.push(1);
-
-    return true;
-}
-
-bool Tokenizer::importFile(std::string filename, int dots) {
-    
-    auto file = std::make_unique<std::ifstream>(filename);
-    if (!file->is_open())
-    {
-      std::cout << "" << current_dir << ".\n";
-      LogErrorC(-1, "Failed to open library: " + filename);
-      return false;
-    }
-    
-    current_file = filename;
-    CurrentFile = current_file;
-    current_dir = fs::path(filename).parent_path().string();
-
-
-    // Then push the new file
-    inputStack.push(std::move(file));
-    dirs.push(current_dir);
-    files.push(current_file);
-    current = inputStack.top().get(); // this get() turns std::unique_ptr<> as *
-
-    line_counters.top() = LineCounter;
-    line_counters.push(1);
-
+    tokenizer->LastToken = CurTok;
+    tokenizer = std::make_unique<Tokenizer>(filename, std::move(tokenizer));
     return true;
 }
 
 
 
-
-
-
-
-Tokenizer tokenizer = Tokenizer();
+// Tokenizer tokenizer = Tokenizer();
+std::unique_ptr<Tokenizer> tokenizer;
 
 
 
@@ -399,26 +262,24 @@ static int get_token(bool block) {
     return tok_space;
 
 
-
-
   // Skip any whitespace and backspace.  
   while (LastChar==32 || LastChar==tok_tab || LastChar==13) {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
   }
   
     
 
   if (LastChar=='[')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return '[';
   }
 
   if (LastChar=='\'') {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
 
     if (LastChar == '\\') {              // escape sequence
-        LastChar = tokenizer.get();
+        LastChar = tokenizer->get();
         switch (LastChar) {
             case 'n': NumVal = '\n'; break;
             case 't': NumVal = '\t'; break;
@@ -433,34 +294,34 @@ static int get_token(bool block) {
         NumVal = LastChar;               // normal char
     }
 
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
 
     if (LastChar!='\'')
         LogErrorC(LineCounter, "Could not find matching '");
 
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_char;
 }
 
   if (LastChar=='"')
   {
 
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     if (LastChar=='"') {
       IdentifierStr = "";
-      LastChar = tokenizer.get();
+      LastChar = tokenizer->get();
       return tok_str;
     }
     IdentifierStr = LastChar;
 
     while (true)
     {
-      LastChar = tokenizer.get();
+      LastChar = tokenizer->get();
       if(LastChar=='"')
         break;
       IdentifierStr += LastChar;
     }
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     
     return tok_str;
   }
@@ -468,7 +329,7 @@ static int get_token(bool block) {
 
   if(LastChar=='.') 
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return '.';
   }
   
@@ -477,14 +338,12 @@ static int get_token(bool block) {
     // std::cout << "got alpha " << LastChar<< ".\n";
     IdentifierStr = LastChar;
     bool name_ok=true;
-    while(true)
-    {
-      LastChar = tokenizer.get();
+    while(true) {
+      LastChar = tokenizer->get();
       if (LastChar=='['||LastChar=='.')
         break;
       
-      if(isalnum(LastChar) || LastChar=='_')
-      {
+      if(isalnum(LastChar) || LastChar=='_') {
         IdentifierStr += LastChar;
         continue;
       }        
@@ -498,8 +357,7 @@ static int get_token(bool block) {
       return tok_data;
     if(string_tokens.count(IdentifierStr)>0)
       return string_tokens[IdentifierStr];
-    if (IdentifierStr=="true"||IdentifierStr=="false")
-    {
+    if (IdentifierStr=="true"||IdentifierStr=="false") {
       if(IdentifierStr=="true")
         BoolVal = true;
       if(IdentifierStr=="false")
@@ -515,7 +373,7 @@ static int get_token(bool block) {
     return tok_identifier;
   }
   // if (LastChar=='@') {
-  //   LastChar = tokenizer.get();
+  //   LastChar = tokenizer->get();
   //   std::string NumStr;
   //   do {
   //     NumStr += LastChar;
@@ -531,7 +389,7 @@ static int get_token(bool block) {
     std::string NumStr;
     if (LastChar == '-') { // Check for optional minus sign
       NumStr += LastChar;
-      LastChar = tokenizer.get();
+      LastChar = tokenizer->get();
     }
     do {
       if(LastChar=='.')
@@ -540,7 +398,7 @@ static int get_token(bool block) {
         is_float=true;
       }
       NumStr += LastChar;
-      LastChar = tokenizer.get();
+      LastChar = tokenizer->get();
     } while (isdigit(LastChar) || LastChar == '.');
 
     NumVal = strtod(NumStr.c_str(), nullptr);
@@ -552,7 +410,7 @@ static int get_token(bool block) {
     // Comment until end of line.
     do
     {
-      LastChar = tokenizer.get();
+      LastChar = tokenizer->get();
       if (LastChar==10)
         LineCounter++;
     }
@@ -563,15 +421,18 @@ static int get_token(bool block) {
   }
 
   // Check for end of file.  Don't eat the EOF.
-  if (LastChar == EOF)
+  if (LastChar == EOF) {
+    LastChar = ' ';
     return tok_eof;
+  }
+  
 
   // Otherwise, just return the character as its ascii value.
   int ThisChar = LastChar;
 
 
-  if (ThisChar==10&&!tokenizer.can_see_space) {
-      LastChar = tokenizer.get();
+  if (ThisChar==10&&!tokenizer->can_see_space) {
+      LastChar = tokenizer->get();
       return tok_space;
   }
   
@@ -584,7 +445,6 @@ static int get_token(bool block) {
         LineCounter++;
       if(ThisChar==10)
       {
-        cur_line = "";
         LastSeenTabs = SeenTabs;
         SeenTabs = 0;
         seen_spaces = 0;
@@ -601,7 +461,7 @@ static int get_token(bool block) {
       }
 
       ThisChar = (int)LastChar;
-      LastChar = tokenizer.get(); 
+      LastChar = tokenizer->get(); 
 
       // std::cout << "Line Feed post: " << LastChar  << ".\n";
     }
@@ -612,39 +472,39 @@ static int get_token(bool block) {
   }
 
 
-  LastChar = tokenizer.get();
+  LastChar = tokenizer->get();
   int otherChar = LastChar;
 
 
   if(ThisChar=='<' && LastChar=='-')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_arrow;
   }
 
   if (ThisChar=='=' && otherChar=='=')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_equal;
   }
   if (ThisChar=='!' && otherChar=='=')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_diff;
   }
   if (ThisChar=='>' && otherChar=='=')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_higher_eq;
   }
   if (ThisChar=='<' && otherChar=='=')
   {
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_minor_eq;
   }
 
   if((ThisChar=='/')&&(otherChar == '/')){
-    LastChar = tokenizer.get();
+    LastChar = tokenizer->get();
     return tok_int_div;
   }
 
@@ -662,7 +522,6 @@ static int get_token(bool block) {
 int CurTok;
 int getNextToken(bool block) {
   CurTok = get_token(block); 
-  // std::cout << "\nLine: " << cur_line << "\n";
   return CurTok;
 }
 
@@ -670,21 +529,19 @@ int getNextToken(bool block) {
 
 
 void get_tok_until_space() {
-  if(CurTok!=tok_space&&tokenizer.cur_c!=10) // gets until the \n before switching files
+  if(CurTok!=tok_space&&tokenizer->cur_c!=10) // gets until the \n before switching files
   {
-    // std::cout << "CurTok: " << ReverseToken(CurTok) << " / " << CurTok  << " / " << std::to_string(int(tokenizer.cur_c)) << ".\n";
+    // std::cout << "CurTok: " << ReverseToken(CurTok) << " / " << CurTok  << " / " << std::to_string(int(tokenizer->cur_c)) << ".\n";
     char c=' ';
     while(c!=10)
     {
       int _c = c;
-      c = tokenizer.get();
+      c = tokenizer->get();
 
       // std::cout << "Get " << c << ".\n";
     }
   }
   CurTok = tok_space;
-  // LogBlue("Line: " + cur_line);
-  cur_line = "";
   // LineCounter++;
 }
 

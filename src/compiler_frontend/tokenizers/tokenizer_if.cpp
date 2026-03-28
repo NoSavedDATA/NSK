@@ -35,16 +35,16 @@ TokenizerIF::TokenizerIF(std::string file) {
     openFile(file);
 }
 
-
+// std::string line_read;
 
 char TokenizerIF::get() {
     while (true) {
         if (!current) return if_tok_eof;
  
         char c = current->get();
-        if (c != EOF) {
+        // line_read += c;
+        if (c != EOF)
           return c;
-        }
 
         current = nullptr;
         return if_tok_eof;
@@ -56,15 +56,15 @@ bool TokenizerIF::openFile(std::string filename) {
     auto file = std::make_unique<std::ifstream>(filename);
     if (!file->is_open())
     {
-        std::cout << "Failed to open file: " << filename << "\n";
+      std::cout << "Failed to open file: " << filename << "\n";
       return false;
     }
-    current_file = filename;
+    file_name = filename;
     std::string base = fs::path(filename).parent_path().string();
     if(filename[0]=='/')
-      current_dir = base;
+      dir = base;
     else
-      current_dir = current_dir + "/" + base;
+      dir = dir + "/" + base;
     current = file.get();
     current_stream = std::move(file);
 

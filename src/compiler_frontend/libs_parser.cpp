@@ -458,8 +458,8 @@ bool LibParser::TryParseFnDataType() {
         char PreCurTok = CurTok;
 
         
-        tokenizer.has_lib_file=true;
-        tokenizer.lib_file = std::move(file);
+        tokenizer->has_lib_file=true;
+        tokenizer->lib_file = std::move(file);
         CurTok = tok_identifier;
 
         getNextToken();
@@ -468,7 +468,7 @@ bool LibParser::TryParseFnDataType() {
         
 
 
-        tokenizer.can_see_space=false;
+        tokenizer->can_see_space=false;
         while (CurTok==tok_identifier||CurTok==tok_data) {
 
             bool is_data = CurTok==tok_data;
@@ -494,10 +494,10 @@ bool LibParser::TryParseFnDataType() {
             ArgsInit[fn_name].emplace(arg_name, std::move(arg));
             CurDefaultArgs++;
         }
-        tokenizer.can_see_space=true;
-        tokenizer.has_lib_file=false;
+        tokenizer->can_see_space=true;
+        tokenizer->has_lib_file=false;
 
-        file = std::move(tokenizer.lib_file);
+        file = std::move(tokenizer->lib_file);
         CurTok = PreCurTok;
     }
     
