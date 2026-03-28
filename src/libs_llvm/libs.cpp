@@ -763,12 +763,12 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("_quit_", _quit_Ty);
 
-	FunctionType *fexistsTy= FunctionType::get(
+	FunctionType *fexists_CTy= FunctionType::get(
 		Type::getInt1Ty(*TheContext),
 		{int8PtrTy, int8PtrTy},
 		false
 	);
-	TheModule->getOrInsertFunction("fexists", fexistsTy);
+	TheModule->getOrInsertFunction("fexists_C", fexists_CTy);
 
 	FunctionType *print_vec_i8Ty= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
@@ -1007,20 +1007,6 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("str_Copy", str_CopyTy);
-
-	FunctionType *str_CopyArgTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("str_CopyArg", str_CopyArgTy);
-
-	FunctionType *str_str_addTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("str_str_add", str_str_addTy);
 
 	FunctionType *str_int_addTy= FunctionType::get(
 		int8PtrTy,

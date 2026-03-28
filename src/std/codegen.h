@@ -32,6 +32,9 @@ Value *DT_vec_Create(Parser_Struct parser_struct, Function *TheFunction,
                       std::vector<std::unique_ptr<ExprAST>> &Args,
                       std::vector<Value*> &ArgsV);
 
+Value *fexists(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
 Value *print(Parser_Struct, Function *,
                  std::string, Data_Tree, std::vector<Data_Tree>&,
                  Value *, std::vector<std::unique_ptr<ExprAST>> &, std::vector<Value*>&);

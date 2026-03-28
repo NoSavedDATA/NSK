@@ -2499,7 +2499,7 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
       ClassAttrsName[Name].push_back(IdentifierStr);
       llvm::Type *Ty;
 
-      
+
       if (data_type=="float") {
           Ty = floatTy;
       } else if(data_type=="i8"||data_type=="char") {

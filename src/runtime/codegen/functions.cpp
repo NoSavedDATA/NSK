@@ -10,6 +10,6 @@ extern "C" float _quit_(Scope_Struct *scope_struct) {
 }
 
 
-extern "C" bool fexists(Scope_Struct *scope_struct, char *file) {
+extern "C" bool fexists_C(Scope_Struct *scope_struct, char *file) {
     return fs::exists(file);
 }

@@ -43,9 +43,9 @@ void set_user_functions() {
 		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
 		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
-		"_quit_", "fexists", 
+		"_quit_", "fexists_C", 
 		"Delete_Ptr", 
-		"str_Copy", "str_CopyArg", "str_str_add", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
+		"str_Copy", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"__idx__", "__sliced_idx__", 
 
@@ -54,6 +54,7 @@ void set_user_functions() {
 
 	struct_create_fn["DT_charv_Create"] = DT_charv_Create;
 	struct_create_fn["DT_vec_Create"] = DT_vec_Create;
+	llvm_callee["fexists"] = fexists;
 	llvm_callee["print"] = print;
 	llvm_callee["parse_i8"] = parse_i8;
 	llvm_callee["parse_i16"] = parse_i16;

@@ -1048,14 +1048,14 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["_quit_"].push_back("0");
 		
-		Function_Arg_Types["fexists"]["0"] = "Scope_Struct";
-		Function_Arg_Types["fexists"]["1"] = "str";
+		Function_Arg_Types["fexists_C"]["0"] = "Scope_Struct";
+		Function_Arg_Types["fexists_C"]["1"] = "str";
 		
-		Function_Arg_DataTypes["fexists"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["fexists"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["fexists_C"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["fexists_C"]["1"] = Data_Tree("str");
 		
-		Function_Arg_Names["fexists"].push_back("0");
-		Function_Arg_Names["fexists"].push_back("1");
+		Function_Arg_Names["fexists_C"].push_back("0");
+		Function_Arg_Names["fexists_C"].push_back("1");
 	
 		
 		Function_Arg_Types["bool_to_str_buffer"]["0"] = "Scope_Struct";
@@ -1079,30 +1079,6 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["str_Copy"].push_back("0");
 		Function_Arg_Names["str_Copy"].push_back("1");
-		
-		Function_Arg_Types["str_CopyArg"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_CopyArg"]["1"] = "str";
-		Function_Arg_Types["str_CopyArg"]["2"] = "str";
-		
-		Function_Arg_DataTypes["str_CopyArg"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_CopyArg"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["str_CopyArg"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["str_CopyArg"].push_back("0");
-		Function_Arg_Names["str_CopyArg"].push_back("1");
-		Function_Arg_Names["str_CopyArg"].push_back("2");
-		
-		Function_Arg_Types["str_str_add"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_str_add"]["1"] = "str";
-		Function_Arg_Types["str_str_add"]["2"] = "str";
-		
-		Function_Arg_DataTypes["str_str_add"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_str_add"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["str_str_add"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["str_str_add"].push_back("0");
-		Function_Arg_Names["str_str_add"].push_back("1");
-		Function_Arg_Names["str_str_add"].push_back("2");
 		
 		Function_Arg_Types["str_int_add"]["0"] = "Scope_Struct";
 		Function_Arg_Types["str_int_add"]["1"] = "str";

@@ -1,6 +1,7 @@
 def array<str> str_split(str s, char pattern)
     array<str> ret
     
+	print("pat ", pattern)
     i64 len = s.size()
     i64 offset = 0
     i64 pos = c_memchr(s, pattern, len)

@@ -8,6 +8,7 @@ proto any memchr(any, int, i64)
 proto i64 c_memchr(str, char, i64)
 proto int c_memcpy(str, charv, i64)
 proto any alloc(int, str)
+proto bool fexists(str)
 
 def float unbug()
 	return 0.0

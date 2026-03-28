@@ -163,10 +163,8 @@ inline void Semantic_Arguments_Check(Parser_Struct parser_struct,
         return;
     }
 
-    
 
-
-    if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
+    if (!in_vec(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
     { 
       if (Function_Arg_DataTypes.count(fn_name)>0)
       {   
@@ -681,9 +679,9 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   // casts
   if (LType!=RType&&in_vec(LType, int_types)&&in_vec(RType, int_types)) {
+    //Cast to L int type
     Elements = LType+"_"+LType;
     cast_R_to = "to_"+LType;
-    // std::cout << "turn " << LType << "_" << RType << " to " << Elements << "\n";
   }
   if (Elements=="int_float") {
     Elements = "float_float"; 
@@ -693,20 +691,12 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     Elements = "float_float"; 
     cast_R_to="int_to_float";
   }
-  // if (Elements=="int_i64") {
-  //   Elements = "int_int"; 
-  //   cast_R_to="i64_to_int";
-  // }
-  // if (Elements=="i64_int") {
-  //   Elements = "int_int"; 
-  //   cast_L_to="i64_to_int";
-  // }
   if (in_vec(LType, {"str", "charv"})) {
       if (RType!="int"&&in_vec(RType, int_types))
           cast_R_to="to_int";
       Elements = LType+"_int";
-      // std::cout << Elements << " | " << Operation << "\n";
   }
+  // std::cout << Elements << " | " << Operation << "\n";
   std::string operation = op_map[Op];
   Operation = Elements + "_" + operation;
 

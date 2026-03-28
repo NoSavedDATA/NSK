@@ -5,9 +5,6 @@ class File
 	str line
 
 	ctor(str fname)
-		if !fexists(fname)
-			err("File " + fname + " does not exist.")
-		
 		self.fd = c_open(fname)
 		self.line = alloc(2048, "str")
 		self.bytes_offset = 0

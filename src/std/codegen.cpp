@@ -116,26 +116,33 @@ Value *parse_i64(Parser_Struct parser_struct, Function *TheFunction,
 }
 
 
+Value *fexists(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    Value *str = Builder->CreateExtractValue(ArgsV[0], {0});
+    return callret("fexists_C", {scope_struct, str});
+}
 Value *c_open(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
+    Value *str = Builder->CreateExtractValue(ArgsV[0], {0});
 
     BasicBlock *ErrBB = BasicBlock::Create(*TheContext, "file_read.good", TheFunction);
     BasicBlock *GoodBB = BasicBlock::Create(*TheContext, "file_read.no_file", TheFunction);
 
-    Value *does_fexist = callret("fexists", {scope_struct, ArgsV[0]});
+    Value *does_fexist = callret("fexists_C", {scope_struct, str});
 
     Builder->CreateCondBr(does_fexist, GoodBB, ErrBB);
 
     Builder->SetInsertPoint(ErrBB);
-    Value *err_msg = callret("ConcatStr", {scope_struct, global_str("File "), ArgsV[0]});
+    Value *err_msg = callret("ConcatStr", {scope_struct, global_str("File "), str});
     err_msg = callret("ConcatStr", {scope_struct, err_msg, global_str(" not found.")});
     call("LogErrorCall", {const_int(parser_struct.line), err_msg});
     Builder->CreateUnreachable();
 
     Builder->SetInsertPoint(GoodBB);
     
-    return callret("open", {ArgsV[0], const_int(0)});
+    return callret("open", {str, const_int(0)});
 }
 
 Value *c_read(Parser_Struct parser_struct, Function *TheFunction,

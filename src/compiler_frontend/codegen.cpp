@@ -797,10 +797,9 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     ArgTypes.push_back(data_type);
 
     
-
-    
     int tgt_arg = i + arg_offset;
     Data_Tree expected_data_type = Function_Arg_DataTypes[fn_name][Function_Arg_Names[fn_name][tgt_arg]];
+    std::string expected_type = expected_data_type.Type;
     // if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
     // { 
     //   if (Function_Arg_Types.count(fn_name)>0)
@@ -818,12 +817,10 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     // }
 
     
-    if(type=="int"&&expected_data_type.Type=="float")
+    if(type=="int"&&expected_type=="float")
       arg = Builder->CreateSIToFP(arg, floatTy, "lfp");
-    if (type=="i64"&&expected_data_type.Type=="int")
-      arg = Builder->CreateTrunc(arg, intTy, "i64_to_int");
-    if (type=="int"&&expected_data_type.Type=="i64")
-        arg = Builder->CreateIntCast(arg, int64Ty, /*isSigned=*/true);
+    if (type!=expected_type&&in_vec(type, int_types)&&in_vec(expected_type, int_types))
+        arg = Builder->CreateIntCast(arg, get_type_from_data(expected_data_type), /*isSigned=*/true);
 
 
     std::string copy_fn = type+"_CopyArg";
@@ -860,7 +857,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
   i = i + arg_offset-1;
 
   // -- Add Default Arguments -- //
-  if (Function_Arg_Count.count(fn_name)>0&&!in_str(fn_name, vararg_methods)) {
+  if (Function_Arg_Count.count(fn_name)>0&&!in_vec(fn_name, vararg_methods)) {
       int arg_count = Function_Arg_Count[fn_name];
 
       int c=i+1;
@@ -3052,8 +3049,8 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
 
                 std::string Callee = ClassName + "___init__";
                 std::vector<Data_Tree> ArgTypes;
-
                 
+                // initialize compound types
                 StructType *st = struct_types["class_"+ClassName]; 
                 for (auto attr : ClassAttrsName[ClassName]) {
                   Data_Tree dt = data_typeVars[ClassName][attr];
@@ -3123,8 +3120,9 @@ Function *PrototypeAST::codegen() {
 
 
     std::vector<llvm::Type *> types;
-    for (auto &type : Types)
+    for (auto &type : Types) {
         types.push_back(get_type_from_data(type));
+    }
     
     llvm::Type *retTy = get_type_from_data(ReturnType);
 

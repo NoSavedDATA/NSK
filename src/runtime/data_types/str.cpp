@@ -25,13 +25,6 @@
 
   
 
-
-
-
-
-
-
-
 extern "C" char *str_Copy(Scope_Struct *scope_struct, char *str) {
   // std::cout << "Copying string: " << str << ".\n";
   char *ret = CopyString(scope_struct, str);
@@ -39,29 +32,9 @@ extern "C" char *str_Copy(Scope_Struct *scope_struct, char *str) {
 }
 
 
-extern "C" char *str_CopyArg(Scope_Struct *scope_struct, char *str, char *argname) {
-  // std::cout << "Copying arg string: " << str << ".\n";
-  char *ret = CopyString(scope_struct, str);
-  return ret;
-}
-
-extern "C" char * str_str_add(Scope_Struct *scope_struct, char *lc, char *rc)
-{
-  // std::cout << "Concat fn" << ".\n";
-  // std::cout << "Concat: " << lc << " -- " << rc << ".\n";
-  size_t length_lc = strlen(lc);
-  size_t length_rc = strlen(rc) + 1; // +1 for null terminator
-  char *result_cstr = allocate<char>(scope_struct, length_lc+length_rc, "str");
 
 
-  
-  memcpy(result_cstr, lc, length_lc);
-  memcpy(result_cstr + length_lc, rc, length_rc);
 
-  //std::cout << "ConcatStr " << result_cstr << "\n";
-
-  return result_cstr;
-}
 
 
 

@@ -72,7 +72,7 @@ void InitializeModule() {
   Generate_Struct_Types();
   str_toTy = {{"char", int8Ty}, {"i8", int8Ty}, {"int", intTy}, {"i64", int64Ty}, {"i16", int16Ty},
               {"bool", boolTy},
-                {"float", floatTy}, {"void", voidTy}, {"str", struct_types["DT_str"]}};
+              {"float", floatTy}, {"void", voidTy}, {"str", struct_types["DT_str"]}};
   Generate_Class_Types();
 
   //===----------------------------------------------------------------------===//

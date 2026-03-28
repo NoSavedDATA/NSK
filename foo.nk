@@ -1,29 +1,24 @@
 import std_lib
 
 
-
 class Csv
-	int fd, bytes_offset, col
+	int fd, col
 	charv[8192] buf
 	i64 bytes_read
-	str cur_buffer
+	str cur_buffer, fname
 	array<str> header
 	array<array<str>> elem
 	map<str, int> col_to_id
 	char sep
 
 	ctor(str fname, char sep)
-		if !fexists(fname)
-			err("File " + fname + " does not exist.")
-		
 		self.fd = c_open(fname)
-		self.bytes_offset = 0
 		self.col = 0
 		self.bytes_read = -1
+		self.fname = fname
 		self.sep = sep
 
 		self.read()
-
 		
 	def float get_buff()
 		self.bytes_read = c_read(self.fd, self.buf, 8192)
@@ -35,7 +30,8 @@ class Csv
 	def float process_delimiter(int offset, int pos, int size)
 		char delimiter = self.buf[pos]
 
-		str view = {self.cur_buffer.offset(offset), size}
+
+		str view = {self.cur_buffer offby offset, size}
 		if self.elem.size()<=self.col
 			array<str> new_col
 			self.elem.append(new_col)
@@ -50,15 +46,13 @@ class Csv
 
 
 	def float read()
-		if self.bytes_read==-1
-			self.bytes_offset = 0
 
 		while self.bytes_read!=0
 			self.get_buff()
 			int mask = 0, pos = 0, last_pos = 0
 			while pos<self.bytes_read
 				vec<i8,32> bytes = simd_load(self.buf+pos, i8,32)
-				vec<i8,32> v_comma = vec_make(',', 32)
+				vec<i8,32> v_comma = vec_make(self.sep, 32)
 				vec<i8,32> v_break = vec_make('\n', 32)
 
 				vec<i8,32> v_mask = (v_comma==bytes) or (v_break==bytes)
@@ -81,17 +75,11 @@ class Csv
 		return self.header
 
 	def array<str> get_col(str col_name)
-		print("get row ", col_name)
-		print("get row ", self.col_to_id[col_name])
 		return self.elem[self.col_to_id[col_name]]
-
-	def bool opened()
-		return self.bytes_read!=0 
 
 
 def float foo()
 	Csv f("games.csv", ',')
-
 	array<str> col = f.get_col("gender")
 	col.print()
 	for c in f.get_cols()
@@ -109,7 +97,6 @@ def float bar()
 			_quit_()
 	return 0
 
-
 main
 	foo()
 	#bar()
@@ -117,3 +104,4 @@ main
 	str i = "um-dois-tres-quatro"
 	array<str> v = i.split('-')
 	v.print()
+
