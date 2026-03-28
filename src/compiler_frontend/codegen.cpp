@@ -618,25 +618,17 @@ Value *UnkVarExprAST::codegen(Value *scope_struct) {
 
 
 
-    if(in_str(Type, primary_data_tokens)&&!(is_self||is_attr))
-    { 
+    if(in_str(Type, primary_data_tokens)&&!(is_self||is_attr)) { 
       function_values[parser_struct.function_name][VarName] = initial_value;
       continue;
     }
 
 
-    Value *var_name, *scopeless_name;
-
-    // --- Name Solving --- //
-    var_name = callret("CopyString", {scope_struct, global_str(VarName)});
-    scopeless_name = callret("CopyString", {scope_struct, var_name});
  
-
     
 
 
-    if(is_self)
-    {
+    if(is_self) {
       int object_ptr_offset = ClassVariables[parser_struct.class_name][VarName]; 
   
       Value *obj = get_scope_obj(scope_struct);
@@ -646,13 +638,15 @@ Value *UnkVarExprAST::codegen(Value *scope_struct) {
       LogErrorS(parser_struct.line, "Creating attribute in a data expression is not supported.");
     }
     else {
+      Value *unpacked_val = initial_value;
+      if (Type=="str") {
+            unpacked_val = Builder->CreateExtractValue(initial_value, {0});
+      }
       function_values[parser_struct.function_name][VarName] = initial_value;
-      Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, data_type, initial_value); 
+      Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, data_type, unpacked_val); 
     }
       
 
-    // call("str_Delete", {var_name});
-    // call("str_Delete", {scopeless_name});
   }
 
 
@@ -957,7 +951,6 @@ Value *DataExprAST::codegen(Value *scope_struct) {
         }
 
 
-        // if(!IsStruct||Type=="list"||Type=="array"||Type=="map") {
         if(DtHasCreateFn) {
             if (auto *null_stmt = dynamic_cast<NullPtrExprAST*>(VarNames[i].second.get())) {
                 if(Check_Required_Args_Count(create_fn, Notes.size(), parser_struct)) {
@@ -1011,7 +1004,11 @@ Value *DataExprAST::codegen(Value *scope_struct) {
             LogErrorS(parser_struct.line, "Creating attribute in a data expression is not supported.");
         }
         else { 
-            Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, data_type, initial_value); 
+            Value *unpacked_val = initial_value;
+            if (Type=="str") {
+                unpacked_val = Builder->CreateExtractValue(initial_value, {0});
+            }
+            Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, data_type, unpacked_val); 
             function_values[parser_struct.function_name][VarName] = initial_value;
             // if (Type=="array")
             //     Cache_Array(parser_struct, initial_value);
@@ -2109,8 +2106,13 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
             // if (LType=="array")
             //     Cache_Array(parser_struct, Val);
 
-            if(!in_str(LType, primary_data_tokens))
-                Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, Val);
+            if(!in_str(LType, primary_data_tokens)) {
+                Value *unpacked_val = Val;
+                if (Type=="str")
+                    unpacked_val = Builder->CreateExtractValue(Val, {0});
+                Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, unpacked_val);
+            }
+
             function_values[parser_struct.function_name][Lname] = Val;
 
         } else {
