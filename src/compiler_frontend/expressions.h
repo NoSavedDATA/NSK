@@ -344,7 +344,8 @@ class NewExprAST : public ExprAST {
   public:
     std::string DataName, Callee;
     std::vector<std::unique_ptr<ExprAST>> Args;
-    Data_Tree data_type;
+    bool is_high_level_obj=false;
+    Data_Tree data_type=Data_Tree("");
     Parser_Struct parser_struct;
 
     NewExprAST(

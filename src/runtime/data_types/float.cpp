@@ -26,6 +26,25 @@ extern "C" float read_float(Scope_Struct *scope_struct) {
 }
 
 
+extern "C" float float_pp_print(Scope_Struct *scope_struct, float *ptr_ref, int size) {
+    float *ptr = *((float**)ptr_ref);
+    std::cout << "" << ptr << " -- " << size << "\n";
+    for (int i=0; i<size; i++) {
+        std::cout << ptr[i] << ", ";
+    }
+    std::cout << "\n";
+    return 0;
+}
+
+extern "C" float float_ptr_print(Scope_Struct *scope_struct, float *ptr, int size) {
+    std::cout << "" << ptr << " -- " << size << "\n";
+    for (int i=0; i<size; i++) {
+        std::cout << ptr[i] << ", ";
+    }
+    std::cout << "\n";
+    return 0;
+}
+
 
 extern "C" char *float_to_str(Scope_Struct *scope_struct, float x) {
     // Enough for 32-bit int including sign and null terminator

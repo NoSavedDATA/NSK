@@ -268,6 +268,7 @@ NewVecExprAST::NewVecExprAST(
     : Values(std::move(Values)), Type(Type) 
 {
   this->SetType(Type);
+  GetDataTree();
 }
 
 
@@ -541,8 +542,17 @@ bool DataExprAST::GetNeedGCSafePoint() {
 }
 
 Data_Tree NewExprAST::GetDataTree(bool from_assignment) {
-    if (functions_return_data_type.count(Callee)==0)
-        LogErrorS(parser_struct.line, "Could not find data type " + DataName);
+    if(data_type.Type!="")
+        return data_type;
+
+    if (functions_return_data_type.count(Callee)==0) {
+        Callee = DataName + "___init__";
+        if (ClassSize.count(DataName)==0)
+            LogErrorS(parser_struct.line, "Could not find data type " + DataName);
+        is_high_level_obj = true;
+        data_type = Data_Tree(DataName);
+        return data_type;
+    }
     Data_Tree new_dt = functions_return_data_type[Callee];
     data_type = new_dt;
     return new_dt;
@@ -661,6 +671,7 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
   L_dt = LHS->GetDataTree();
   R_dt = RHS->GetDataTree();
 
+
   std::string LType = UnmangleVec(L_dt), RType = UnmangleVec(R_dt);
   if(ends_with(LType, "channel"))
     LType = "channel";
@@ -712,11 +723,16 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
       return L_dt;
   else if (ops_type_return.count(Operation)>0)
     return Data_Tree(ops_type_return[Operation]);
-  else if (functions_return_data_type.count(Operation))
+  else if (functions_return_data_type.count(Operation)) {
+    Data_Tree dt = functions_return_data_type[Operation];
     return functions_return_data_type[Operation];
+  }
   else if (elements_type_return.count(Elements)>0)
     type = elements_type_return[Elements];
-  else {}
+  else {
+      if (Op!='=')
+          LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
+  }
 
   return Data_Tree(type);
 }
@@ -737,7 +753,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   std::string Lname = this->LHS->GetName();
 
   std::string RType = R_dt.Type;
-
+  // std::cout << LType << "|" << RType << " -- " << Op << "\n";
 
 
   // --- Handle store --- //
@@ -804,9 +820,6 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
   if(L_dt.Type=="channel"||R_dt.Type=="channel")
     Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
 
-  if (!in_str(Elements, {"int_int", "str_int", "i8_i8", "i16_i16", "float_float", "bool_bool", "charv_i64", "charv_int", "i64_i64", "vec_vec"})&&\
-      TheModule->getFunction(Operation)==nullptr)
-      LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
 }
   
   

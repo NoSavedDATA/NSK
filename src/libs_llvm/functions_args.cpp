@@ -14,6 +14,670 @@ void set_functions_args_type() {
 
 	
 		
+		
+		
+	
+		
+		Function_Arg_Types["print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["print"]["1"] = "str";
+		
+		Function_Arg_DataTypes["print"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["print"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["print"].push_back("0");
+		Function_Arg_Names["print"].push_back("1");
+		
+		Function_Arg_Types["print_void_ptrC"]["0"] = "Scope_Struct";
+		Function_Arg_Types["print_void_ptrC"]["1"] = "void";
+		
+		Function_Arg_DataTypes["print_void_ptrC"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["print_void_ptrC"]["1"] = Data_Tree("void");
+		
+		Function_Arg_Names["print_void_ptrC"].push_back("0");
+		Function_Arg_Names["print_void_ptrC"].push_back("1");
+	
+		
+		Function_Arg_Types["_quit_"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["_quit_"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["_quit_"].push_back("0");
+		
+		Function_Arg_Types["fexists_C"]["0"] = "Scope_Struct";
+		Function_Arg_Types["fexists_C"]["1"] = "str";
+		
+		Function_Arg_DataTypes["fexists_C"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["fexists_C"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["fexists_C"].push_back("0");
+		Function_Arg_Names["fexists_C"].push_back("1");
+	
+		
+		
+		
+	
+		
+		Function_Arg_Types["GetEmptyChar"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["GetEmptyChar"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["GetEmptyChar"].push_back("0");
+		
+		Function_Arg_Types["CopyString"]["0"] = "Scope_Struct";
+		Function_Arg_Types["CopyString"]["1"] = "str";
+		
+		Function_Arg_DataTypes["CopyString"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["CopyString"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["CopyString"].push_back("0");
+		Function_Arg_Names["CopyString"].push_back("1");
+		
+		Function_Arg_Types["ConcatStr"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ConcatStr"]["1"] = "str";
+		Function_Arg_Types["ConcatStr"]["2"] = "str";
+		
+		Function_Arg_DataTypes["ConcatStr"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["ConcatStr"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["ConcatStr"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["ConcatStr"].push_back("0");
+		Function_Arg_Names["ConcatStr"].push_back("1");
+		Function_Arg_Names["ConcatStr"].push_back("2");
+		
+		Function_Arg_Types["ConcatStrFreeLeft"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ConcatStrFreeLeft"]["1"] = "str";
+		Function_Arg_Types["ConcatStrFreeLeft"]["2"] = "str";
+		
+		Function_Arg_DataTypes["ConcatStrFreeLeft"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["ConcatStrFreeLeft"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["ConcatStrFreeLeft"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["ConcatStrFreeLeft"].push_back("0");
+		Function_Arg_Names["ConcatStrFreeLeft"].push_back("1");
+		Function_Arg_Names["ConcatStrFreeLeft"].push_back("2");
+		
+		Function_Arg_Types["ConcatFloatToStr"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ConcatFloatToStr"]["1"] = "str";
+		Function_Arg_Types["ConcatFloatToStr"]["2"] = "float";
+		
+		Function_Arg_DataTypes["ConcatFloatToStr"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["ConcatFloatToStr"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["ConcatFloatToStr"]["2"] = Data_Tree("float");
+		
+		Function_Arg_Names["ConcatFloatToStr"].push_back("0");
+		Function_Arg_Names["ConcatFloatToStr"].push_back("1");
+		Function_Arg_Names["ConcatFloatToStr"].push_back("2");
+		
+		Function_Arg_Types["ConcatNumToStrFree"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ConcatNumToStrFree"]["1"] = "str";
+		Function_Arg_Types["ConcatNumToStrFree"]["2"] = "float";
+		
+		Function_Arg_DataTypes["ConcatNumToStrFree"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["ConcatNumToStrFree"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["ConcatNumToStrFree"]["2"] = Data_Tree("float");
+		
+		Function_Arg_Names["ConcatNumToStrFree"].push_back("0");
+		Function_Arg_Names["ConcatNumToStrFree"].push_back("1");
+		Function_Arg_Names["ConcatNumToStrFree"].push_back("2");
+	
+		
+		Function_Arg_Types["str_vec_Create"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["str_vec_Create"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["str_vec_Create"].push_back("0");
+		
+		Function_Arg_Types["LenStrVec"]["0"] = "Scope_Struct";
+		Function_Arg_Types["LenStrVec"]["1"] = "str_vec";
+		
+		Function_Arg_DataTypes["LenStrVec"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree LenStrVec_1 = Data_Tree("vec");
+		LenStrVec_1.Nested_Data.push_back(Data_Tree("str"));
+		Function_Arg_DataTypes["LenStrVec"]["1"] = LenStrVec_1;
+		
+		Function_Arg_Names["LenStrVec"].push_back("0");
+		Function_Arg_Names["LenStrVec"].push_back("1");
+		
+		Function_Arg_Types["ShuffleStrVec"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ShuffleStrVec"]["1"] = "str_vec";
+		
+		Function_Arg_DataTypes["ShuffleStrVec"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree ShuffleStrVec_1 = Data_Tree("vec");
+		ShuffleStrVec_1.Nested_Data.push_back(Data_Tree("str"));
+		Function_Arg_DataTypes["ShuffleStrVec"]["1"] = ShuffleStrVec_1;
+		
+		Function_Arg_Names["ShuffleStrVec"].push_back("0");
+		Function_Arg_Names["ShuffleStrVec"].push_back("1");
+		
+		Function_Arg_Types["str_vec_Idx"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_vec_Idx"]["1"] = "str_vec";
+		Function_Arg_Types["str_vec_Idx"]["2"] = "int";
+		
+		Function_Arg_DataTypes["str_vec_Idx"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree str_vec_Idx_1 = Data_Tree("vec");
+		str_vec_Idx_1.Nested_Data.push_back(Data_Tree("str"));
+		Function_Arg_DataTypes["str_vec_Idx"]["1"] = str_vec_Idx_1;
+		Function_Arg_DataTypes["str_vec_Idx"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["str_vec_Idx"].push_back("0");
+		Function_Arg_Names["str_vec_Idx"].push_back("1");
+		Function_Arg_Names["str_vec_Idx"].push_back("2");
+		
+		Function_Arg_Types["str_vec_print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_vec_print"]["1"] = "str_vec";
+		
+		Function_Arg_DataTypes["str_vec_print"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree str_vec_print_1 = Data_Tree("vec");
+		str_vec_print_1.Nested_Data.push_back(Data_Tree("str"));
+		Function_Arg_DataTypes["str_vec_print"]["1"] = str_vec_print_1;
+		
+		Function_Arg_Names["str_vec_print"].push_back("0");
+		Function_Arg_Names["str_vec_print"].push_back("1");
+	
+		
+		Function_Arg_Types["print_stack1"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["print_stack1"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["print_stack1"].push_back("0");
+		
+		Function_Arg_Types["print_stack"]["0"] = "Scope_Struct";
+		Function_Arg_Types["print_stack"]["1"] = "void";
+		
+		Function_Arg_DataTypes["print_stack"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["print_stack"]["1"] = Data_Tree("void");
+		
+		Function_Arg_Names["print_stack"].push_back("0");
+		Function_Arg_Names["print_stack"].push_back("1");
+		
+		Function_Arg_Types["scope_struct_spec"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_spec"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_spec"].push_back("0");
+		
+		Function_Arg_Types["set_scope_line"]["0"] = "Scope_Struct";
+		Function_Arg_Types["set_scope_line"]["1"] = "int";
+		
+		Function_Arg_DataTypes["set_scope_line"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["set_scope_line"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["set_scope_line"].push_back("0");
+		Function_Arg_Names["set_scope_line"].push_back("1");
+		
+		
+		
+		
+		
+		
+		
+		Function_Arg_Types["scope_struct_Overwrite"]["0"] = "Scope_Struct";
+		Function_Arg_Types["scope_struct_Overwrite"]["1"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Overwrite"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["scope_struct_Overwrite"]["1"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Overwrite"].push_back("0");
+		Function_Arg_Names["scope_struct_Overwrite"].push_back("1");
+		
+		Function_Arg_Types["set_scope_thread_id"]["0"] = "Scope_Struct";
+		Function_Arg_Types["set_scope_thread_id"]["1"] = "int";
+		
+		Function_Arg_DataTypes["set_scope_thread_id"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["set_scope_thread_id"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["set_scope_thread_id"].push_back("0");
+		Function_Arg_Names["set_scope_thread_id"].push_back("1");
+		
+		Function_Arg_Types["get_scope_thread_id"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["get_scope_thread_id"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["get_scope_thread_id"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Reset_Threads"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Reset_Threads"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Reset_Threads"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Increment_Thread"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Increment_Thread"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Increment_Thread"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Print"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Print"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Print"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Save_for_Async"]["0"] = "Scope_Struct";
+		Function_Arg_Types["scope_struct_Save_for_Async"]["1"] = "str";
+		
+		Function_Arg_DataTypes["scope_struct_Save_for_Async"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["scope_struct_Save_for_Async"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["scope_struct_Save_for_Async"].push_back("0");
+		Function_Arg_Names["scope_struct_Save_for_Async"].push_back("1");
+		
+		Function_Arg_Types["scope_struct_Store_Asyncs_Count"]["0"] = "Scope_Struct";
+		Function_Arg_Types["scope_struct_Store_Asyncs_Count"]["1"] = "int";
+		
+		Function_Arg_DataTypes["scope_struct_Store_Asyncs_Count"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["scope_struct_Store_Asyncs_Count"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["scope_struct_Store_Asyncs_Count"].push_back("0");
+		Function_Arg_Names["scope_struct_Store_Asyncs_Count"].push_back("1");
+		
+		Function_Arg_Types["scope_struct_Get_Async_Scope"]["0"] = "Scope_Struct";
+		Function_Arg_Types["scope_struct_Get_Async_Scope"]["1"] = "int";
+		Function_Arg_Types["scope_struct_Get_Async_Scope"]["2"] = "int";
+		
+		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("0");
+		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("1");
+		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("2");
+		
+		Function_Arg_Types["scope_struct_print"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_print"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_print"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Sweep"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Sweep"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Sweep"].push_back("0");
+		
+		Function_Arg_Types["scope_struct_Delete"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["scope_struct_Delete"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["scope_struct_Delete"].push_back("0");
+	
+		
+		Function_Arg_Types["allocate_void"]["0"] = "Scope_Struct";
+		Function_Arg_Types["allocate_void"]["1"] = "int";
+		Function_Arg_Types["allocate_void"]["2"] = "const";
+		Function_Arg_Types["allocate_void"]["3"] = "type";
+		Function_Arg_Types["allocate_void"]["4"] = "type";
+		Function_Arg_Types["allocate_void"]["5"] = "auto";
+		Function_Arg_Types["allocate_void"]["6"] = "it";
+		Function_Arg_Types["allocate_void"]["7"] = "data_name_to_type";
+		Function_Arg_Types["allocate_void"]["8"] = "type";
+		Function_Arg_Types["allocate_void"]["9"] = "type";
+		Function_Arg_Types["allocate_void"]["10"] = "if";
+		Function_Arg_Types["allocate_void"]["11"] = "it";
+		Function_Arg_Types["allocate_void"]["12"] = "it";
+		Function_Arg_Types["allocate_void"]["13"] = "data_name_to_type";
+		
+		Function_Arg_DataTypes["allocate_void"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["allocate_void"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["allocate_void"]["2"] = Data_Tree("const");
+		Function_Arg_DataTypes["allocate_void"]["3"] = Data_Tree("type");
+		Function_Arg_DataTypes["allocate_void"]["4"] = Data_Tree("type");
+		Function_Arg_DataTypes["allocate_void"]["5"] = Data_Tree("auto");
+		Function_Arg_DataTypes["allocate_void"]["6"] = Data_Tree("it");
+		Function_Arg_DataTypes["allocate_void"]["7"] = Data_Tree("data_name_to_type");
+		Function_Arg_DataTypes["allocate_void"]["8"] = Data_Tree("type");
+		Function_Arg_DataTypes["allocate_void"]["9"] = Data_Tree("type");
+		Function_Arg_DataTypes["allocate_void"]["10"] = Data_Tree("if");
+		Function_Arg_DataTypes["allocate_void"]["11"] = Data_Tree("it");
+		Function_Arg_DataTypes["allocate_void"]["12"] = Data_Tree("it");
+		Function_Arg_DataTypes["allocate_void"]["13"] = Data_Tree("data_name_to_type");
+		
+		Function_Arg_Names["allocate_void"].push_back("0");
+		Function_Arg_Names["allocate_void"].push_back("1");
+		Function_Arg_Names["allocate_void"].push_back("2");
+		Function_Arg_Names["allocate_void"].push_back("3");
+		Function_Arg_Names["allocate_void"].push_back("4");
+		Function_Arg_Names["allocate_void"].push_back("5");
+		Function_Arg_Names["allocate_void"].push_back("6");
+		Function_Arg_Names["allocate_void"].push_back("7");
+		Function_Arg_Names["allocate_void"].push_back("8");
+		Function_Arg_Names["allocate_void"].push_back("9");
+		Function_Arg_Names["allocate_void"].push_back("10");
+		Function_Arg_Names["allocate_void"].push_back("11");
+		Function_Arg_Names["allocate_void"].push_back("12");
+		Function_Arg_Names["allocate_void"].push_back("13");
+		
+		Function_Arg_Types["allocate_pool"]["0"] = "Scope_Struct";
+		Function_Arg_Types["allocate_pool"]["1"] = "int";
+		Function_Arg_Types["allocate_pool"]["2"] = "uint16_t";
+		
+		Function_Arg_DataTypes["allocate_pool"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["allocate_pool"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["allocate_pool"]["2"] = Data_Tree("uint16_t");
+		
+		Function_Arg_Names["allocate_pool"].push_back("0");
+		Function_Arg_Names["allocate_pool"].push_back("1");
+		Function_Arg_Names["allocate_pool"].push_back("2");
+	
+		
+		Function_Arg_Types["channel_Create"]["0"] = "Scope_Struct";
+		Function_Arg_Types["channel_Create"]["1"] = "int";
+		
+		Function_Arg_DataTypes["channel_Create"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["channel_Create"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["channel_Create"].push_back("0");
+		Function_Arg_Names["channel_Create"].push_back("1");
+		
+		Function_Arg_Types["str_channel_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_channel_message"]["1"] = "void";
+		Function_Arg_Types["str_channel_message"]["2"] = "Channel";
+		
+		Function_Arg_DataTypes["str_channel_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_channel_message"]["1"] = Data_Tree("void");
+		Function_Arg_DataTypes["str_channel_message"]["2"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["str_channel_message"].push_back("0");
+		Function_Arg_Names["str_channel_message"].push_back("1");
+		Function_Arg_Names["str_channel_message"].push_back("2");
+		
+		Function_Arg_Types["channel_str_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["channel_str_message"]["1"] = "Channel";
+		Function_Arg_Types["channel_str_message"]["2"] = "str";
+		
+		Function_Arg_DataTypes["channel_str_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["channel_str_message"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["channel_str_message"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["channel_str_message"].push_back("0");
+		Function_Arg_Names["channel_str_message"].push_back("1");
+		Function_Arg_Names["channel_str_message"].push_back("2");
+		
+		Function_Arg_Types["void_channel_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["void_channel_message"]["1"] = "void";
+		Function_Arg_Types["void_channel_message"]["2"] = "Channel";
+		
+		Function_Arg_DataTypes["void_channel_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["void_channel_message"]["1"] = Data_Tree("void");
+		Function_Arg_DataTypes["void_channel_message"]["2"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["void_channel_message"].push_back("0");
+		Function_Arg_Names["void_channel_message"].push_back("1");
+		Function_Arg_Names["void_channel_message"].push_back("2");
+		
+		Function_Arg_Types["channel_void_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["channel_void_message"]["1"] = "Channel";
+		Function_Arg_Types["channel_void_message"]["2"] = "void";
+		
+		Function_Arg_DataTypes["channel_void_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["channel_void_message"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["channel_void_message"]["2"] = Data_Tree("void");
+		
+		Function_Arg_Names["channel_void_message"].push_back("0");
+		Function_Arg_Names["channel_void_message"].push_back("1");
+		Function_Arg_Names["channel_void_message"].push_back("2");
+		
+		Function_Arg_Types["str_channel_Idx"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_channel_Idx"]["1"] = "Channel";
+		Function_Arg_Types["str_channel_Idx"]["2"] = "int";
+		
+		Function_Arg_DataTypes["str_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_channel_Idx"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["str_channel_Idx"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["str_channel_Idx"].push_back("0");
+		Function_Arg_Names["str_channel_Idx"].push_back("1");
+		Function_Arg_Names["str_channel_Idx"].push_back("2");
+		
+		Function_Arg_Types["str_channel_terminate"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_channel_terminate"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["str_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_channel_terminate"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["str_channel_terminate"].push_back("0");
+		Function_Arg_Names["str_channel_terminate"].push_back("1");
+		
+		Function_Arg_Types["str_channel_alive"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_channel_alive"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["str_channel_alive"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_channel_alive"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["str_channel_alive"].push_back("0");
+		Function_Arg_Names["str_channel_alive"].push_back("1");
+		
+		Function_Arg_Types["float_channel_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_message"]["1"] = "void";
+		Function_Arg_Types["float_channel_message"]["2"] = "Channel";
+		
+		Function_Arg_DataTypes["float_channel_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_message"]["1"] = Data_Tree("void");
+		Function_Arg_DataTypes["float_channel_message"]["2"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["float_channel_message"].push_back("0");
+		Function_Arg_Names["float_channel_message"].push_back("1");
+		Function_Arg_Names["float_channel_message"].push_back("2");
+		
+		Function_Arg_Types["channel_float_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["channel_float_message"]["1"] = "Channel";
+		Function_Arg_Types["channel_float_message"]["2"] = "float";
+		
+		Function_Arg_DataTypes["channel_float_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["channel_float_message"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["channel_float_message"]["2"] = Data_Tree("float");
+		
+		Function_Arg_Names["channel_float_message"].push_back("0");
+		Function_Arg_Names["channel_float_message"].push_back("1");
+		Function_Arg_Names["channel_float_message"].push_back("2");
+		
+		Function_Arg_Types["float_channel_Idx"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_Idx"]["1"] = "Channel";
+		Function_Arg_Types["float_channel_Idx"]["2"] = "int";
+		
+		Function_Arg_DataTypes["float_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_Idx"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["float_channel_Idx"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["float_channel_Idx"].push_back("0");
+		Function_Arg_Names["float_channel_Idx"].push_back("1");
+		Function_Arg_Names["float_channel_Idx"].push_back("2");
+		
+		Function_Arg_Types["float_channel_sum"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_sum"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["float_channel_sum"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_sum"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["float_channel_sum"].push_back("0");
+		Function_Arg_Names["float_channel_sum"].push_back("1");
+		
+		Function_Arg_Types["float_channel_mean"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_mean"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["float_channel_mean"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_mean"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["float_channel_mean"].push_back("0");
+		Function_Arg_Names["float_channel_mean"].push_back("1");
+		
+		Function_Arg_Types["float_channel_terminate"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_terminate"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["float_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_terminate"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["float_channel_terminate"].push_back("0");
+		Function_Arg_Names["float_channel_terminate"].push_back("1");
+		
+		Function_Arg_Types["float_channel_alive"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_channel_alive"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["float_channel_alive"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_channel_alive"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["float_channel_alive"].push_back("0");
+		Function_Arg_Names["float_channel_alive"].push_back("1");
+		
+		Function_Arg_Types["int_channel_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_message"]["1"] = "void";
+		Function_Arg_Types["int_channel_message"]["2"] = "Channel";
+		
+		Function_Arg_DataTypes["int_channel_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_message"]["1"] = Data_Tree("void");
+		Function_Arg_DataTypes["int_channel_message"]["2"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["int_channel_message"].push_back("0");
+		Function_Arg_Names["int_channel_message"].push_back("1");
+		Function_Arg_Names["int_channel_message"].push_back("2");
+		
+		Function_Arg_Types["channel_int_message"]["0"] = "Scope_Struct";
+		Function_Arg_Types["channel_int_message"]["1"] = "Channel";
+		Function_Arg_Types["channel_int_message"]["2"] = "int";
+		
+		Function_Arg_DataTypes["channel_int_message"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["channel_int_message"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["channel_int_message"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["channel_int_message"].push_back("0");
+		Function_Arg_Names["channel_int_message"].push_back("1");
+		Function_Arg_Names["channel_int_message"].push_back("2");
+		
+		Function_Arg_Types["int_channel_Idx"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_Idx"]["1"] = "Channel";
+		Function_Arg_Types["int_channel_Idx"]["2"] = "int";
+		
+		Function_Arg_DataTypes["int_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_Idx"]["1"] = Data_Tree("Channel");
+		Function_Arg_DataTypes["int_channel_Idx"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["int_channel_Idx"].push_back("0");
+		Function_Arg_Names["int_channel_Idx"].push_back("1");
+		Function_Arg_Names["int_channel_Idx"].push_back("2");
+		
+		Function_Arg_Types["int_channel_sum"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_sum"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["int_channel_sum"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_sum"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["int_channel_sum"].push_back("0");
+		Function_Arg_Names["int_channel_sum"].push_back("1");
+		
+		Function_Arg_Types["int_channel_mean"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_mean"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["int_channel_mean"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_mean"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["int_channel_mean"].push_back("0");
+		Function_Arg_Names["int_channel_mean"].push_back("1");
+		
+		Function_Arg_Types["int_channel_terminate"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_terminate"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["int_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_terminate"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["int_channel_terminate"].push_back("0");
+		Function_Arg_Names["int_channel_terminate"].push_back("1");
+		
+		Function_Arg_Types["int_channel_alive"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_channel_alive"]["1"] = "Channel";
+		
+		Function_Arg_DataTypes["int_channel_alive"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_channel_alive"]["1"] = Data_Tree("Channel");
+		
+		Function_Arg_Names["int_channel_alive"].push_back("0");
+		Function_Arg_Names["int_channel_alive"].push_back("1");
+	
+		
+		Function_Arg_Types["map_Create"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_Create"]["1"] = "Data_Tree";
+		
+		Function_Arg_DataTypes["map_Create"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_Create"]["1"] = Data_Tree("Data_Tree");
+		
+		Function_Arg_Names["map_Create"].push_back("0");
+		Function_Arg_Names["map_Create"].push_back("1");
+		
+		Function_Arg_Types["map_expand"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_expand"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_expand"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_expand"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_expand"].push_back("0");
+		Function_Arg_Names["map_expand"].push_back("1");
+		
+		Function_Arg_Types["map_print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_print"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_print"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_print"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_print"].push_back("0");
+		Function_Arg_Names["map_print"].push_back("1");
+		
+		Function_Arg_Types["map_keys"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_keys"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_keys"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_keys"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_keys"].push_back("0");
+		Function_Arg_Names["map_keys"].push_back("1");
+		
+		Function_Arg_Types["map_values"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_values"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_values"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_values"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_values"].push_back("0");
+		Function_Arg_Names["map_values"].push_back("1");
+		
+		Function_Arg_Types["map_bad_key_str"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_bad_key_str"]["1"] = "str";
+		
+		Function_Arg_DataTypes["map_bad_key_str"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_bad_key_str"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["map_bad_key_str"].push_back("0");
+		Function_Arg_Names["map_bad_key_str"].push_back("1");
+		
+		Function_Arg_Types["map_bad_key_int"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_bad_key_int"]["1"] = "int";
+		
+		Function_Arg_DataTypes["map_bad_key_int"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_bad_key_int"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["map_bad_key_int"].push_back("0");
+		Function_Arg_Names["map_bad_key_int"].push_back("1");
+		
+		Function_Arg_Types["map_bad_key_float"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_bad_key_float"]["1"] = "float";
+		
+		Function_Arg_DataTypes["map_bad_key_float"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_bad_key_float"]["1"] = Data_Tree("float");
+		
+		Function_Arg_Names["map_bad_key_float"].push_back("0");
+		Function_Arg_Names["map_bad_key_float"].push_back("1");
+	
+		
+		Function_Arg_Types["bool_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["bool_to_str_buffer"]["1"] = "bool";
+		Function_Arg_Types["bool_to_str_buffer"]["2"] = "str";
+		
+		Function_Arg_DataTypes["bool_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["bool_to_str_buffer"]["1"] = Data_Tree("bool");
+		Function_Arg_DataTypes["bool_to_str_buffer"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["bool_to_str_buffer"].push_back("0");
+		Function_Arg_Names["bool_to_str_buffer"].push_back("1");
+		Function_Arg_Names["bool_to_str_buffer"].push_back("2");
+	
+		
 		Function_Arg_Types["array_Create"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_Create"]["1"] = "Data_Tree";
 		
@@ -47,6 +711,45 @@ void set_functions_args_type() {
 		Function_Arg_Names["array_double_size"].push_back("0");
 		Function_Arg_Names["array_double_size"].push_back("1");
 		Function_Arg_Names["array_double_size"].push_back("2");
+		
+		Function_Arg_Types["array_int_NewVec"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_int_NewVec"]["1"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["2"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["3"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["4"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["5"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["6"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["7"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["8"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["9"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["10"] = "int";
+		Function_Arg_Types["array_int_NewVec"]["11"] = "int";
+		
+		Function_Arg_DataTypes["array_int_NewVec"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["array_int_NewVec"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["2"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["3"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["4"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["5"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["6"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["7"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["8"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["9"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["10"] = Data_Tree("int");
+		Function_Arg_DataTypes["array_int_NewVec"]["11"] = Data_Tree("int");
+		
+		Function_Arg_Names["array_int_NewVec"].push_back("0");
+		Function_Arg_Names["array_int_NewVec"].push_back("1");
+		Function_Arg_Names["array_int_NewVec"].push_back("2");
+		Function_Arg_Names["array_int_NewVec"].push_back("3");
+		Function_Arg_Names["array_int_NewVec"].push_back("4");
+		Function_Arg_Names["array_int_NewVec"].push_back("5");
+		Function_Arg_Names["array_int_NewVec"].push_back("6");
+		Function_Arg_Names["array_int_NewVec"].push_back("7");
+		Function_Arg_Names["array_int_NewVec"].push_back("8");
+		Function_Arg_Names["array_int_NewVec"].push_back("9");
+		Function_Arg_Names["array_int_NewVec"].push_back("10");
+		Function_Arg_Names["array_int_NewVec"].push_back("11");
 		
 		Function_Arg_Types["array_print_int"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_print_int"]["1"] = "array";
@@ -197,85 +900,131 @@ void set_functions_args_type() {
 		Function_Arg_Names["array_print_str"].push_back("1");
 	
 		
+		Function_Arg_Types["tid"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["tid"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["tid"].push_back("0");
+	
+		
+		Function_Arg_Types["__slee_p_"]["0"] = "Scope_Struct";
+		Function_Arg_Types["__slee_p_"]["1"] = "int";
+		
+		Function_Arg_DataTypes["__slee_p_"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["__slee_p_"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["__slee_p_"].push_back("0");
+		Function_Arg_Names["__slee_p_"].push_back("1");
+		
+		Function_Arg_Types["random_sleep"]["0"] = "Scope_Struct";
+		Function_Arg_Types["random_sleep"]["1"] = "int";
+		Function_Arg_Types["random_sleep"]["2"] = "int";
+		
+		Function_Arg_DataTypes["random_sleep"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["random_sleep"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["random_sleep"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["random_sleep"].push_back("0");
+		Function_Arg_Names["random_sleep"].push_back("1");
+		Function_Arg_Names["random_sleep"].push_back("2");
+		
+		Function_Arg_Types["silent_sleep"]["0"] = "Scope_Struct";
+		Function_Arg_Types["silent_sleep"]["1"] = "int";
+		
+		Function_Arg_DataTypes["silent_sleep"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["silent_sleep"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["silent_sleep"].push_back("0");
+		Function_Arg_Names["silent_sleep"].push_back("1");
+		
+		Function_Arg_Types["start_timer"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["start_timer"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["start_timer"].push_back("0");
+		
+		Function_Arg_Types["end_timer"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["end_timer"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["end_timer"].push_back("0");
+	
+		
 		
 		
 	
 		
-		Function_Arg_Types["print"]["0"] = "Scope_Struct";
-		Function_Arg_Types["print"]["1"] = "str";
+		Function_Arg_Types["read_float"]["0"] = "Scope_Struct";
 		
-		Function_Arg_DataTypes["print"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["print"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["read_float"]["0"] = Data_Tree("Scope_Struct");
 		
-		Function_Arg_Names["print"].push_back("0");
-		Function_Arg_Names["print"].push_back("1");
+		Function_Arg_Names["read_float"].push_back("0");
 		
-		Function_Arg_Types["print_void_ptrC"]["0"] = "Scope_Struct";
-		Function_Arg_Types["print_void_ptrC"]["1"] = "void";
+		Function_Arg_Types["float_pp_print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_pp_print"]["1"] = "float";
+		Function_Arg_Types["float_pp_print"]["2"] = "int";
 		
-		Function_Arg_DataTypes["print_void_ptrC"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["print_void_ptrC"]["1"] = Data_Tree("void");
+		Function_Arg_DataTypes["float_pp_print"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_pp_print"]["1"] = Data_Tree("float");
+		Function_Arg_DataTypes["float_pp_print"]["2"] = Data_Tree("int");
 		
-		Function_Arg_Names["print_void_ptrC"].push_back("0");
-		Function_Arg_Names["print_void_ptrC"].push_back("1");
-	
+		Function_Arg_Names["float_pp_print"].push_back("0");
+		Function_Arg_Names["float_pp_print"].push_back("1");
+		Function_Arg_Names["float_pp_print"].push_back("2");
 		
-		Function_Arg_Types["allocate_void"]["0"] = "Scope_Struct";
-		Function_Arg_Types["allocate_void"]["1"] = "int";
-		Function_Arg_Types["allocate_void"]["2"] = "const";
-		Function_Arg_Types["allocate_void"]["3"] = "type";
-		Function_Arg_Types["allocate_void"]["4"] = "type";
-		Function_Arg_Types["allocate_void"]["5"] = "auto";
-		Function_Arg_Types["allocate_void"]["6"] = "it";
-		Function_Arg_Types["allocate_void"]["7"] = "data_name_to_type";
-		Function_Arg_Types["allocate_void"]["8"] = "type";
-		Function_Arg_Types["allocate_void"]["9"] = "type";
-		Function_Arg_Types["allocate_void"]["10"] = "if";
-		Function_Arg_Types["allocate_void"]["11"] = "it";
-		Function_Arg_Types["allocate_void"]["12"] = "it";
-		Function_Arg_Types["allocate_void"]["13"] = "data_name_to_type";
+		Function_Arg_Types["float_ptr_print"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_ptr_print"]["1"] = "float";
+		Function_Arg_Types["float_ptr_print"]["2"] = "int";
 		
-		Function_Arg_DataTypes["allocate_void"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["allocate_void"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["allocate_void"]["2"] = Data_Tree("const");
-		Function_Arg_DataTypes["allocate_void"]["3"] = Data_Tree("type");
-		Function_Arg_DataTypes["allocate_void"]["4"] = Data_Tree("type");
-		Function_Arg_DataTypes["allocate_void"]["5"] = Data_Tree("auto");
-		Function_Arg_DataTypes["allocate_void"]["6"] = Data_Tree("it");
-		Function_Arg_DataTypes["allocate_void"]["7"] = Data_Tree("data_name_to_type");
-		Function_Arg_DataTypes["allocate_void"]["8"] = Data_Tree("type");
-		Function_Arg_DataTypes["allocate_void"]["9"] = Data_Tree("type");
-		Function_Arg_DataTypes["allocate_void"]["10"] = Data_Tree("if");
-		Function_Arg_DataTypes["allocate_void"]["11"] = Data_Tree("it");
-		Function_Arg_DataTypes["allocate_void"]["12"] = Data_Tree("it");
-		Function_Arg_DataTypes["allocate_void"]["13"] = Data_Tree("data_name_to_type");
+		Function_Arg_DataTypes["float_ptr_print"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_ptr_print"]["1"] = Data_Tree("float");
+		Function_Arg_DataTypes["float_ptr_print"]["2"] = Data_Tree("int");
 		
-		Function_Arg_Names["allocate_void"].push_back("0");
-		Function_Arg_Names["allocate_void"].push_back("1");
-		Function_Arg_Names["allocate_void"].push_back("2");
-		Function_Arg_Names["allocate_void"].push_back("3");
-		Function_Arg_Names["allocate_void"].push_back("4");
-		Function_Arg_Names["allocate_void"].push_back("5");
-		Function_Arg_Names["allocate_void"].push_back("6");
-		Function_Arg_Names["allocate_void"].push_back("7");
-		Function_Arg_Names["allocate_void"].push_back("8");
-		Function_Arg_Names["allocate_void"].push_back("9");
-		Function_Arg_Names["allocate_void"].push_back("10");
-		Function_Arg_Names["allocate_void"].push_back("11");
-		Function_Arg_Names["allocate_void"].push_back("12");
-		Function_Arg_Names["allocate_void"].push_back("13");
+		Function_Arg_Names["float_ptr_print"].push_back("0");
+		Function_Arg_Names["float_ptr_print"].push_back("1");
+		Function_Arg_Names["float_ptr_print"].push_back("2");
 		
-		Function_Arg_Types["allocate_pool"]["0"] = "Scope_Struct";
-		Function_Arg_Types["allocate_pool"]["1"] = "int";
-		Function_Arg_Types["allocate_pool"]["2"] = "uint16_t";
+		Function_Arg_Types["float_to_str"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_to_str"]["1"] = "float";
 		
-		Function_Arg_DataTypes["allocate_pool"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["allocate_pool"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["allocate_pool"]["2"] = Data_Tree("uint16_t");
+		Function_Arg_DataTypes["float_to_str"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_to_str"]["1"] = Data_Tree("float");
 		
-		Function_Arg_Names["allocate_pool"].push_back("0");
-		Function_Arg_Names["allocate_pool"].push_back("1");
-		Function_Arg_Names["allocate_pool"].push_back("2");
+		Function_Arg_Names["float_to_str"].push_back("0");
+		Function_Arg_Names["float_to_str"].push_back("1");
+		
+		Function_Arg_Types["float_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["float_to_str_buffer"]["1"] = "float";
+		Function_Arg_Types["float_to_str_buffer"]["2"] = "str";
+		
+		Function_Arg_DataTypes["float_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["float_to_str_buffer"]["1"] = Data_Tree("float");
+		Function_Arg_DataTypes["float_to_str_buffer"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["float_to_str_buffer"].push_back("0");
+		Function_Arg_Names["float_to_str_buffer"].push_back("1");
+		Function_Arg_Names["float_to_str_buffer"].push_back("2");
+		
+		Function_Arg_Types["nsk_pow"]["0"] = "Scope_Struct";
+		Function_Arg_Types["nsk_pow"]["1"] = "float";
+		Function_Arg_Types["nsk_pow"]["2"] = "float";
+		
+		Function_Arg_DataTypes["nsk_pow"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["nsk_pow"]["1"] = Data_Tree("float");
+		Function_Arg_DataTypes["nsk_pow"]["2"] = Data_Tree("float");
+		
+		Function_Arg_Names["nsk_pow"].push_back("0");
+		Function_Arg_Names["nsk_pow"].push_back("1");
+		Function_Arg_Names["nsk_pow"].push_back("2");
+		
+		Function_Arg_Types["nsk_sqrt"]["0"] = "Scope_Struct";
+		Function_Arg_Types["nsk_sqrt"]["1"] = "float";
+		
+		Function_Arg_DataTypes["nsk_sqrt"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["nsk_sqrt"]["1"] = Data_Tree("float");
+		
+		Function_Arg_Names["nsk_sqrt"].push_back("0");
+		Function_Arg_Names["nsk_sqrt"].push_back("1");
 	
 		
 		Function_Arg_Types["object_Attr_on_Offset_float"]["0"] = "Scope_Struct";
@@ -342,127 +1091,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["object_Load_on_Offset"].push_back("1");
 	
 		
-		Function_Arg_Types["print_stack1"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["print_stack1"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["print_stack1"].push_back("0");
-		
-		Function_Arg_Types["print_stack"]["0"] = "Scope_Struct";
-		Function_Arg_Types["print_stack"]["1"] = "void";
-		
-		Function_Arg_DataTypes["print_stack"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["print_stack"]["1"] = Data_Tree("void");
-		
-		Function_Arg_Names["print_stack"].push_back("0");
-		Function_Arg_Names["print_stack"].push_back("1");
-		
-		Function_Arg_Types["scope_struct_spec"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_spec"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_spec"].push_back("0");
-		
-		Function_Arg_Types["set_scope_line"]["0"] = "Scope_Struct";
-		Function_Arg_Types["set_scope_line"]["1"] = "int";
-		
-		Function_Arg_DataTypes["set_scope_line"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["set_scope_line"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["set_scope_line"].push_back("0");
-		Function_Arg_Names["set_scope_line"].push_back("1");
-		
-		
-		
-		
-		
-		
-		
-		Function_Arg_Types["scope_struct_Overwrite"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Overwrite"]["1"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Overwrite"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Overwrite"]["1"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Overwrite"].push_back("0");
-		Function_Arg_Names["scope_struct_Overwrite"].push_back("1");
-		
-		Function_Arg_Types["set_scope_thread_id"]["0"] = "Scope_Struct";
-		Function_Arg_Types["set_scope_thread_id"]["1"] = "int";
-		
-		Function_Arg_DataTypes["set_scope_thread_id"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["set_scope_thread_id"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["set_scope_thread_id"].push_back("0");
-		Function_Arg_Names["set_scope_thread_id"].push_back("1");
-		
-		Function_Arg_Types["get_scope_thread_id"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["get_scope_thread_id"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["get_scope_thread_id"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Reset_Threads"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Reset_Threads"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Reset_Threads"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Increment_Thread"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Increment_Thread"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Increment_Thread"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Print"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Print"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Print"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Save_for_Async"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Save_for_Async"]["1"] = "str";
-		
-		Function_Arg_DataTypes["scope_struct_Save_for_Async"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Save_for_Async"]["1"] = Data_Tree("str");
-		
-		Function_Arg_Names["scope_struct_Save_for_Async"].push_back("0");
-		Function_Arg_Names["scope_struct_Save_for_Async"].push_back("1");
-		
-		Function_Arg_Types["scope_struct_Store_Asyncs_Count"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Store_Asyncs_Count"]["1"] = "int";
-		
-		Function_Arg_DataTypes["scope_struct_Store_Asyncs_Count"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Store_Asyncs_Count"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["scope_struct_Store_Asyncs_Count"].push_back("0");
-		Function_Arg_Names["scope_struct_Store_Asyncs_Count"].push_back("1");
-		
-		Function_Arg_Types["scope_struct_Get_Async_Scope"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Get_Async_Scope"]["1"] = "int";
-		Function_Arg_Types["scope_struct_Get_Async_Scope"]["2"] = "int";
-		
-		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["scope_struct_Get_Async_Scope"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("0");
-		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("1");
-		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("2");
-		
-		Function_Arg_Types["scope_struct_Sweep"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Sweep"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Sweep"].push_back("0");
-		
-		Function_Arg_Types["scope_struct_Delete"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Delete"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Delete"].push_back("0");
-	
-		
 		Function_Arg_Types["scope_struct_Alloc_GC"]["0"] = "Scope_Struct";
 		
 		Function_Arg_DataTypes["scope_struct_Alloc_GC"]["0"] = Data_Tree("Scope_Struct");
@@ -470,8 +1098,53 @@ void set_functions_args_type() {
 		Function_Arg_Names["scope_struct_Alloc_GC"].push_back("0");
 	
 		
+		Function_Arg_Types["read_int"]["0"] = "Scope_Struct";
 		
+		Function_Arg_DataTypes["read_int"]["0"] = Data_Tree("Scope_Struct");
 		
+		Function_Arg_Names["read_int"].push_back("0");
+		
+		Function_Arg_Types["int_to_str"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_to_str"]["1"] = "int";
+		
+		Function_Arg_DataTypes["int_to_str"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_to_str"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["int_to_str"].push_back("0");
+		Function_Arg_Names["int_to_str"].push_back("1");
+		
+		Function_Arg_Types["i64_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["i64_to_str_buffer"]["1"] = "int64_t";
+		Function_Arg_Types["i64_to_str_buffer"]["2"] = "str";
+		
+		Function_Arg_DataTypes["i64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["1"] = Data_Tree("int64_t");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["i64_to_str_buffer"].push_back("0");
+		Function_Arg_Names["i64_to_str_buffer"].push_back("1");
+		Function_Arg_Names["i64_to_str_buffer"].push_back("2");
+		
+		Function_Arg_Types["int_to_str_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_to_str_buffer"]["1"] = "int";
+		Function_Arg_Types["int_to_str_buffer"]["2"] = "str";
+		
+		Function_Arg_DataTypes["int_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_to_str_buffer"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["int_to_str_buffer"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["int_to_str_buffer"].push_back("0");
+		Function_Arg_Names["int_to_str_buffer"].push_back("1");
+		Function_Arg_Names["int_to_str_buffer"].push_back("2");
+		
+		Function_Arg_Types["int_print_bits"]["0"] = "Scope_Struct";
+		Function_Arg_Types["int_print_bits"]["1"] = "int";
+		
+		Function_Arg_DataTypes["int_print_bits"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["int_print_bits"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["int_print_bits"].push_back("0");
+		Function_Arg_Names["int_print_bits"].push_back("1");
 	
 		
 		Function_Arg_Types["list_New"]["0"] = "Scope_Struct";
@@ -739,253 +1412,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["tuple_Idx"].push_back("2");
 	
 		
-		Function_Arg_Types["str_vec_Create"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["str_vec_Create"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["str_vec_Create"].push_back("0");
-		
-		Function_Arg_Types["LenStrVec"]["0"] = "Scope_Struct";
-		Function_Arg_Types["LenStrVec"]["1"] = "str_vec";
-		
-		Function_Arg_DataTypes["LenStrVec"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree LenStrVec_1 = Data_Tree("vec");
-		LenStrVec_1.Nested_Data.push_back(Data_Tree("str"));
-		Function_Arg_DataTypes["LenStrVec"]["1"] = LenStrVec_1;
-		
-		Function_Arg_Names["LenStrVec"].push_back("0");
-		Function_Arg_Names["LenStrVec"].push_back("1");
-		
-		Function_Arg_Types["ShuffleStrVec"]["0"] = "Scope_Struct";
-		Function_Arg_Types["ShuffleStrVec"]["1"] = "str_vec";
-		
-		Function_Arg_DataTypes["ShuffleStrVec"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree ShuffleStrVec_1 = Data_Tree("vec");
-		ShuffleStrVec_1.Nested_Data.push_back(Data_Tree("str"));
-		Function_Arg_DataTypes["ShuffleStrVec"]["1"] = ShuffleStrVec_1;
-		
-		Function_Arg_Names["ShuffleStrVec"].push_back("0");
-		Function_Arg_Names["ShuffleStrVec"].push_back("1");
-		
-		Function_Arg_Types["str_vec_Idx"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_vec_Idx"]["1"] = "str_vec";
-		Function_Arg_Types["str_vec_Idx"]["2"] = "int";
-		
-		Function_Arg_DataTypes["str_vec_Idx"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree str_vec_Idx_1 = Data_Tree("vec");
-		str_vec_Idx_1.Nested_Data.push_back(Data_Tree("str"));
-		Function_Arg_DataTypes["str_vec_Idx"]["1"] = str_vec_Idx_1;
-		Function_Arg_DataTypes["str_vec_Idx"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["str_vec_Idx"].push_back("0");
-		Function_Arg_Names["str_vec_Idx"].push_back("1");
-		Function_Arg_Names["str_vec_Idx"].push_back("2");
-		
-		Function_Arg_Types["str_vec_print"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_vec_print"]["1"] = "str_vec";
-		
-		Function_Arg_DataTypes["str_vec_print"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree str_vec_print_1 = Data_Tree("vec");
-		str_vec_print_1.Nested_Data.push_back(Data_Tree("str"));
-		Function_Arg_DataTypes["str_vec_print"]["1"] = str_vec_print_1;
-		
-		Function_Arg_Names["str_vec_print"].push_back("0");
-		Function_Arg_Names["str_vec_print"].push_back("1");
-	
-		
-		Function_Arg_Types["read_float"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["read_float"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["read_float"].push_back("0");
-		
-		Function_Arg_Types["float_to_str"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_to_str"]["1"] = "float";
-		
-		Function_Arg_DataTypes["float_to_str"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_to_str"]["1"] = Data_Tree("float");
-		
-		Function_Arg_Names["float_to_str"].push_back("0");
-		Function_Arg_Names["float_to_str"].push_back("1");
-		
-		Function_Arg_Types["float_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_to_str_buffer"]["1"] = "float";
-		Function_Arg_Types["float_to_str_buffer"]["2"] = "str";
-		
-		Function_Arg_DataTypes["float_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_to_str_buffer"]["1"] = Data_Tree("float");
-		Function_Arg_DataTypes["float_to_str_buffer"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["float_to_str_buffer"].push_back("0");
-		Function_Arg_Names["float_to_str_buffer"].push_back("1");
-		Function_Arg_Names["float_to_str_buffer"].push_back("2");
-		
-		Function_Arg_Types["nsk_pow"]["0"] = "Scope_Struct";
-		Function_Arg_Types["nsk_pow"]["1"] = "float";
-		Function_Arg_Types["nsk_pow"]["2"] = "float";
-		
-		Function_Arg_DataTypes["nsk_pow"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["nsk_pow"]["1"] = Data_Tree("float");
-		Function_Arg_DataTypes["nsk_pow"]["2"] = Data_Tree("float");
-		
-		Function_Arg_Names["nsk_pow"].push_back("0");
-		Function_Arg_Names["nsk_pow"].push_back("1");
-		Function_Arg_Names["nsk_pow"].push_back("2");
-		
-		Function_Arg_Types["nsk_sqrt"]["0"] = "Scope_Struct";
-		Function_Arg_Types["nsk_sqrt"]["1"] = "float";
-		
-		Function_Arg_DataTypes["nsk_sqrt"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["nsk_sqrt"]["1"] = Data_Tree("float");
-		
-		Function_Arg_Names["nsk_sqrt"].push_back("0");
-		Function_Arg_Names["nsk_sqrt"].push_back("1");
-	
-		
-		Function_Arg_Types["map_Create"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_Create"]["1"] = "Data_Tree";
-		
-		Function_Arg_DataTypes["map_Create"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_Create"]["1"] = Data_Tree("Data_Tree");
-		
-		Function_Arg_Names["map_Create"].push_back("0");
-		Function_Arg_Names["map_Create"].push_back("1");
-		
-		Function_Arg_Types["map_expand"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_expand"]["1"] = "map";
-		
-		Function_Arg_DataTypes["map_expand"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_expand"]["1"] = Data_Tree("map");
-		
-		Function_Arg_Names["map_expand"].push_back("0");
-		Function_Arg_Names["map_expand"].push_back("1");
-		
-		Function_Arg_Types["map_print"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_print"]["1"] = "map";
-		
-		Function_Arg_DataTypes["map_print"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_print"]["1"] = Data_Tree("map");
-		
-		Function_Arg_Names["map_print"].push_back("0");
-		Function_Arg_Names["map_print"].push_back("1");
-		
-		Function_Arg_Types["map_keys"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_keys"]["1"] = "map";
-		
-		Function_Arg_DataTypes["map_keys"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_keys"]["1"] = Data_Tree("map");
-		
-		Function_Arg_Names["map_keys"].push_back("0");
-		Function_Arg_Names["map_keys"].push_back("1");
-		
-		Function_Arg_Types["map_values"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_values"]["1"] = "map";
-		
-		Function_Arg_DataTypes["map_values"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_values"]["1"] = Data_Tree("map");
-		
-		Function_Arg_Names["map_values"].push_back("0");
-		Function_Arg_Names["map_values"].push_back("1");
-		
-		Function_Arg_Types["map_bad_key_str"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_bad_key_str"]["1"] = "str";
-		
-		Function_Arg_DataTypes["map_bad_key_str"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_bad_key_str"]["1"] = Data_Tree("str");
-		
-		Function_Arg_Names["map_bad_key_str"].push_back("0");
-		Function_Arg_Names["map_bad_key_str"].push_back("1");
-		
-		Function_Arg_Types["map_bad_key_int"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_bad_key_int"]["1"] = "int";
-		
-		Function_Arg_DataTypes["map_bad_key_int"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_bad_key_int"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["map_bad_key_int"].push_back("0");
-		Function_Arg_Names["map_bad_key_int"].push_back("1");
-		
-		Function_Arg_Types["map_bad_key_float"]["0"] = "Scope_Struct";
-		Function_Arg_Types["map_bad_key_float"]["1"] = "float";
-		
-		Function_Arg_DataTypes["map_bad_key_float"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["map_bad_key_float"]["1"] = Data_Tree("float");
-		
-		Function_Arg_Names["map_bad_key_float"].push_back("0");
-		Function_Arg_Names["map_bad_key_float"].push_back("1");
-	
-		
-		Function_Arg_Types["tid"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["tid"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["tid"].push_back("0");
-	
-		
-		Function_Arg_Types["GetEmptyChar"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["GetEmptyChar"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["GetEmptyChar"].push_back("0");
-		
-		Function_Arg_Types["CopyString"]["0"] = "Scope_Struct";
-		Function_Arg_Types["CopyString"]["1"] = "str";
-		
-		Function_Arg_DataTypes["CopyString"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["CopyString"]["1"] = Data_Tree("str");
-		
-		Function_Arg_Names["CopyString"].push_back("0");
-		Function_Arg_Names["CopyString"].push_back("1");
-		
-		Function_Arg_Types["ConcatStr"]["0"] = "Scope_Struct";
-		Function_Arg_Types["ConcatStr"]["1"] = "str";
-		Function_Arg_Types["ConcatStr"]["2"] = "str";
-		
-		Function_Arg_DataTypes["ConcatStr"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["ConcatStr"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["ConcatStr"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["ConcatStr"].push_back("0");
-		Function_Arg_Names["ConcatStr"].push_back("1");
-		Function_Arg_Names["ConcatStr"].push_back("2");
-		
-		Function_Arg_Types["ConcatStrFreeLeft"]["0"] = "Scope_Struct";
-		Function_Arg_Types["ConcatStrFreeLeft"]["1"] = "str";
-		Function_Arg_Types["ConcatStrFreeLeft"]["2"] = "str";
-		
-		Function_Arg_DataTypes["ConcatStrFreeLeft"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["ConcatStrFreeLeft"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["ConcatStrFreeLeft"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["ConcatStrFreeLeft"].push_back("0");
-		Function_Arg_Names["ConcatStrFreeLeft"].push_back("1");
-		Function_Arg_Names["ConcatStrFreeLeft"].push_back("2");
-		
-		Function_Arg_Types["ConcatFloatToStr"]["0"] = "Scope_Struct";
-		Function_Arg_Types["ConcatFloatToStr"]["1"] = "str";
-		Function_Arg_Types["ConcatFloatToStr"]["2"] = "float";
-		
-		Function_Arg_DataTypes["ConcatFloatToStr"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["ConcatFloatToStr"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["ConcatFloatToStr"]["2"] = Data_Tree("float");
-		
-		Function_Arg_Names["ConcatFloatToStr"].push_back("0");
-		Function_Arg_Names["ConcatFloatToStr"].push_back("1");
-		Function_Arg_Names["ConcatFloatToStr"].push_back("2");
-		
-		Function_Arg_Types["ConcatNumToStrFree"]["0"] = "Scope_Struct";
-		Function_Arg_Types["ConcatNumToStrFree"]["1"] = "str";
-		Function_Arg_Types["ConcatNumToStrFree"]["2"] = "float";
-		
-		Function_Arg_DataTypes["ConcatNumToStrFree"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["ConcatNumToStrFree"]["1"] = Data_Tree("str");
-		Function_Arg_DataTypes["ConcatNumToStrFree"]["2"] = Data_Tree("float");
-		
-		Function_Arg_Names["ConcatNumToStrFree"].push_back("0");
-		Function_Arg_Names["ConcatNumToStrFree"].push_back("1");
-		Function_Arg_Names["ConcatNumToStrFree"].push_back("2");
-	
-		
 		Function_Arg_Types["charv_print"]["0"] = "Scope_Struct";
 		Function_Arg_Types["charv_print"]["1"] = "str";
 		Function_Arg_Types["charv_print"]["2"] = "int";
@@ -999,76 +1425,17 @@ void set_functions_args_type() {
 		Function_Arg_Names["charv_print"].push_back("2");
 	
 		
-		Function_Arg_Types["__slee_p_"]["0"] = "Scope_Struct";
-		Function_Arg_Types["__slee_p_"]["1"] = "int";
+		Function_Arg_Types["randint"]["0"] = "Scope_Struct";
+		Function_Arg_Types["randint"]["1"] = "int";
+		Function_Arg_Types["randint"]["2"] = "int";
 		
-		Function_Arg_DataTypes["__slee_p_"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["__slee_p_"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["randint"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["randint"]["1"] = Data_Tree("int");
+		Function_Arg_DataTypes["randint"]["2"] = Data_Tree("int");
 		
-		Function_Arg_Names["__slee_p_"].push_back("0");
-		Function_Arg_Names["__slee_p_"].push_back("1");
-		
-		Function_Arg_Types["random_sleep"]["0"] = "Scope_Struct";
-		Function_Arg_Types["random_sleep"]["1"] = "int";
-		Function_Arg_Types["random_sleep"]["2"] = "int";
-		
-		Function_Arg_DataTypes["random_sleep"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["random_sleep"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["random_sleep"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["random_sleep"].push_back("0");
-		Function_Arg_Names["random_sleep"].push_back("1");
-		Function_Arg_Names["random_sleep"].push_back("2");
-		
-		Function_Arg_Types["silent_sleep"]["0"] = "Scope_Struct";
-		Function_Arg_Types["silent_sleep"]["1"] = "int";
-		
-		Function_Arg_DataTypes["silent_sleep"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["silent_sleep"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["silent_sleep"].push_back("0");
-		Function_Arg_Names["silent_sleep"].push_back("1");
-		
-		Function_Arg_Types["start_timer"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["start_timer"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["start_timer"].push_back("0");
-		
-		Function_Arg_Types["end_timer"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["end_timer"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["end_timer"].push_back("0");
-	
-		
-		Function_Arg_Types["_quit_"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["_quit_"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["_quit_"].push_back("0");
-		
-		Function_Arg_Types["fexists_C"]["0"] = "Scope_Struct";
-		Function_Arg_Types["fexists_C"]["1"] = "str";
-		
-		Function_Arg_DataTypes["fexists_C"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["fexists_C"]["1"] = Data_Tree("str");
-		
-		Function_Arg_Names["fexists_C"].push_back("0");
-		Function_Arg_Names["fexists_C"].push_back("1");
-	
-		
-		Function_Arg_Types["bool_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["bool_to_str_buffer"]["1"] = "bool";
-		Function_Arg_Types["bool_to_str_buffer"]["2"] = "str";
-		
-		Function_Arg_DataTypes["bool_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["bool_to_str_buffer"]["1"] = Data_Tree("bool");
-		Function_Arg_DataTypes["bool_to_str_buffer"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["bool_to_str_buffer"].push_back("0");
-		Function_Arg_Names["bool_to_str_buffer"].push_back("1");
-		Function_Arg_Names["bool_to_str_buffer"].push_back("2");
+		Function_Arg_Names["randint"].push_back("0");
+		Function_Arg_Names["randint"].push_back("1");
+		Function_Arg_Names["randint"].push_back("2");
 	
 		
 		Function_Arg_Types["str_Copy"]["0"] = "Scope_Struct";
@@ -1214,303 +1581,5 @@ void set_functions_args_type() {
 		Function_Arg_DataTypes["readline"]["0"] = Data_Tree("Scope_Struct");
 		
 		Function_Arg_Names["readline"].push_back("0");
-	
-		
-		Function_Arg_Types["randint"]["0"] = "Scope_Struct";
-		Function_Arg_Types["randint"]["1"] = "int";
-		Function_Arg_Types["randint"]["2"] = "int";
-		
-		Function_Arg_DataTypes["randint"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["randint"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["randint"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["randint"].push_back("0");
-		Function_Arg_Names["randint"].push_back("1");
-		Function_Arg_Names["randint"].push_back("2");
-	
-		
-		
-		
-	
-		
-		Function_Arg_Types["channel_Create"]["0"] = "Scope_Struct";
-		Function_Arg_Types["channel_Create"]["1"] = "int";
-		
-		Function_Arg_DataTypes["channel_Create"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["channel_Create"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["channel_Create"].push_back("0");
-		Function_Arg_Names["channel_Create"].push_back("1");
-		
-		Function_Arg_Types["str_channel_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_channel_message"]["1"] = "void";
-		Function_Arg_Types["str_channel_message"]["2"] = "Channel";
-		
-		Function_Arg_DataTypes["str_channel_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_channel_message"]["1"] = Data_Tree("void");
-		Function_Arg_DataTypes["str_channel_message"]["2"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["str_channel_message"].push_back("0");
-		Function_Arg_Names["str_channel_message"].push_back("1");
-		Function_Arg_Names["str_channel_message"].push_back("2");
-		
-		Function_Arg_Types["channel_str_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["channel_str_message"]["1"] = "Channel";
-		Function_Arg_Types["channel_str_message"]["2"] = "str";
-		
-		Function_Arg_DataTypes["channel_str_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["channel_str_message"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["channel_str_message"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["channel_str_message"].push_back("0");
-		Function_Arg_Names["channel_str_message"].push_back("1");
-		Function_Arg_Names["channel_str_message"].push_back("2");
-		
-		Function_Arg_Types["void_channel_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["void_channel_message"]["1"] = "void";
-		Function_Arg_Types["void_channel_message"]["2"] = "Channel";
-		
-		Function_Arg_DataTypes["void_channel_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["void_channel_message"]["1"] = Data_Tree("void");
-		Function_Arg_DataTypes["void_channel_message"]["2"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["void_channel_message"].push_back("0");
-		Function_Arg_Names["void_channel_message"].push_back("1");
-		Function_Arg_Names["void_channel_message"].push_back("2");
-		
-		Function_Arg_Types["channel_void_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["channel_void_message"]["1"] = "Channel";
-		Function_Arg_Types["channel_void_message"]["2"] = "void";
-		
-		Function_Arg_DataTypes["channel_void_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["channel_void_message"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["channel_void_message"]["2"] = Data_Tree("void");
-		
-		Function_Arg_Names["channel_void_message"].push_back("0");
-		Function_Arg_Names["channel_void_message"].push_back("1");
-		Function_Arg_Names["channel_void_message"].push_back("2");
-		
-		Function_Arg_Types["str_channel_Idx"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_channel_Idx"]["1"] = "Channel";
-		Function_Arg_Types["str_channel_Idx"]["2"] = "int";
-		
-		Function_Arg_DataTypes["str_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_channel_Idx"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["str_channel_Idx"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["str_channel_Idx"].push_back("0");
-		Function_Arg_Names["str_channel_Idx"].push_back("1");
-		Function_Arg_Names["str_channel_Idx"].push_back("2");
-		
-		Function_Arg_Types["str_channel_terminate"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_channel_terminate"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["str_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_channel_terminate"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["str_channel_terminate"].push_back("0");
-		Function_Arg_Names["str_channel_terminate"].push_back("1");
-		
-		Function_Arg_Types["str_channel_alive"]["0"] = "Scope_Struct";
-		Function_Arg_Types["str_channel_alive"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["str_channel_alive"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["str_channel_alive"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["str_channel_alive"].push_back("0");
-		Function_Arg_Names["str_channel_alive"].push_back("1");
-		
-		Function_Arg_Types["float_channel_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_message"]["1"] = "void";
-		Function_Arg_Types["float_channel_message"]["2"] = "Channel";
-		
-		Function_Arg_DataTypes["float_channel_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_message"]["1"] = Data_Tree("void");
-		Function_Arg_DataTypes["float_channel_message"]["2"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["float_channel_message"].push_back("0");
-		Function_Arg_Names["float_channel_message"].push_back("1");
-		Function_Arg_Names["float_channel_message"].push_back("2");
-		
-		Function_Arg_Types["channel_float_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["channel_float_message"]["1"] = "Channel";
-		Function_Arg_Types["channel_float_message"]["2"] = "float";
-		
-		Function_Arg_DataTypes["channel_float_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["channel_float_message"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["channel_float_message"]["2"] = Data_Tree("float");
-		
-		Function_Arg_Names["channel_float_message"].push_back("0");
-		Function_Arg_Names["channel_float_message"].push_back("1");
-		Function_Arg_Names["channel_float_message"].push_back("2");
-		
-		Function_Arg_Types["float_channel_Idx"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_Idx"]["1"] = "Channel";
-		Function_Arg_Types["float_channel_Idx"]["2"] = "int";
-		
-		Function_Arg_DataTypes["float_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_Idx"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["float_channel_Idx"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["float_channel_Idx"].push_back("0");
-		Function_Arg_Names["float_channel_Idx"].push_back("1");
-		Function_Arg_Names["float_channel_Idx"].push_back("2");
-		
-		Function_Arg_Types["float_channel_sum"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_sum"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["float_channel_sum"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_sum"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["float_channel_sum"].push_back("0");
-		Function_Arg_Names["float_channel_sum"].push_back("1");
-		
-		Function_Arg_Types["float_channel_mean"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_mean"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["float_channel_mean"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_mean"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["float_channel_mean"].push_back("0");
-		Function_Arg_Names["float_channel_mean"].push_back("1");
-		
-		Function_Arg_Types["float_channel_terminate"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_terminate"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["float_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_terminate"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["float_channel_terminate"].push_back("0");
-		Function_Arg_Names["float_channel_terminate"].push_back("1");
-		
-		Function_Arg_Types["float_channel_alive"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_channel_alive"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["float_channel_alive"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_channel_alive"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["float_channel_alive"].push_back("0");
-		Function_Arg_Names["float_channel_alive"].push_back("1");
-		
-		Function_Arg_Types["int_channel_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_message"]["1"] = "void";
-		Function_Arg_Types["int_channel_message"]["2"] = "Channel";
-		
-		Function_Arg_DataTypes["int_channel_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_message"]["1"] = Data_Tree("void");
-		Function_Arg_DataTypes["int_channel_message"]["2"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["int_channel_message"].push_back("0");
-		Function_Arg_Names["int_channel_message"].push_back("1");
-		Function_Arg_Names["int_channel_message"].push_back("2");
-		
-		Function_Arg_Types["channel_int_message"]["0"] = "Scope_Struct";
-		Function_Arg_Types["channel_int_message"]["1"] = "Channel";
-		Function_Arg_Types["channel_int_message"]["2"] = "int";
-		
-		Function_Arg_DataTypes["channel_int_message"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["channel_int_message"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["channel_int_message"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["channel_int_message"].push_back("0");
-		Function_Arg_Names["channel_int_message"].push_back("1");
-		Function_Arg_Names["channel_int_message"].push_back("2");
-		
-		Function_Arg_Types["int_channel_Idx"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_Idx"]["1"] = "Channel";
-		Function_Arg_Types["int_channel_Idx"]["2"] = "int";
-		
-		Function_Arg_DataTypes["int_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_Idx"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["int_channel_Idx"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["int_channel_Idx"].push_back("0");
-		Function_Arg_Names["int_channel_Idx"].push_back("1");
-		Function_Arg_Names["int_channel_Idx"].push_back("2");
-		
-		Function_Arg_Types["int_channel_sum"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_sum"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["int_channel_sum"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_sum"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["int_channel_sum"].push_back("0");
-		Function_Arg_Names["int_channel_sum"].push_back("1");
-		
-		Function_Arg_Types["int_channel_mean"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_mean"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["int_channel_mean"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_mean"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["int_channel_mean"].push_back("0");
-		Function_Arg_Names["int_channel_mean"].push_back("1");
-		
-		Function_Arg_Types["int_channel_terminate"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_terminate"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["int_channel_terminate"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_terminate"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["int_channel_terminate"].push_back("0");
-		Function_Arg_Names["int_channel_terminate"].push_back("1");
-		
-		Function_Arg_Types["int_channel_alive"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_alive"]["1"] = "Channel";
-		
-		Function_Arg_DataTypes["int_channel_alive"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_alive"]["1"] = Data_Tree("Channel");
-		
-		Function_Arg_Names["int_channel_alive"].push_back("0");
-		Function_Arg_Names["int_channel_alive"].push_back("1");
-	
-		
-		Function_Arg_Types["read_int"]["0"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["read_int"]["0"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["read_int"].push_back("0");
-		
-		Function_Arg_Types["int_to_str"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_to_str"]["1"] = "int";
-		
-		Function_Arg_DataTypes["int_to_str"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_to_str"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["int_to_str"].push_back("0");
-		Function_Arg_Names["int_to_str"].push_back("1");
-		
-		Function_Arg_Types["i64_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["i64_to_str_buffer"]["1"] = "int64_t";
-		Function_Arg_Types["i64_to_str_buffer"]["2"] = "str";
-		
-		Function_Arg_DataTypes["i64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["i64_to_str_buffer"]["1"] = Data_Tree("int64_t");
-		Function_Arg_DataTypes["i64_to_str_buffer"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["i64_to_str_buffer"].push_back("0");
-		Function_Arg_Names["i64_to_str_buffer"].push_back("1");
-		Function_Arg_Names["i64_to_str_buffer"].push_back("2");
-		
-		Function_Arg_Types["int_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_to_str_buffer"]["1"] = "int";
-		Function_Arg_Types["int_to_str_buffer"]["2"] = "str";
-		
-		Function_Arg_DataTypes["int_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_to_str_buffer"]["1"] = Data_Tree("int");
-		Function_Arg_DataTypes["int_to_str_buffer"]["2"] = Data_Tree("str");
-		
-		Function_Arg_Names["int_to_str_buffer"].push_back("0");
-		Function_Arg_Names["int_to_str_buffer"].push_back("1");
-		Function_Arg_Names["int_to_str_buffer"].push_back("2");
-		
-		Function_Arg_Types["int_print_bits"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_print_bits"]["1"] = "int";
-		
-		Function_Arg_DataTypes["int_print_bits"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_print_bits"]["1"] = Data_Tree("int");
-		
-		Function_Arg_Names["int_print_bits"].push_back("0");
-		Function_Arg_Names["int_print_bits"].push_back("1");
 
 }

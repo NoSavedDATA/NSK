@@ -95,6 +95,7 @@ void Generate_Struct_Types() {
 
 void Generate_Class_Types() {
     // high-level classes
+
     for (auto &class_pair : ClassSize) {
         const std::string &class_name = class_pair.first;
         // LogBlue(class_name);

@@ -83,3 +83,4 @@ Value *str_offset(Parser_Struct parser_struct, Function *TheFunction,
 Value *alloc(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*> &ArgsV);
+

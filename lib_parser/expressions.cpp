@@ -74,6 +74,8 @@ Lib_Info *Generate_Function_Dict(Lib_Info *lib_info, std::string in_return_type,
         return_type = "str";
     else if (in_return_type=="int")
         return_type = "int";
+    else if (in_return_type=="float*")
+        return_type = "float_ptr";
     else if (in_return_type=="uint64_t")
         return_type = "uint64_t";
     else if (in_return_type=="int64_t")

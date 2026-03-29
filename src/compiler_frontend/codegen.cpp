@@ -689,6 +689,7 @@ Value *Malloc_LLVM_Struct(Value *scope_struct, std::string &struct_name, std::st
 
     // call malloc
     // Value *rawPtr = callret("malloc", {sizeV});
+    //
     Value *rawPtr = callret("allocate_void", {scope_struct, const_int(size), global_str(type)});
 
     // cast to DT_vec*
@@ -793,23 +794,8 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     int tgt_arg = i + arg_offset;
     Data_Tree expected_data_type = Function_Arg_DataTypes[fn_name][Function_Arg_Names[fn_name][tgt_arg]];
     std::string expected_type = expected_data_type.Type;
-    // if (!in_str(fn_name, {"to_int", "to_bool",  "to_float", "print"}))
-    // { 
-    //   if (Function_Arg_Types.count(fn_name)>0)
-    //   {   
-    //     int differences = expected_data_type.Compare(data_type);
-    //     if (differences>0) { 
-    //       LogErrorS(parser_struct.line, "Got an incorrect type for argument " + Function_Arg_Names[fn_name][tgt_arg] + " of function " + fn_name);
-    //       std::cout << "Expected\n   ";
-    //       expected_data_type.Print();
-    //       std::cout << "\nPassed\n   ";
-    //       data_type.Print();
-    //       std::cout << "\n\n";
-    //     } 
-    //   }
-    // }
 
-    
+    // casts   
     if(type=="int"&&expected_type=="float")
       arg = Builder->CreateSIToFP(arg, floatTy, "lfp");
     if (type!=expected_type&&in_vec(type, int_types)&&in_vec(expected_type, int_types))
@@ -820,6 +806,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     Function *F = TheModule->getFunction(copy_fn);
     if (F&&!is_nsk_fn)
     {
+        std::cout << "Copy of " << type << "\n";
         Value *copied_value = callret(copy_fn,
                         {scope_struct,
                         arg,
@@ -975,9 +962,9 @@ Value *DataExprAST::codegen(Value *scope_struct) {
                     }
 
                     if(struct_create_fn.count(dt_type)>0) {
-                        initial_value = (struct_type_size.count(Type)>0) ? callret("allocate_void", {scope_struct,
+                        initial_value = (struct_type_size.count(Type)>0) ? callret("allocate_pool", {scope_struct,
                                     const_int(struct_type_size[Type]),
-                                    global_str(Type)}) : nullptr;
+                                    const_int16(data_name_to_type[Type])}) : nullptr;
                         initial_value = struct_create_fn[dt_type](parser_struct, TheFunction,
                                 VarName, Type, data_type,
                                 scope_struct, 
@@ -1842,7 +1829,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                         );
 
                 // Create the node to be stored
-                Value *new_node_ptr = callret("allocate_void", {scope_struct, const_int(24), global_str("map_node")});
+                Value *new_node_ptr = callret("allocate_pool", {scope_struct, const_int(24), \
+                                                                const_int16(data_name_to_type["map_node"])});
                 Value *new_node_key_gep = Builder->CreateStructGEP(st_node, new_node_ptr, 0);
                 if (key_type=="int") {
                     Value *int_ptr = callret("malloc", {const_int(4)});
@@ -2296,6 +2284,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 std::exit(0);
         }
     } 
+    // LogBlue("call " + Operation);
     return callret(Operation, {scope_struct, L, R}); 
 
 
@@ -2908,12 +2897,13 @@ Value *NewTupleExprAST::codegen(Value *scope_struct) {
 Data_Tree NewVecExprAST::GetDataTree(bool from_assignment) {
     if(!data_type.empty)
         return data_type;
-
-    data_type.Type = "tuple";
-    for (int i=1; i<Values.size(); i=i+2) {
-        Data_Tree type = Values[i]->GetDataTree();
-        data_type.Nested_Data.push_back(type);
-    }
+    // data_type.Type = "tuple";
+    // for (int i=1; i<Values.size(); i=i+2) {
+    //     Data_Tree type = Values[i]->GetDataTree();
+    //     data_type.Nested_Data.push_back(type);
+    // }
+    data_type.Type = "array";
+    data_type.Nested_Data.push_back(Values[1]->GetDataTree());
     data_type.empty=false;
 
     return data_type;
@@ -2921,40 +2911,36 @@ Data_Tree NewVecExprAST::GetDataTree(bool from_assignment) {
 
 Value *NewVecExprAST::codegen(Value *scope_struct) {
     if (not ShallCodegen)
-        return ConstantFP::get(*TheContext, APFloat(0.0f));
+        return const_float(0);
 
     std::vector<Value *> values;
-
     values.push_back(scope_struct);
 
-    seen_var_attr = true;
     bool is_type=true;
     for (int i=0; i<Values.size(); i++)
     {
-        std::string type = Values[i]->GetType();
-        Value *value = Values[i]->codegen(scope_struct);
+        std::string type;
+        Value *value;
         if (!is_type)
         {
-            // std::cout << "VALUE TYPE IS: " << type << ".\n";
-            if(!in_str(type, primary_data_tokens))
+            type = Values[i]->GetDataTree().Type;
+            value = Values[i]->codegen(scope_struct);
+            if(!in_vec(type, primary_data_tokens))
             {
-
                 std::string copy_fn = type + "_Copy";
-
                 Function *F = TheModule->getFunction(copy_fn);
                 if (F)
                     value = callret(copy_fn, {scope_struct, value});
             }
+            values.push_back(value);
             is_type=true;
         } else
             is_type=false;
-        values.push_back(value);
     }
 
-    seen_var_attr = false;
 
-    // std::cout << "Call list_New" << ".\n";
-    return callret("list_New", values);
+    std::string Callee = "array_" + data_type.Nested_Data[0].Type + "_NewVec";
+    return callret(Callee, values);
 }
 
 
@@ -3032,7 +3018,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
         {   
             Value *ptr;
             if (Init==nullptr) // no attribution
-                ptr = callret("allocate_void", {scope_struct, const_int(Size), global_str(ClassName)});
+                ptr = callret("allocate_pool", {scope_struct, const_int(Size), const_int16(data_name_to_type[ClassName])});
             else
                 ptr = Init->codegen(scope_struct);
             Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, Data_Tree(ClassName), ptr);
@@ -3097,7 +3083,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
     if (Args.size()>0) {
         std::vector<Data_Tree> ArgTypes;
         ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct, \
-                Callee, true, 1);
+                Callee, !is_high_level_obj, 1);
     }
 
     if(!Check_ArgsV_Count(Callee, ArgsV, parser_struct, 1))
@@ -3105,6 +3091,37 @@ Value *NewExprAST::codegen(Value *scope_struct) {
 
     if(in_str(Callee, vararg_methods))
         ArgsV.push_back(const_int(TERMINATE_VARARG));
+
+
+
+    if (is_high_level_obj) {
+        Value *previous_obj = get_scope_obj(scope_struct);
+        Value *ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[DataName]),\
+                                               const_int16(data_name_to_type[DataName])});
+        StructType *st = struct_types["class_"+DataName]; 
+        for (auto attr : ClassAttrsName[DataName]) {
+          Data_Tree dt = data_typeVars[DataName][attr];
+          std::string type = dt.Type;
+          std::string create_fn = type+"_Create";
+          if (in_vec(type, compound_tokens)) {
+            int attr_idx = ClassAttrs[DataName][attr];
+            std::vector<Value *> ArgsDT_Create = {scope_struct};
+            Data_Tree *dt_ptr = new Data_Tree(type);
+            dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+            if(type=="map")
+                dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+            ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            Value *compound = callret(create_fn, ArgsDT_Create);
+            Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
+            Builder->CreateStore(compound, compound_gep);
+          }
+        }
+        set_scope_obj(scope_struct, ptr);
+        call(Callee, ArgsV);
+        set_scope_obj(scope_struct, previous_obj);
+        return ptr;
+    }
+
 
     return callret(Callee, ArgsV);
 }
@@ -3811,20 +3828,6 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
         if(!is_nsk_fn)
         {
-            if(ends_with(Callee, "__init__")&&isSelf) // mallocs an object inside another
-            {
-                std::string obj_class = Inner->GetDataTree().Type;
-
-                int size = ClassSize[obj_class];
-
-
-                Value *new_ptr = callret("allocate_void", {scope_struct, const_int(size), global_str(obj_class)});
-                // LogBlue("Add " + obj_class + " as root.");
-                call("tie_object_to_object", {obj_ptr, new_ptr});
-
-                obj_ptr = new_ptr;
-
-            }
             previous_obj = swap_scope_obj(scope_struct, obj_ptr); 
         }
         else {

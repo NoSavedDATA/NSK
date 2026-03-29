@@ -37,7 +37,21 @@ T *allocate(Scope_Struct *scope_struct, int size, std::string type) {
     return static_cast<T*>(v_ptr);
 }
 
+template<typename T>
+T *allocate(Scope_Struct *scope_struct, int size, uint16_t type_id) {
+    if (size==0)
+        return nullptr;
 
+
+    int alloc_size = size*sizeof(T);
+    // void *v_ptr = malloc(alloc_size);
+    void *v_ptr = scope_struct->Allocate(alloc_size, type_id);
+    
+    scope_struct->gc->size_occupied += alloc_size;
+    scope_struct->gc->allocations++;
+    
+    return static_cast<T*>(v_ptr);
+}
 
 template<typename T>
 T *newT(Scope_Struct *scope_struct, std::string type) {

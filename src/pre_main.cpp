@@ -159,6 +159,7 @@ void HandleClass() {
 void CodegenTopLevelExpression(std::unique_ptr<FunctionAST> &FnAST) {
 
 
+    
     // JIT Version
     auto *FnIR =  FnAST->codegen();
     // Create a ResourceTracker for memory managment
@@ -231,6 +232,7 @@ void MainLoop() {
             HandleProto();
             break;
         case tok_main:
+            Generate_Class_Types();
             if(IsJIT)
                 HandleTopLevelExpression(); 
             else

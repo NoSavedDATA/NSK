@@ -1041,11 +1041,12 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     std::vector<std::string> ArgNames = {"scope_struct"};
     std::vector<Data_Tree> Types = {Data_Tree("Scope_Struct")};
  
+    std::string data_type = IdentifierStr; 
+
     if(CurTok!=tok_data)
         LogError(parser_struct.line, "Prototype expected return type.");
 
     bool is_struct=(CurTok==tok_struct);
-    std::string data_type = IdentifierStr; 
     Return = ParseDataTree(data_type, is_struct, parser_struct);
 
     if(CurTok!=tok_identifier)
@@ -1133,6 +1134,7 @@ std::unique_ptr<ExprAST> ParseMainExpr(Parser_Struct parser_struct, std::string 
 std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string class_name) {
 
   getNextToken(); // [
+
   std::vector<std::unique_ptr<ExprAST>> Elements;
   if (CurTok != ']') {
     while (true) {
@@ -1162,10 +1164,10 @@ std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string c
   getNextToken(); // ]
 
     
-  Elements.push_back(std::make_unique<StringExprAST>("TERMINATE_VARARG"));
+  Elements.push_back(std::make_unique<StringExprAST>("int"));
+  Elements.push_back(std::make_unique<IntExprAST>(TERMINATE_VARARG));
 
-  
-  return std::make_unique<NewVecExprAST>(std::move(Elements), "list");
+  return std::make_unique<NewVecExprAST>(std::move(Elements), "array");
 }
 
 std::unique_ptr<ExprAST> ParseView(std::unique_ptr<ExprAST> elem_offset_stmt,
@@ -1709,7 +1711,7 @@ std::unique_ptr<ExprAST> ParseNewExpr(Parser_Struct parser_struct, std::string c
     getNextToken(); // eat new
 
 
-    if(CurTok!=tok_data) {
+    if(CurTok!=tok_data&&ClassSize.count(IdentifierStr)==0) {
         if (!(tokenizer->has_lib_file && CurTok==tok_identifier))
             return LogErrorBreakLine(parser_struct.line, "Expected data name at new expression. Got token: " + ReverseToken(CurTok));
     }
@@ -2064,7 +2066,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
 
   bool is_compiler_main = (CurTok==tok_main&&!IsJIT);
 
-  if (!in_vec(IdentifierStr, data_tokens) && !from_ctor &&!is_compiler_main) {
+  if (!in_vec(IdentifierStr, data_tokens) && ClassSize.count(IdentifierStr)==0 && !from_ctor &&!is_compiler_main) {
     LogErrorNextFloatingBlock(parser_struct.line, "Expected function return type.");
     return nullptr;
   }

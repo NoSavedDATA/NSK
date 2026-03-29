@@ -103,7 +103,7 @@ int Data_Tree::Compare(Data_Tree other_tree) {
     int comparisons = 0;
 
 
-    if(Type=="void")
+    if(Type=="void"||other_tree.Type=="void")
         return 0;
 
     if(!in_vec(Type, primary_data_tokens) && other_tree.Type=="nullptr")

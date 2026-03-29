@@ -1,11 +1,12 @@
 import csv
+import nsk_cuda
 
 def float foo()
 	Csv f("games.csv", ',')
-	array<str> col = f.get_col("gender")
-	col.print()
-	for c in f.get_cols()
-		print(c)
+	#array<str> col = f.get_col("gender")
+	#col.print()
+	#for c in f.get_cols()
+	#	print(c)
 	return 0
 
 def float bar()
@@ -18,11 +19,58 @@ def float bar()
 			_quit_()
 	return 0
 
+def int array_int_prod(array<int> v)
+	int prod = 1
+	for i in v
+		prod = prod*i
+	return prod
+
+class MyTensor
+	char sep
+	array<int> dims
+	int dims_prod
+	float_pp ptr, cpu
+
+	ctor(array<int> dims)
+		self.dims = dims
+		self.dims_prod = array_int_prod(self.dims)
+		self.ptr = randu_cuda(self.dims_prod*4)
+
+	def float print()
+		print(" ")
+		self.print_dims()
+		float_pp z = self.ptr.cpu(self.dims_prod)
+		z.print(self.dims_prod)
+		self.print_dims()
+		print(" ")
+
+	def float print_dims()
+		self.dims.print()
+
+
+def MyTensor MyTensor_MyTensor_add(MyTensor a, MyTensor b)
+	MyTensor ret = new MyTensor(a.dims)
+	ret.ptr = add_tensors(a.ptr, b.ptr, a.dims_prod)
+	return ret
+
+def MyTensor MyTensor_MyTensor_mma(MyTensor a, MyTensor b)
+	int m = a.dims[0]
+	int n = a.dims[1]
+	int p = b.dims[0]
+	array<int> new_dims = [m, p]
+	MyTensor ret = new MyTensor(new_dims)
+	ret.ptr = mma_tensors(a.ptr, b.ptr, m, n, p)
+	return ret
+
 main
-	foo()
+	#foo()
 	#bar()
+	#cuda_foo()
 
-	str i = "um-dois-tres-quatro"
-	var v = i.split('-')
-	v.print()
+	MyTensor x([2,8]), y([2,8])
 
+	x.print()
+	y.print()
+	
+	var w = x @ y
+	w.print()

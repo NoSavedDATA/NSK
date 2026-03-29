@@ -28,6 +28,16 @@
 
 ExitOnError ExitOnErr;
 std::map<std::string, std::unique_ptr<PrototypeAST>> FunctionProtos;
+std::unordered_map<std::string, std::function<llvm::Type*(std::unique_ptr<LLVMContext>&)>> data_register_fn;
+std::unordered_map<std::string, std::function<llvm::PointerType*(std::unique_ptr<LLVMContext>&)>> data_ptr_register_fn;
+
+inline void RegisterData() {
+    for (auto data_info : data_register_fn) {
+        std::string name = data_info.first;
+        llvm::Type *ty = data_info.second(TheContext);
+        str_toTy[name] = ty;
+    }
+}
 
 void InitializeModule() {
   // Open a new context and module.
@@ -71,8 +81,9 @@ void InitializeModule() {
   Generate_Lib_Functions();
   Generate_Struct_Types();
   str_toTy = {{"char", int8Ty}, {"i8", int8Ty}, {"int", intTy}, {"i64", int64Ty}, {"i16", int16Ty},
-              {"bool", boolTy},
+              {"bool", boolTy}, {"float_ptr", floatPtrTy},
               {"float", floatTy}, {"void", voidTy}, {"str", struct_types["DT_str"]}};
+  RegisterData();
   Generate_Class_Types();
 
   //===----------------------------------------------------------------------===//

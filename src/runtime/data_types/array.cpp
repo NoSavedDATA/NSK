@@ -89,7 +89,37 @@ extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec, int
     vec->virtual_size++;
 }
 
-extern "C" void array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
+
+extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...)
+{ 
+  int elem_size = 4;
+
+  DT_array *vec = newT<DT_array>(scope_struct, "array");
+  vec->New(8, elem_size, scope_struct->thread_id, "int");
+  vec->virtual_size = 0;
+
+  int *data = (int*)vec->data;
+
+  int x = first;
+  va_list args;
+  va_start(args, x);
+
+  int idx = 0;
+  do {
+    data[idx++] = x;
+    vec->virtual_size++;
+    if (vec->virtual_size >= vec->size) {
+        array_double_size(scope_struct, vec, vec->size*4);
+        data = (int*)vec->data;
+    }
+    x = va_arg(args, int);
+  } while(x!=TERMINATE_VARARG);
+  va_end(args);
+  return vec;
+}
+
+
+extern "C" float array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
     int *ptr = static_cast<int*>(vec->data);
     int size = vec->virtual_size;
 
@@ -97,6 +127,7 @@ extern "C" void array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
     for (int i=0; i<size-1; ++i)
         std::cout << ptr[i] << ",";
     std::cout << ptr[size-1] << "]\n";
+    return 0;
 }
 
 

@@ -16,38 +16,38 @@ void set_user_functions() {
     user_cpp_functions = {"Linear", "tensor_view", "tensor_clip", "tensor_argmax", "tensor_tmax", "tensor_onehot", "tensor_shape", "tensor_permute", "tensor_cpu", "printtt",
         "tensor_sum", "tensor_prod", "tensor_mean", "mean_tensor", "tensor_tmin", "tensor_argmin", "tensor_topk", "tensor_repeat_interleave",
         "tensor_save_img", "tensor_gpu", "tensor_gpuw", "tensor_save_as_int", "tensor_save_as_bin", "tensor_gather", "str_split_idx", "str_to_float", "list_print",
-		"print_codegen", "print_codegen_silent", "LogErrorCall", 
-		"charv_print", 
-		"read_int", "int_to_str", "i64_to_str_buffer", "int_to_str_buffer", "int_print_bits", 
-		"list_New", "list_append_int", "list_append_float", "list_append_bool", "list_append", "list_print", "tuple_print", "list_Create", "list_shuffle", "list_size", "list_CalculateIdx", "to_int", "to_float", "to_bool", "assign_wise_list_Idx", "int_list_Store_Idx", "float_list_Store_Idx", "list_Store_Idx", "zip", "list_Idx", "tuple_Idx", 
-		"min", "max", "logE2f", "roundE", "floorE", "logical_not", 
-		"__slee_p_", "random_sleep", "silent_sleep", "start_timer", "end_timer", 
-		"scope_struct_Alloc_GC", 
-		"LockMutex", "UnlockMutex", 
-		"nullptr_get", "is_null", 
-		"prebuild", 
-		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
-		"bool_to_str", "bool_to_str_buffer", 
-		"get_barrier", 
-		"allocate_void", "allocate_pool", 
-		"read_float", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
-		"print_randoms", "randint", 
-		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", 
-		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "scope_struct_Overwrite", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_Sweep", "scope_struct_Delete", 
-		"putchard", "printd", 
-		"dir_exists", "path_exists", 
-		"GetEmptyChar", "FreeCharFromFunc", "FreeChar", "CopyString", "ConcatStr", "ConcatStrFreeLeft", "ConcatFloatToStr", "ConcatNumToStrFree", 
-		"offset_object_ptr", "object_Attr_float", "object_Attr_int", "object_Load_float", "object_Load_int", "object_Load_slot", "tie_object_to_object", "object_Attr_on_Offset_float", "object_Attr_on_Offset_int", "object_Attr_on_Offset", "object_Load_on_Offset_float", "object_Load_on_Offset_int", "object_Load_on_Offset", "object_ptr_Load_on_Offset", "object_ptr_Attribute_object", 
-		"print", "print_void_ptr", "print_void_ptrC", "print_int", "print_int64", "print_uint64", 
-		"channel_Create", "str_channel_message", "channel_str_message", "void_channel_message", "channel_void_message", "str_channel_Idx", "str_channel_terminate", "str_channel_alive", "float_channel_message", "channel_float_message", "float_channel_Idx", "float_channel_sum", "float_channel_mean", "float_channel_terminate", "float_channel_alive", "int_channel_message", "channel_int_message", "int_channel_Idx", "int_channel_sum", "int_channel_mean", "int_channel_terminate", "int_channel_alive", 
-		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
-		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
-		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
-		"_quit_", "fexists_C", 
-		"Delete_Ptr", 
-		"str_Copy", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
-		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"__idx__", "__sliced_idx__", 
+		"scope_struct_Alloc_GC", 
+		"channel_Create", "str_channel_message", "channel_str_message", "void_channel_message", "channel_void_message", "str_channel_Idx", "str_channel_terminate", "str_channel_alive", "float_channel_message", "channel_float_message", "float_channel_Idx", "float_channel_sum", "float_channel_mean", "float_channel_terminate", "float_channel_alive", "int_channel_message", "channel_int_message", "int_channel_Idx", "int_channel_sum", "int_channel_mean", "int_channel_terminate", "int_channel_alive", 
+		"min", "max", "logE2f", "roundE", "floorE", "logical_not", 
+		"LockMutex", "UnlockMutex", 
+		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
+		"print_randoms", "randint", 
+		"read_int", "int_to_str", "i64_to_str_buffer", "int_to_str_buffer", "int_print_bits", 
+		"nullptr_get", "is_null", 
+		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_int_NewVec", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_Split_Parallel", "array_print_str", 
+		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "scope_struct_Overwrite", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_print", "scope_struct_Sweep", "scope_struct_Delete", 
+		"_quit_", "fexists_C", 
+		"offset_object_ptr", "object_Attr_float", "object_Attr_int", "object_Load_float", "object_Load_int", "object_Load_slot", "tie_object_to_object", "object_Attr_on_Offset_float", "object_Attr_on_Offset_int", "object_Attr_on_Offset", "object_Load_on_Offset_float", "object_Load_on_Offset_int", "object_Load_on_Offset", "object_ptr_Load_on_Offset", "object_ptr_Attribute_object", 
+		"allocate_void", "allocate_pool", 
+		"str_Copy", "str_int_add", "str_float_add", "int_str_add", "float_str_add", "str_bool_add", "bool_str_add", "PrintStr", "cat_str_float", "str_split_idx", "can_convert_to_float", "str_to_float", "str_str_different", "str_str_equal", "str_Delete", "readline", 
+		"list_New", "list_append_int", "list_append_float", "list_append_bool", "list_append", "list_print", "tuple_print", "list_Create", "list_shuffle", "list_size", "list_CalculateIdx", "to_int", "to_float", "to_bool", "assign_wise_list_Idx", "int_list_Store_Idx", "float_list_Store_Idx", "list_Store_Idx", "zip", "list_Idx", "tuple_Idx", 
+		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
+		"print", "print_void_ptr", "print_void_ptrC", "print_int", "print_int64", "print_uint64", 
+		"map_Create", "map_expand", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
+		"dir_exists", "path_exists", 
+		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
+		"charv_print", 
+		"putchard", "printd", 
+		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
+		"get_barrier", 
+		"prebuild", 
+		"read_float", "float_pp_print", "float_ptr_print", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
+		"bool_to_str", "bool_to_str_buffer", 
+		"Delete_Ptr", 
+		"print_codegen", "print_codegen_silent", "LogErrorCall", 
+		"GetEmptyChar", "FreeCharFromFunc", "FreeChar", "CopyString", "ConcatStr", "ConcatStrFreeLeft", "ConcatFloatToStr", "ConcatNumToStrFree", 
+		"__slee_p_", "random_sleep", "silent_sleep", "start_timer", "end_timer", 
 
 	};
 
@@ -83,9 +83,9 @@ void set_user_functions() {
 
 	clean_up_functions["channel"] = channel_Clean_Up;
 
-	clean_up_functions["array"] = array_Clean_Up;
-
 	clean_up_functions["str_vec"] = str_vec_Clean_Up;
+
+	clean_up_functions["array"] = array_Clean_Up;
 
 	clean_up_functions["list"] = list_Clean_Up;
 

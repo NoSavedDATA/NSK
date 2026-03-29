@@ -208,6 +208,13 @@ void alloc_gc_vspace(Scope_Struct *scope_struct, int size) {
     scope_struct->gc->size_occupied += size;
 }
 
+extern "C" float scope_struct_print(Scope_Struct *scope_struct) {
+    std::cout << "scope_struct: " << scope_struct << "\n";
+    std::cout << "obj: " << scope_struct->object_ptr << "\n";
+
+    std::cout << "\n";
+    return 0;
+}
 
 extern "C" void scope_struct_Sweep(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;

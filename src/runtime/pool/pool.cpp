@@ -25,6 +25,7 @@ extern "C" void *allocate_void(Scope_Struct *scope_struct, int size, const char 
     if (it==data_name_to_type.end())
         LogErrorC(-1, std::string("Type ") + type + " not implemented.");
     uint16_t type_id = it->second;
+    // std::cout << type << " -> " << type_id << "\n";
 
     void *ptr = scope_struct->Allocate(size, type_id);
     memset(ptr, SENTINEL_BYTE, size);

@@ -121,9 +121,15 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
         fn_return_type = intTy;
         fn_return_type_str = "int";
     }
-    else if(ReturnType=="float"&&!IsPointer) {
-        fn_return_type = floatTy;
-        fn_return_type_str = "float";
+    else if(ReturnType=="float") {
+        if (IsPointer) {
+            ReturnType = "float_ptr";
+            fn_return_type = int8PtrTy;
+            fn_return_type_str = "float_ptr";
+        } else {
+            fn_return_type = floatTy;
+            fn_return_type_str = "float";
+        }
     }
     else if(ReturnType=="bool"&&!IsPointer) {
         fn_return_type = boolTy;
@@ -262,7 +268,7 @@ void LibFunction::Add_to_Nsk_Dicts(void *func_ptr, std::string lib_name, bool is
 
 
     // Check if it is a data-type
-    if (ReturnType!="float"||IsPointer||HasRetOverwrite)
+    if (IsPointer||HasRetOverwrite)
     {
         std::string nsk_data_type = ReturnType;
         if(begins_with(ReturnType, "DT_"))
@@ -532,8 +538,8 @@ int LibParser::_getTok() {
             while(LastChar==32||LastChar==tok_tab) 
                 LastChar = _getCh();
 
-            if (LastChar=='$' && TryParseFnDataType())
-                return tok_lib_dt;
+            // if (LastChar=='$' && TryParseFnDataType())
+            //     return tok_lib_dt;
             
 
             while(LastChar!=10 && LastChar!=tok_eof && LastChar!=tok_finish)
@@ -804,11 +810,11 @@ void LibParser::ParseLLVMFunction() {
 
     CurDefaultArgs=0;
 
+
     while(token!='{')
         token = _getToken();
-
-    while(token!=tok_lib_dt)
-        token = _getToken();
+    // while(token!=tok_lib_dt)
+    //     token = _getToken();
     token = _getToken(); 
 
 
@@ -906,4 +912,14 @@ void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool i
 
     if (has_error)
         std::exit(0);
+
+
+    for (auto data_info : data_register_fn) {
+        std::string name = data_info.first;
+        if (!in_vec(name, data_tokens)) {
+            data_tokens.push_back(name);
+            data_name_to_type[name] = data_type_count; 
+            data_type_to_name[data_type_count++] = name; 
+        }
+    }
 }
