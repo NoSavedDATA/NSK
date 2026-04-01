@@ -300,7 +300,6 @@ public:
   std::unique_ptr<ExprAST> Init;
   std::vector<bool> HasInit;
   std::vector<std::vector<std::unique_ptr<ExprAST>>> Args;
-  int Size;
   std::string ClassName;
 
   ObjectExprAST(
@@ -309,7 +308,7 @@ public:
       std::vector<bool> HasInit,
       std::vector<std::vector<std::unique_ptr<ExprAST>>> Args,
       std::string Type,
-      std::unique_ptr<ExprAST> Init, int Size, std::string ClassName);
+      std::unique_ptr<ExprAST> Init, std::string ClassName);
 
   Value *codegen(Value *scope_struct) override;
 };
@@ -441,11 +440,12 @@ class Nameable : public ExprAST {
   std::vector<std::string> Expr_String = {};
   std::unique_ptr<Nameable> Inner=nullptr;
   int Depth=1;
-  bool CanBeString=false,IsLeaf=true,Load_Last=true; 
+  bool IsUnique=false,CanBeString=false,IsLeaf=true,Load_Last=true; 
   Parser_Struct parser_struct;
 
   Nameable(Parser_Struct);
   Nameable(Parser_Struct, std::string, int);
+  Nameable(Parser_Struct, std::string, int, bool);
 
   void AddNested(std::unique_ptr<Nameable>);
 

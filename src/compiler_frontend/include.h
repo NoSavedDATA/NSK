@@ -46,7 +46,6 @@ extern std::map<std::string, std::string> floatFunctions;
 extern std::map<std::string, std::string> stringMethods;
 
 
-extern std::vector<std::string> Classes;
 
 
 

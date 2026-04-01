@@ -43,8 +43,10 @@ extern uint16_t data_type_count;
 
 extern std::map<std::string, std::string> functions_return_type, reverse_ops;
 
-extern std::map<std::string, int> ClassSize;
+extern std::unordered_map<std::string, int> ClassSize;
+extern std::unordered_map<std::string, int> Classes;
 
+extern std::vector<std::string> Global_Uniques;
 
 extern std::map<std::string, std::vector<std::string>> Equivalent_Types;
 

@@ -23,7 +23,7 @@ void set_functions_return_type() {
                            {"BatchNorm2d", "tensor"}, {"Pool2d", "tensor"}, {"LSTM", "tensor"}, {"MHSA", "tensor"}, {"Embedding", "tensor"},
 						{"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"ShuffleStrVec", "str_vec"},
 						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
-						{"read_float", "float"}, {"float_pp_print", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
+						{"read_float", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
 						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_int_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
@@ -173,7 +173,6 @@ void set_functions_return_type() {
 	functions_return_data_type["list_Store_Idx"] = Data_Tree("float");
 	functions_return_data_type["zip"] = Data_Tree("list");
 	functions_return_data_type["read_float"] = Data_Tree("float");
-	functions_return_data_type["float_pp_print"] = Data_Tree("float");
 	functions_return_data_type["float_ptr_print"] = Data_Tree("float");
 	functions_return_data_type["float_to_str"] = Data_Tree("str");
 	functions_return_data_type["float_to_str_buffer"] = Data_Tree("int64_t");

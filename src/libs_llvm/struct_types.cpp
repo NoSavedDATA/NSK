@@ -96,7 +96,7 @@ void Generate_Struct_Types() {
 void Generate_Class_Types() {
     // high-level classes
 
-    for (auto &class_pair : ClassSize) {
+    for (auto &class_pair : Classes) {
         const std::string &class_name = class_pair.first;
         // LogBlue(class_name);
         std::vector<llvm::Type*> types;
@@ -115,6 +115,8 @@ void Generate_Class_Types() {
         if (type_info[type16]==nullptr) {
             const llvm::DataLayout &DL = TheModule->getDataLayout();
             const llvm::StructLayout *layout = DL.getStructLayout(st);
+
+            ClassSize[class_name] = layout->getSizeInBytes();
 
             int idx=0, pointers_count=0;
             std::vector<uint16_t> offsets, types16;

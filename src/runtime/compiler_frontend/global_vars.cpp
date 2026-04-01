@@ -40,7 +40,7 @@ std::map<char, int> BinopPrecedence;
 
 
 
-std::vector<std::string> Classes;
+std::unordered_map<std::string, int> Classes;
 std::map<size_t, std::vector<char *>> CharPool;
 
 
@@ -72,11 +72,11 @@ uint16_t data_type_count=24;
 
 
 
-std::vector<std::string> data_tokens = {"tensor", "pinned_tensor", "int", "bool", "str", "str_vec", "float_vec",
-                                        "MHSA", "LSTM", "Linear", "tuple",
+std::vector<std::string> data_tokens = {"int", "bool", "str", "str_vec", "float_vec",
+                                        "tuple",
                                         "any", "float_ptr",
 										"list", "map", "array",
-                                        "Embedding", "EmbeddingLn", "Conv2d", "Pool2d", "BatchNorm2d", "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8", "str_view"};
+                                        "float", "int_vec", "char", "charv", "vec", "i16", "i64", "i8", "str_view"};
 std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "vec"};
 std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "foreach_control_var", "i64", "int8", "char"};
 

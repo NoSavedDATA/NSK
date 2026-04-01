@@ -58,7 +58,7 @@ std::map<std::string, std::map<std::string, std::string>> typeVars;
 std::map<std::string, std::map<std::string, int>> ClassVariables;
 std::map<std::string, std::map<std::string, int>> ClassAttrs;
 std::map<std::string, std::vector<std::string>> ClassAttrsName;
-std::map<std::string, int> ClassSize;
+std::unordered_map<std::string, int> ClassSize;
 std::map<std::string, llvm::Type *> ClassStructs;
 
 
@@ -133,7 +133,7 @@ Data_Tree Parse_Data_Type(std::string root_type, Parser_Struct parser_struct) {
         dt = std::to_string((int)NumVal);
     }
 
-    if(CurTok!=tok_data&&CurTok!=tok_struct&&!in_str(dt, Classes)) {
+    if(CurTok!=tok_data&&CurTok!=tok_struct&&Classes.count(dt)==0) {
       LogErrorBreakLine(parser_struct.line, root_type + " requires a data type.");
       return data_type;
     }
@@ -355,7 +355,7 @@ std::unique_ptr<ExprAST> ParseObjectInstantiationExpr(Parser_Struct parser_struc
 
 
 
-  auto aux = std::make_unique<ObjectExprAST>(parser_struct, std::move(VarNames), std::move(has_init), std::move(Args), "object", std::move(VecInitSize), ClassSize[_class], _class);
+  auto aux = std::make_unique<ObjectExprAST>(parser_struct, std::move(VarNames), std::move(has_init), std::move(Args), "object", std::move(VecInitSize), _class);
   aux->SetSelf(is_self);
   aux->SetIsAttribute(is_attr);
 
@@ -562,11 +562,15 @@ std::unique_ptr<ExprAST> ParseCallExpr(Parser_Struct parser_struct, std::unique_
 std::unique_ptr<ExprAST> ParseNameableExpr(Parser_Struct parser_struct, std::unique_ptr<Nameable> inner, std::string class_name, bool can_be_list, int depth)
 {
   depth++;
-
+    
+  bool is_unique = CurTok=='@';
+  if (is_unique)
+        getNextToken();
+    
   std::string IdName = IdentifierStr;
   getNextToken(); // eat identifier.
 
-  std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, IdName, depth);
+  std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, IdName, depth, is_unique);
   nameable->AddNested(std::move(inner));
   
 
@@ -1043,7 +1047,7 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
  
     std::string data_type = IdentifierStr; 
 
-    if(CurTok!=tok_data)
+    if(CurTok!=tok_data||CurTok==tok_struct)
         LogError(parser_struct.line, "Prototype expected return type.");
 
     bool is_struct=(CurTok==tok_struct);
@@ -1062,7 +1066,7 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     if(CurTok!=tok_data&&CurTok!=')')
         LogError(parser_struct.line, "Prototype expected either a data type or ).");
     int arg_id = 1;
-    while (CurTok==tok_data) {
+    while (CurTok==tok_data||CurTok==tok_struct) {
         is_struct=(CurTok==tok_struct);
         data_type = IdentifierStr; 
         Types.push_back(ParseDataTree(data_type, is_struct, parser_struct));
@@ -1711,7 +1715,7 @@ std::unique_ptr<ExprAST> ParseNewExpr(Parser_Struct parser_struct, std::string c
     getNextToken(); // eat new
 
 
-    if(CurTok!=tok_data&&ClassSize.count(IdentifierStr)==0) {
+    if(CurTok!=tok_data&&Classes.count(IdentifierStr)==0) {
         if (!(tokenizer->has_lib_file && CurTok==tok_identifier))
             return LogErrorBreakLine(parser_struct.line, "Expected data name at new expression. Got token: " + ReverseToken(CurTok));
     }
@@ -1851,10 +1855,12 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return std::make_unique<EmptyStrExprAST>();
   case tok_identifier:
   {
-    if(in_str(IdentifierStr, Classes))
+    if(Classes.count(IdentifierStr)>0)
       return ParseObjectInstantiationExpr(parser_struct, class_name);
     return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
   }
+  case '@':
+    return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
   case tok_self:
     return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
   case tok_number:
@@ -1921,7 +1927,7 @@ std::unique_ptr<ExprAST> ParseUnary(Parser_Struct parser_struct, std::string cla
   // If the current token is not an operator, it must be a primary expr.
   
   
-  if ((!isascii(CurTok) || CurTok == '(' || CurTok == ',' || CurTok == '[' || CurTok == '{' || CurTok=='<' || CurTok=='>' || CurTok==':')&&CurTok!=tok_not)
+  if ((!isascii(CurTok) || CurTok=='@' || CurTok == '(' || CurTok == ',' || CurTok == '[' || CurTok == '{' || CurTok=='<' || CurTok=='>' || CurTok==':')&&CurTok!=tok_not)
   {
     //std::cout << "Returning, non-ascii found.\n";
     // if(CurTok=='>'||CurTok=='^')
@@ -2066,7 +2072,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
 
   bool is_compiler_main = (CurTok==tok_main&&!IsJIT);
 
-  if (!in_vec(IdentifierStr, data_tokens) && ClassSize.count(IdentifierStr)==0 && !from_ctor &&!is_compiler_main) {
+  if (!in_vec(IdentifierStr, data_tokens) && Classes.count(IdentifierStr)==0 && !from_ctor &&!is_compiler_main) {
     LogErrorNextFloatingBlock(parser_struct.line, "Expected function return type.");
     return nullptr;
   }
@@ -2168,7 +2174,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
     else
       type=IdentifierStr;
 
-    if (IdentifierStr!="s" && IdentifierStr!="t" && IdentifierStr!="f" && IdentifierStr!="i" && (!in_str(IdentifierStr, data_tokens)) && !in_str(type, Classes))
+    if (IdentifierStr!="s" && IdentifierStr!="t" && IdentifierStr!="f" && IdentifierStr!="i" && (!in_str(IdentifierStr, data_tokens)) && Classes.count(type)==0)
       LogErrorProto_to_comma(parser_struct.line, "Prototype var type must be s, t, i, f or a data type. Got " + IdentifierStr);
     else
     {
@@ -2228,7 +2234,7 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
       data_typeVars[FnName][IdName] = data_tree;
 
 
-      if(in_str(data_type, Classes))
+      if(Classes.count(data_type)>0)
         Object_toClass[FnName][IdName] = Data_Tree(data_type); 
 
 
@@ -2428,7 +2434,6 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
     return LogError(parser_struct.line, "Expected class name");
   std::string Name = IdentifierStr;
 
-  Classes.push_back(Name);
 
   std::vector<uint16_t> class_pointers;
   std::vector<uint16_t> class_pointers_type;
@@ -2450,7 +2455,7 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
   while(CurTok==tok_data||CurTok==tok_identifier||CurTok==tok_struct)
   { 
     std::string data_type = IdentifierStr;
-    bool is_object = in_str(data_type, Classes);
+    bool is_object = Classes.count(data_type)>0;
     bool is_channel=false;
     
     Data_Tree data_tree = ParseDataTree(data_type, in_str(data_type, compound_tokens), parser_struct);
@@ -2537,11 +2542,9 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
     while (CurTok==tok_space)
       getNextToken();
   }
-  ClassSize[Name] = last_offset;
+  Classes[Name] = 1;
 
 
-  if (last_offset==0)
-    return LogErrorNextBlock(parser_struct.line, "Class " + Name + " missing attributes field.");
 
 
   if (CurTok!=tok_constructor)

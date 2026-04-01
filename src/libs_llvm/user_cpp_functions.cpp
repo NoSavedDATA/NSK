@@ -42,7 +42,7 @@ void set_user_functions() {
 		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
 		"get_barrier", 
 		"prebuild", 
-		"read_float", "float_pp_print", "float_ptr_print", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
+		"read_float", "float_ptr_print", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
 		"bool_to_str", "bool_to_str_buffer", 
 		"Delete_Ptr", 
 		"print_codegen", "print_codegen_silent", "LogErrorCall", 

@@ -960,18 +960,6 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["read_float"].push_back("0");
 		
-		Function_Arg_Types["float_pp_print"]["0"] = "Scope_Struct";
-		Function_Arg_Types["float_pp_print"]["1"] = "float";
-		Function_Arg_Types["float_pp_print"]["2"] = "int";
-		
-		Function_Arg_DataTypes["float_pp_print"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["float_pp_print"]["1"] = Data_Tree("float");
-		Function_Arg_DataTypes["float_pp_print"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["float_pp_print"].push_back("0");
-		Function_Arg_Names["float_pp_print"].push_back("1");
-		Function_Arg_Names["float_pp_print"].push_back("2");
-		
 		Function_Arg_Types["float_ptr_print"]["0"] = "Scope_Struct";
 		Function_Arg_Types["float_ptr_print"]["1"] = "float";
 		Function_Arg_Types["float_ptr_print"]["2"] = "int";

@@ -101,13 +101,6 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("read_float", read_floatTy);
 
-	FunctionType *float_pp_printTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
-		false
-	);
-	TheModule->getOrInsertFunction("float_pp_print", float_pp_printTy);
-
 	FunctionType *float_ptr_printTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},

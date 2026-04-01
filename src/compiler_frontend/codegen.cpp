@@ -35,6 +35,8 @@ std::unordered_map<std::string, Function *> async_fn;
 std::string current_codegen_function;
 std::unordered_map<std::string, std::function<Data_Tree(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&)>>function_return_overwrite;
 
+std::vector<std::string> Global_Uniques;
+std::unordered_map<std::string, int> Global_Uniques_Idx;
 
 
 std::vector<Value *> thread_pointers;
@@ -732,6 +734,7 @@ void Allocate_On_Pointer_Stack(Value *scope_struct, std::string function_name, s
     function_values[function_name]["QQ_stack_top"] = stack_top_value;
     // p2t("allocate " + var_name);
 }
+
 void Allocate_On_Pointer_Stack_no_metadata(Value *scope_struct, std::string function_name, Value *val) {
     Value *stack_top_value = function_values[function_name]["QQ_stack_top"];
     // Prevents the function_pointer from being used inside another function (invalid Value *).
@@ -2067,52 +2070,44 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
         std::string Lname = LHS->GetName();
 
-        bool is_alloca = (!LHS->GetSelf()&&!LHS->GetIsAttribute());
-        if (is_alloca)
-        {
+        if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) {
+            if (LHSV->Depth==1) { // is_alloca
+                std::string store_trigger = LType + "_StoreTrigger";
+                std::string copy_fn = LType + "_Copy";
 
-            std::string store_trigger = LType + "_StoreTrigger";
-            std::string copy_fn = LType + "_Copy";
+                // Copy data types that support copying (i.e, function <DT>_Copy exists)
+                if(auto Rvar = dynamic_cast<Nameable *>(RHS.get())) // if it is leaf
+                {
+                    Function *F = TheModule->getFunction(copy_fn);
+                    if (!from_channel_op && F)
+                        Val = callret(copy_fn, {scope_struct, Val});
+                }
 
+                // Store trigger behavior for supported types (i.e, function <DT>_StoreTrigger exists)
+                Function *F = TheModule->getFunction(store_trigger);
+                if (F && function_values[parser_struct.function_name].count(Lname)>0)
+                {
+                    Value *old_val = function_values[parser_struct.function_name][Lname];
+                    Val = callret(store_trigger, {scope_struct, old_val, Val});
+                }
 
-            // Copy data types that support copying (i.e, function <DT>_Copy exists)
-            if(auto Rvar = dynamic_cast<Nameable *>(RHS.get())) // if it is leaf
-            {
-                Function *F = TheModule->getFunction(copy_fn);
-                if (!from_channel_op && F)
-                    Val = callret(copy_fn, {scope_struct, Val});
-            }
+                if(!in_str(LType, primary_data_tokens)) {
+                    Value *unpacked_val = Val;
+                    if (Type=="str")
+                        unpacked_val = Builder->CreateExtractValue(Val, {0});
+                    Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, unpacked_val);
+                }
 
-            // Store trigger behavior for supported types (i.e, function <DT>_StoreTrigger exists)
-            Function *F = TheModule->getFunction(store_trigger);
-            if (F && function_values[parser_struct.function_name].count(Lname)>0)
-            {
-                Value *old_val = function_values[parser_struct.function_name][Lname];
-                Val = callret(store_trigger, {scope_struct, old_val, Val});
-            }
-            // if (LType=="array")
-            //     Cache_Array(parser_struct, Val);
+                function_values[parser_struct.function_name][Lname] = Val;
 
-            if(!in_str(LType, primary_data_tokens)) {
-                Value *unpacked_val = Val;
-                if (Type=="str")
-                    unpacked_val = Builder->CreateExtractValue(Val, {0});
-                Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, unpacked_val);
-            }
-
-            function_values[parser_struct.function_name][Lname] = Val;
-
-        } else {
-            if(auto *LHSV = dynamic_cast<Nameable *>(LHS.get())) { // self|attr
-                LType = L_dt.Type;
+            } else { // self|attr 
                 LHSV->Load_Last=false;
-                
                 Value *obj_ptr = LHSV->codegen(scope_struct);
                 Builder->CreateStore(Val, obj_ptr);
-            } else {}
-
-
-        }
+            }
+        } else
+            LogErrorC(-1, "Variable " + Lname + " could not be attributed");
+        
 
 
         seen_var_attr=false;
@@ -2741,6 +2736,38 @@ Value *LockExprAST::codegen(Value *scope_struct){
 
 
 
+void SetUniques(Value *scope_struct) {
+
+    int idx = 0;
+    for (auto class_name : Global_Uniques) {
+        Value *ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[class_name]),
+                                const_int16(data_name_to_type[class_name])});
+        std::cout << "set " << class_name << "\n";
+        std::string function_name = "__anon_expr";
+        Allocate_On_Pointer_Stack(scope_struct, function_name, class_name, Data_Tree(class_name), ptr);
+        StructType *st = struct_types["class_"+class_name]; 
+        for (auto attr : ClassAttrsName[class_name]) {
+          Data_Tree dt = data_typeVars[class_name][attr];
+          std::string type = dt.Type;
+          std::string create_fn = type+"_Create";
+          if (in_vec(type, compound_tokens)) {
+            int attr_idx = ClassAttrs[class_name][attr];
+            std::vector<Value *> ArgsDT_Create = {scope_struct};
+            Data_Tree *dt_ptr = new Data_Tree(type);
+            dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+            if(type=="map")
+                dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+            ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            Value *compound = callret(create_fn, ArgsDT_Create);
+            Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
+            Builder->CreateStore(compound, compound_gep);
+          }
+        }
+        Global_Uniques_Idx[class_name] = idx++;
+        call("print_void_ptr", {ptr});
+    }
+
+}
 
 Value *MainExprAST::codegen(Value *scope_struct) {
     if (not ShallCodegen)
@@ -2749,15 +2776,12 @@ Value *MainExprAST::codegen(Value *scope_struct) {
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
     std::string functionName = TheFunction->getName().str();
 
-
-
+    SetUniques(scope_struct);
     for (const auto &body : Bodies) {
         body->codegen(scope_struct);
         if (!body)
             return const_float(1);
     }
-
-
 
     return const_float(0);
 }
@@ -3009,6 +3033,9 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
     // Register all variables and emit their initializer.
     Value *previous_obj;
     bool has_init=false;
+
+
+
     for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
     {
         const std::string &VarName = VarNames[i].first;
@@ -3018,7 +3045,8 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
         {   
             Value *ptr;
             if (Init==nullptr) // no attribution
-                ptr = callret("allocate_pool", {scope_struct, const_int(Size), const_int16(data_name_to_type[ClassName])});
+                ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[ClassName]),
+                                        const_int16(data_name_to_type[ClassName])});
             else
                 ptr = Init->codegen(scope_struct);
             Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, Data_Tree(ClassName), ptr);
@@ -3216,26 +3244,6 @@ std::string Get_Nested_Name(std::vector<std::string> expressions_string_vec, Par
 
 
 
-int Get_Nested_Class_Size(std::vector<std::string> expressions_string_vec, Parser_Struct parser_struct) {
-
-    int last = expressions_string_vec.size();
-
-
-    std::string _class=parser_struct.function_name; 
-
-    int i=0;
-    if(expressions_string_vec[i]=="self") {
-        _class = parser_struct.class_name; 
-        i++;
-    }
-
-    for(; i<last; ++i)
-    {
-        _class = Object_toClass[_class][expressions_string_vec[i]].Type;
-    }
-
-    return ClassSize[_class];
-}
 
 
 
@@ -3442,7 +3450,21 @@ Value *NestedCallExprAST::codegen(Value *scope_struct) {
 Value *NameableRoot::codegen(Value *scope_struct) {
     return const_float(0);
 }
+Value *RecoverUniqueGlobal(Value *scope_struct, std::string name) {
+    LogBlue("load unique " + name);
+    std::cout << "" << Global_Uniques_Idx.count(name) << "\n";
 
+    // pointer to [N x i8*]
+    Value *stack_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 2);
+
+    // element pointer: &pointers_stack[i]
+    // {0, i} first index the array object, then the element
+    Value *void_ptr_gep = Builder->CreateGEP(ArrayType::get(int8PtrTy, ContextStackSize), stack_gep, { const_int(0), const_int(Global_Uniques_Idx[name]) });
+    
+    Value *ret = Builder->CreateLoad(int8PtrTy, void_ptr_gep);
+    call("print_void_ptr", {ret});
+    return  ret;
+}
 
 Value *Nameable::codegen(Value *scope_struct) {
     if (!ShallCodegen)
@@ -3451,16 +3473,17 @@ Value *Nameable::codegen(Value *scope_struct) {
     std::string type = dt.Type;
 
     if(Depth==1) {
-        if(Name=="self") {
-            Value *s = get_scope_obj(scope_struct);
-            // call("print_void_ptr", {s});
-            return s;
-        }
+        if(IsUnique)
+            return RecoverUniqueGlobal(scope_struct, Name);
+        if(Name=="self")
+            return get_scope_obj(scope_struct);
         return function_values[parser_struct.function_name][Name];
     }
 
     std::string scope = Inner->GetDataTree().Type;
     Value *obj_ptr = Inner->codegen(scope_struct);
+    // p2t("1 " + Name + "|" + scope);
+    // call("print_void_ptr", {obj_ptr});
 
     StructType *st = struct_types["class_"+scope]; 
 
@@ -3468,12 +3491,11 @@ Value *Nameable::codegen(Value *scope_struct) {
     int offset = ClassVariables[scope][Name];
     int attr_idx = ClassAttrs[scope][Name];
 
-    // std::cout << scope << "|" << Name << ": "  << attr_idx << "/" << offset << "\n";
-
     obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
+
+
     if(Load_Last||!IsLeaf) {
         llvm::Type *Ty = get_type_from_data(attr_type);
-
         obj_ptr = (!is_type_array(attr_type)) \
                     ? Builder->CreateLoad(Ty, obj_ptr) \
                     : Builder->CreateInBoundsGEP(Ty, obj_ptr, {const_int(0), const_int(0)}); //&arr[0]

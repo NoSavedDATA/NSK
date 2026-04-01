@@ -85,7 +85,6 @@ std::map<int, std::string> token_to_string = {
   
   // var definition
   { tok_attr_var, "tok attr var"},
-  { tok_attr_tensor, "tok attr tensor"},
 
 
   // specials

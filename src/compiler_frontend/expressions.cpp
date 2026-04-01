@@ -289,8 +289,8 @@ ObjectExprAST::ObjectExprAST(
   std::vector<bool> HasInit,
   std::vector<std::vector<std::unique_ptr<ExprAST>>> Args,
   std::string Type,
-  std::unique_ptr<ExprAST> Init, int Size, std::string ClassName)
-  : parser_struct(parser_struct), HasInit(std::move(HasInit)), Args(std::move(Args)), VarExprAST(std::move(VarNames), std::move(Type)), Init(std::move(Init)), Size(Size), ClassName(ClassName)
+  std::unique_ptr<ExprAST> Init, std::string ClassName)
+  : parser_struct(parser_struct), HasInit(std::move(HasInit)), Args(std::move(Args)), VarExprAST(std::move(VarNames), std::move(Type)), Init(std::move(Init)), ClassName(ClassName)
 {
 
     for (unsigned i = 0, e = this->VarNames.size(); i != e; ++i)
@@ -547,7 +547,7 @@ Data_Tree NewExprAST::GetDataTree(bool from_assignment) {
 
     if (functions_return_data_type.count(Callee)==0) {
         Callee = DataName + "___init__";
-        if (ClassSize.count(DataName)==0)
+        if (Classes.count(DataName)==0)
             LogErrorS(parser_struct.line, "Could not find data type " + DataName);
         is_high_level_obj = true;
         data_type = Data_Tree(DataName);
@@ -1233,6 +1233,9 @@ Data_Tree Nameable::GetDataTree(bool from_assignment) {
     if (data_type.Type!="")
         return data_type;
 
+  if(IsUnique)
+      return Data_Tree(Name);
+  
   if(Depth==1) {
     if(Name=="self")
         data_type = Data_Tree(parser_struct.class_name);
@@ -1264,6 +1267,14 @@ Nameable::Nameable(Parser_Struct parser_struct, std::string Name, int Depth) : p
   this->Name = Name;
   this->isAttribute = Depth>1;
   this->isSelf = (Depth==1&&Name=="self");
+}
+
+Nameable::Nameable(Parser_Struct parser_struct, std::string Name, int Depth, bool IsUnique) : parser_struct(parser_struct), Depth(Depth), IsUnique(IsUnique) {
+  this->Name = Name;
+  this->isAttribute = Depth>1;
+  this->isSelf = (Depth==1&&Name=="self");
+  if (IsUnique && !in_vec(Name, Global_Uniques))
+      Global_Uniques.push_back(Name);
 }
 
 
@@ -1386,7 +1397,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
       std::string first_arg_dt = this->Inner->GetDataTree().Type; 
       // check is data method
       is_nsk_fn = is_nsk_fn ||\
-       (ClassSize.count(first_arg_dt)==0&&begins_with(Callee, first_arg_dt) && !in_str(first_arg_dt, primary_data_tokens));        
+       (Classes.count(first_arg_dt)==0&&begins_with(Callee, first_arg_dt) && !in_str(first_arg_dt, primary_data_tokens));        
   }
 
 
