@@ -205,6 +205,11 @@ std::unique_ptr<ExprAST> ParseCharExpr(Parser_Struct parser_struct) {
   getNextToken(); // consume the '
   return std::move(Result);
 }
+std::unique_ptr<ExprAST> ParseNilExpr(Parser_Struct parser_struct) {
+  auto Result = std::make_unique<NullPtrExprAST>();
+  getNextToken(); // consume the '
+  return std::move(Result);
+}
 
 std::unique_ptr<ExprAST> ParseBreakExpr(Parser_Struct parser_struct) {
   auto Result = std::make_unique<BreakExprAST>();
@@ -559,7 +564,7 @@ std::unique_ptr<ExprAST> ParseNameableExpr(Parser_Struct parser_struct, std::uni
 {
   depth++;
     
-  bool is_unique = CurTok=='@';
+  bool is_unique = CurTok=='$';
   if (is_unique)
         getNextToken();
     
@@ -1172,11 +1177,6 @@ std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string c
 
 std::unique_ptr<ExprAST> ParseView(std::unique_ptr<ExprAST> elem_offset_stmt,
                                     Parser_Struct parser_struct, std::string class_name) {
-    // auto *raw = dynamic_cast<BinaryExprAST*>(elem_offset_stmt.get());
-    // if (raw->Op != '+')
-    //     LogError(parser_struct.line, "view expression LHS expected '+'");
-    // elem_offset_stmt.release();
-    // std::unique_ptr<BinaryExprAST> bin_stmt(raw);
 
     if(CurTok!=',')
         LogError(parser_struct.line, "view expression expected \',\'");
@@ -1855,7 +1855,7 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
       return ParseObjectInstantiationExpr(parser_struct, class_name);
     return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
   }
-  case '@':
+  case '$':
     return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
   case tok_self:
     return ParseNameableExpr(parser_struct, std::make_unique<NameableRoot>(parser_struct), class_name, can_be_list);
@@ -1869,6 +1869,8 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseStringExpr(parser_struct);
   case tok_char:
     return ParseCharExpr(parser_struct);
+  case tok_nil:
+    return ParseNilExpr(parser_struct);
   case '(':
     return ParseParenExpr(parser_struct);
   case tok_if:
@@ -1922,10 +1924,10 @@ std::unique_ptr<ExprAST> ParseUnary(Parser_Struct parser_struct, std::string cla
   // std::cout <<"Parse unary got can_be_list: " << can_be_list <<  "\n";
   // If the current token is not an operator, it must be a primary expr.
   
-  
-  if ((!isascii(CurTok) || CurTok=='@' || CurTok == '(' || CurTok == ',' || CurTok == '[' || CurTok == '{' || CurTok=='<' || CurTok=='>' || CurTok==':')&&CurTok!=tok_not)
+  if ((!isascii(CurTok) || CurTok=='$' || CurTok == '(' || CurTok == ',' || CurTok == '[' || CurTok == '{' || CurTok=='<' || CurTok=='>' || CurTok==':')&&CurTok!=tok_not)
   {
-    //std::cout << "Returning, non-ascii found.\n";
+    // std::cout << "Returning, non-ascii found.\n";
+    // std::cout << "" << CurTok << "|" << ReverseToken(CurTok) << "\n";
     // if(CurTok=='>'||CurTok=='^')
     // {
     //   std::cout << "PARALELIZE VECTOR AT UNARY" << ".\n";
@@ -1980,13 +1982,11 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec
     if (TokPrec < ExprPrec)
       return std::move(LHS);
     
-      
 
-
-    if (CurTok==tok_space || CurTok=='$')
-    {
+    if (CurTok==tok_space || CurTok=='$') {
+      if(CurTok!='$')
+          getNextToken();
       // std::cout << "Returning tok space with " << SeenTabs << " tabs. \n\n\n";
-      getNextToken();
       return std::move(LHS);
     }
 
@@ -2015,7 +2015,6 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec
     if (!RHS)
       return nullptr;
 
-    
 
     // If BinOp binds less tightly with RHS than the operator after RHS, let
     // the pending operator take RHS as its LHS.

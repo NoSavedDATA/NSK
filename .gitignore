@@ -17,5 +17,6 @@ foo_backup.nk
 *backup/
 *.csv
 *.txt
+*.nk
 *.py
 *.o

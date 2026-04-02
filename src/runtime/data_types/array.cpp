@@ -89,6 +89,12 @@ extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec, int
     vec->virtual_size++;
 }
 
+extern "C" float array_clear(Scope_Struct *scope_struct, DT_array *vec) {
+    // vec->data 
+    vec->virtual_size=0;
+    return 0;
+}
+
 
 extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...)
 { 

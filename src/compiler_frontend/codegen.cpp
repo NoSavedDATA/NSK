@@ -1044,6 +1044,15 @@ Value *IfExprAST::codegen(Value *scope_struct) {
     BasicBlock *ElseBB  = BasicBlock::Create(*TheContext, "if_else");
     BasicBlock *MergeBB = BasicBlock::Create(*TheContext, "if_cont");
 
+    std::string cond_type = Cond->GetDataTree().Type;
+
+    // handle pointer type
+    if (cond_type!="bool" && !in_vec(cond_type, primary_data_tokens)&&!in_vec(cond_type, compound_tokens))
+        CondV = Builder->CreateICmpNE(CondV,
+                        ConstantPointerNull::get(
+                            cast<PointerType>(int8PtrTy)
+                        ));
+
 
     Builder->CreateCondBr(CondV, ThenBB, ElseBB);
     Builder->SetInsertPoint(ThenBB);
@@ -2170,6 +2179,20 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
         } 
     }
 
+    if (Elements=="str_str") {
+        switch (Op) {
+            case tok_equal: {
+                Value *L_ptr = Builder->CreateExtractValue(L, {0});
+                Value *L_size = Builder->CreateExtractValue(L, {1});
+                Value *R_ptr = Builder->CreateExtractValue(R, {0});
+                Value *R_size = Builder->CreateExtractValue(R, {1});
+                return callret("str_eq", {scope_struct, L_ptr, R_ptr, L_size, R_size});
+                }
+            default:
+                break;
+        }   
+    }
+
     if (Elements=="str_int") {
         switch (Op) {
             case tok_offby: {
@@ -2340,8 +2363,6 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
     std::string operand_type = Operand->GetDataTree().Type;
     if (Opcode=='-')
     {
-
-
         if (Operand->GetType()=="int")
             return Builder->CreateMul(ConstantInt::get(Type::getInt32Ty(*TheContext), -1), OperandV, "multmp");
 
@@ -2353,8 +2374,16 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
 
 
     if (Opcode==tok_not||Opcode=='!') {
-        if(operand_type!="bool")
-            LogErrorS(parser_struct.line, "Cannot use not with type: " + operand_type);
+        if(operand_type!="bool") {
+            if (!in_vec(operand_type, primary_data_tokens)&&!in_vec(operand_type, compound_tokens)) {
+                Value *nullPtr = ConstantPointerNull::get(
+                        cast<PointerType>(int8PtrTy)
+                        );
+                return OperandV = Builder->CreateICmpEQ(OperandV, nullPtr);
+            }
+            else
+                LogErrorS(parser_struct.line, "Cannot use not with type: " + operand_type);
+        } 
         return Builder->CreateNot(OperandV, "logicalnot");
     }
 
@@ -3833,6 +3862,8 @@ Value *NameableCall::codegen(Value *scope_struct) {
     std::vector<Data_Tree> ArgTypes;
 
 
+    Value *obj_ptr;
+    bool shall_swap = false;
     if(Depth>1&&!FromLib) {
         if (ends_with(Callee, "__init__")&&isSelf)
         {
@@ -3840,12 +3871,12 @@ Value *NameableCall::codegen(Value *scope_struct) {
             Inner->Load_Last=false; // inhibits Load_slot
         }
 
-        Value *obj_ptr = Inner->codegen(scope_struct);
+        obj_ptr = Inner->codegen(scope_struct);
 
 
         if(!is_nsk_fn)
         {
-            previous_obj = swap_scope_obj(scope_struct, obj_ptr); 
+            shall_swap=true;
         }
         else {
             ArgTypes.push_back(Inner->GetDataTree());
@@ -3883,6 +3914,8 @@ Value *NameableCall::codegen(Value *scope_struct) {
         for (int i=0; i<Args.size(); ++i)
             ArgsV.push_back(Args[i]->codegen(scope_struct));
     }
+    if (shall_swap)
+        previous_obj = swap_scope_obj(scope_struct, obj_ptr); 
 
     if (has_obj_overwrite) // last time that cur fn values are used
         cur_self = nullptr;

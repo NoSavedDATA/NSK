@@ -610,6 +610,18 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_expand"].push_back("0");
 		Function_Arg_Names["map_expand"].push_back("1");
 		
+		Function_Arg_Types["map_has_str"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_has_str"]["1"] = "map";
+		Function_Arg_Types["map_has_str"]["2"] = "str";
+		
+		Function_Arg_DataTypes["map_has_str"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_has_str"]["1"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_has_str"]["2"] = Data_Tree("str");
+		
+		Function_Arg_Names["map_has_str"].push_back("0");
+		Function_Arg_Names["map_has_str"].push_back("1");
+		Function_Arg_Names["map_has_str"].push_back("2");
+		
 		Function_Arg_Types["map_print"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_print"]["1"] = "map";
 		
@@ -711,6 +723,17 @@ void set_functions_args_type() {
 		Function_Arg_Names["array_double_size"].push_back("0");
 		Function_Arg_Names["array_double_size"].push_back("1");
 		Function_Arg_Names["array_double_size"].push_back("2");
+		
+		Function_Arg_Types["array_clear"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_clear"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_clear"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_clear_1 = Data_Tree("array");
+		array_clear_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_clear"]["1"] = array_clear_1;
+		
+		Function_Arg_Names["array_clear"].push_back("0");
+		Function_Arg_Names["array_clear"].push_back("1");
 		
 		Function_Arg_Types["array_int_NewVec"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_int_NewVec"]["1"] = "int";
@@ -1434,6 +1457,24 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["str_Copy"].push_back("0");
 		Function_Arg_Names["str_Copy"].push_back("1");
+		
+		Function_Arg_Types["str_eq"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_eq"]["1"] = "str";
+		Function_Arg_Types["str_eq"]["2"] = "str";
+		Function_Arg_Types["str_eq"]["3"] = "int";
+		Function_Arg_Types["str_eq"]["4"] = "int";
+		
+		Function_Arg_DataTypes["str_eq"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_eq"]["1"] = Data_Tree("str");
+		Function_Arg_DataTypes["str_eq"]["2"] = Data_Tree("str");
+		Function_Arg_DataTypes["str_eq"]["3"] = Data_Tree("int");
+		Function_Arg_DataTypes["str_eq"]["4"] = Data_Tree("int");
+		
+		Function_Arg_Names["str_eq"].push_back("0");
+		Function_Arg_Names["str_eq"].push_back("1");
+		Function_Arg_Names["str_eq"].push_back("2");
+		Function_Arg_Names["str_eq"].push_back("3");
+		Function_Arg_Names["str_eq"].push_back("4");
 		
 		Function_Arg_Types["str_int_add"]["0"] = "Scope_Struct";
 		Function_Arg_Types["str_int_add"]["1"] = "str";

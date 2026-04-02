@@ -145,10 +145,8 @@ class CharExprAST : public ExprAST {
 
 
 class NullPtrExprAST : public ExprAST {
-
   public:
     NullPtrExprAST(); 
-
   Value *codegen(Value *scope_struct) override;
 };
 
@@ -390,6 +388,7 @@ public:
 
   Value *codegen(Value *scope_struct) override;
   bool GetNeedGCSafePoint() override;
+  Data_Tree GetDataTree(bool from_assignment=false) override;
 };
   
   

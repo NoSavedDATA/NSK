@@ -32,7 +32,10 @@ extern "C" char *str_Copy(Scope_Struct *scope_struct, char *str) {
 }
 
 
-
+extern "C" bool str_eq(Scope_Struct *scope_struct, char *a, char *b, int l_size, int r_size) {
+    return l_size == r_size &&
+           std::memcmp(a, b, l_size) == 0;
+}
 
 
 

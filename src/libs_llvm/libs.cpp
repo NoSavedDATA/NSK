@@ -203,6 +203,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("map_expand", map_expandTy);
 
+	FunctionType *map_has_strTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_has_str", map_has_strTy);
+
 	FunctionType *print_strTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
@@ -833,6 +840,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("str_Copy", str_CopyTy);
 
+	FunctionType *str_eqTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext), Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("str_eq", str_eqTy);
+
 	FunctionType *str_int_addTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
@@ -972,6 +986,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("array_double_size", array_double_sizeTy);
+
+	FunctionType *array_clearTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_clear", array_clearTy);
 
 	FunctionType *array_int_NewVecTy= FunctionType::get(
 		int8PtrTy,

@@ -48,6 +48,7 @@ enum Token {
     tok_char = -69, // ""
     tok_bool = -58,
     tok_any = -72,
+    tok_nil = -73,
 
 
     // bools

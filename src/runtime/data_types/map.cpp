@@ -11,6 +11,7 @@
 #include "data_tree.h"
 #include "map.h"
 #include "list.h"
+#include "str_view.h"
 
 
 
@@ -145,6 +146,18 @@ extern "C" void map_expand(Scope_Struct *scope_struct, DT_map *map) {
     map->expand_at = capacity*4;
 }
 
+
+extern "C" bool map_has_str(Scope_Struct *scope_struct, DT_map *map, char *query) {
+    int hash_pos = str_hash(query) % map->capacity;
+    DT_map_node *cur_node = map->nodes[hash_pos];
+    while(cur_node!=nullptr) {
+        char *key = static_cast<char*>(cur_node->key);
+        if (!strcmp(query, key))
+            return true;
+        cur_node = cur_node->next;
+    }
+    return false;
+}
 
 extern "C" void print_str(char *str) {
     std::cout << "print_str: " << str << ".\n";

@@ -25,21 +25,42 @@ def int array_int_prod(array<int> v)
 		prod = prod*i
 	return prod
 
+class optim_info
+	array<tensor> params
+	ctor()
+		0
+	def float register(tensor x)
+		self.params.append(x)
 
 class tensor
 	char sep
 	array<int> dims
 	int dims_prod
-	float_pp ptr
+	float_pp ptr, d
 	bool is_weight, shall_prop
 	array<BackNode> reqs
 
-	ctor(array<int> dims)
+	ctor(array<int> dims, str init)
 		self.dims = dims
 		self.dims_prod = array_int_prod(self.dims)
-		self.ptr = randu_cuda(self.dims_prod)
 		self.is_weight = false
-	
+		self.shall_prop = false
+		self.d = nil
+		if init=="randu"
+			self.ptr = randu_cuda(self.dims_prod)
+		if init=="zeros"
+			self.ptr = zeros_cuda(self.dims_prod)
+		if init=="ones"
+			self.ptr = ones_cuda(self.dims_prod)
+		if init=="none"
+			0
+
+	def float_pp getd()
+		if !self.d
+			self.d = zeros_cuda(self.dims_prod)
+			if self.is_weight
+				$optim_info.register(self)
+		return self.d
 
 	def float as_weight()
 		self.is_weight = true
@@ -52,6 +73,13 @@ class tensor
 		z.print(self.dims, self.dims_prod)
 		self.print_dims()
 		print(" ")
+	def float printd()
+		print(" ")
+		self.print_dims()
+		var z = self.d.cpu(self.dims_prod)
+		z.print(self.dims, self.dims_prod)
+		self.print_dims()
+		print(" ")
 
 	def float print_dims()
 		self.dims.print()
@@ -60,8 +88,8 @@ class tensor
 class BackNode
 	tensor l, r, out
 	bool solved
-	int op
-	ctor(tensor l, tensor r, tensor out, int op)
+	str op
+	ctor(tensor l, tensor r, tensor out, str op)
 		self.l = l
 		self.r = r
 		self.out = out
@@ -73,34 +101,58 @@ class BackNode
 			r.reqs.append(self)
 
 
+def int add_backward(float_pp dout, tensor x, tensor y)
+	print("add back")
+	float_pp dx, dy
+	dx = x.getd()
+	dy = y.getd()
+	acc_tensors(dx, dout, x.dims_prod)
+	acc_tensors(dy, dout, x.dims_prod)
+
+def int mma_backward(float_pp dout, tensor x, tensor y)
+	var dx = x.getd()
+	var dy = y.getd()
+	int m=x.dims[0], n=x.dims[1], p=y.dims[0]
+	matmul_backward(x.ptr, y.ptr, dx, dy, dout, m, n, p)
+
+def int mse_backward(float_pp dx, tensor x, tensor y)
+	mse_backward_kernel(dx, x.ptr, y.ptr, x.dims_prod)
+	x.printd()
+
+
 
 class backprop
 	array<BackNode> ops
+	map<str, Function<int, float_pp, tensor, tensor>> backs
+	map<str, Function<int, float_pp, tensor, tensor>> loss_backs
 	int last_back_op
 	ctor()
 		self.last_back_op = 0
 
-	def float register(tensor l, tensor r, tensor out, int op)
+	def float register(tensor l, tensor r, tensor out, str op)
 		self.ops.append(new BackNode(l, r, out, op))
 
 	def float backward()
 		int op_count=self.ops.size()
 		for i=0, i<op_count
 			var op = self.ops[op_count-1-i]
-			if op.l.shall_prop
-				print("L")
-			if op.r.shall_prop
-				print("R")
+			op.solved=true
+			if self.loss_backs.has(op.op)
+				float_pp dinp=op.l.getd()
+				self.loss_backs[op.op](dinp, op.l, op.r)
+			else
+				float_pp dout=op.out.getd()
+				self.backs[op.op](dout, op.l, op.r)
 
 
 def tensor tensor_tensor_add(tensor a, tensor b)
-	tensor ret = new tensor(a.dims)
+	tensor ret = new tensor(a.dims, "none")
 	ret.ptr = add_tensors(a.ptr, b.ptr, a.dims_prod)
 
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
 	if shall_prop
-		@backprop.register(a, b, ret)
+		$backprop.register(a, b, ret, "add")
 	return ret
 
 
@@ -110,30 +162,65 @@ def tensor tensor_tensor_mma(tensor a, tensor b)
 	int p = b.dims[0]
 
 	array<int> new_dims = [m, p]
-	tensor ret = new tensor(new_dims)
-	ret.ptr = mma_tensors(a.ptr, b.ptr, m, n, p)
-
+	tensor ret = new tensor(new_dims, "none")
+	ret.ptr = mma_tensors(a.ptr, b.ptr, m, p, n)
 
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
 	if shall_prop
-		@backprop.register(a, b, ret)
+		$backprop.register(a, b, ret, "mma")
 	return ret
 
 
+def tensor mse_loss(tensor a, tensor b)
+	tensor ret = new tensor(a.dims, "none")
+	ret.ptr = add_tensors(a.ptr, b.ptr, a.dims_prod)
+	bool shall_prop = a.shall_prop or b.shall_prop
+	ret.shall_prop = shall_prop
+	if shall_prop
+		$backprop.register(a, b, ret, "mse")
+	return ret
+	
+
+class SGD
+	float lr
+	ctor(float lr)
+		self.lr = lr
+		0
+
+	def float step()
+		for param in $optim_info.params
+			sgd_k(param.ptr, param.d, self.lr, param.dims_prod)
+			param.d=nil
+		$optim_info.params.clear()
 
 main
 	#foo()
 	#bar()
 	#cuda_foo()
+	$backprop.backs["add"] = add_backward
+	$backprop.backs["mma"] = mma_backward
+	$backprop.loss_backs["mse"] = mse_backward
 
 
+	SGD optim(0.001)
 
-	tensor x([2,8]), y([2,8])
-	x.as_weight()
-	y.as_weight()
+	tensor x([2,8], "randu"), w([8,8], "randu"), w2([2,8], "randu")
+	tensor label([2,2], "zeros")
 
-	var w = x + y
-	w = x @ w
 
-	@backprop.backward()
+	w.as_weight()
+	w2.as_weight()
+
+	for i=0, i<30
+		var y = x @ w
+		y = y @ w2
+
+
+		var lo = mse_loss(y, label)
+		#y.print()
+		#label.print()
+
+		$backprop.backward()
+
+		optim.step()

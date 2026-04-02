@@ -22,11 +22,11 @@ void set_functions_return_type() {
                            {"mean_tensor", "tensor"},
                            {"BatchNorm2d", "tensor"}, {"Pool2d", "tensor"}, {"LSTM", "tensor"}, {"MHSA", "tensor"}, {"Embedding", "tensor"},
 						{"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"ShuffleStrVec", "str_vec"},
-						{"map_Create", "map"}, {"map_keys", "array"}, {"map_values", "array"}, 
+						{"map_Create", "map"}, {"map_has_str", "bool"}, {"map_keys", "array"}, {"map_values", "array"}, 
 						{"read_float", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
-						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_int_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
+						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_clear", "float"}, {"array_int_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, 
 						{"LenStrVec", "int"}, {"ShuffleStrVec", "str_vec"}, {"shuffle_str", "str"}, {"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"str_vec_CalculateIdx", "int"}, {"str_vec_print", "float"}, 
 						{"print_randoms", "float"}, {"randint", "int"}, 
 						{"putchard", "float"}, {"printd", "float"}, 
@@ -38,7 +38,7 @@ void set_functions_return_type() {
 						{"GetEmptyChar", "str"}, {"CopyString", "str"}, {"ConcatStr", "str"}, {"ConcatStrFreeLeft", "str"}, {"ConcatFloatToStr", "str"}, {"ConcatNumToStrFree", "str"}, 
 						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int"}, {"int_to_str_buffer", "int"}, {"int_print_bits", "int"}, 
 						{"scope_struct_spec", "float"}, {"scope_struct_CreateFirst", ""}, {"scope_struct_Create", ""}, {"scope_struct_Overwrite", ""}, {"get_scope_thread_id", "int"}, {"scope_struct_Reset_Threads", "float"}, {"scope_struct_Increment_Thread", "float"}, {"scope_struct_print", "float"}, 
-						{"str_Copy", "str"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
+						{"str_Copy", "str"}, {"str_eq", "bool"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"prebuild", "int"}, 
@@ -70,6 +70,7 @@ void set_functions_return_type() {
 	functions_return_data_type["int_channel_terminate"] = Data_Tree("float");
 	functions_return_data_type["int_channel_alive"] = Data_Tree("bool");
 	functions_return_data_type["map_Create"] = Data_Tree("map");
+	functions_return_data_type["map_has_str"] = Data_Tree("bool");
 	functions_return_data_type["map_keys"] = Data_Tree("array");
 	functions_return_data_type["map_values"] = Data_Tree("array");
 	functions_return_data_type["CreateNotesVector"] = Data_Tree("list");
@@ -102,6 +103,7 @@ void set_functions_return_type() {
 	functions_return_data_type["array_Create"] = Data_Tree("array");
 	functions_return_data_type["array_size"] = Data_Tree("int");
 	functions_return_data_type["array_bad_idx"] = Data_Tree("int");
+	functions_return_data_type["array_clear"] = Data_Tree("float");
 	functions_return_data_type["array_int_NewVec"] = Data_Tree("array");
 	functions_return_data_type["array_print_int"] = Data_Tree("float");
 	functions_return_data_type["arange_int"] = Data_Tree("array");
@@ -119,6 +121,7 @@ void set_functions_return_type() {
 	functions_return_data_type["is_null"] = Data_Tree("bool");
 	functions_return_data_type["prebuild"] = Data_Tree("int");
 	functions_return_data_type["str_Copy"] = Data_Tree("str");
+	functions_return_data_type["str_eq"] = Data_Tree("bool");
 	functions_return_data_type["str_int_add"] = Data_Tree("str");
 	functions_return_data_type["str_float_add"] = Data_Tree("str");
 	functions_return_data_type["int_str_add"] = Data_Tree("str");

@@ -625,7 +625,12 @@ LibImportExprAST::LibImportExprAST(std::string LibName, bool IsDefault, Parser_S
   
   
   
-  
+Data_Tree UnaryExprAST::GetDataTree(bool from_assignment) {
+    if (Opcode=='!')
+        return Data_Tree("bool");
+    return Operand->GetDataTree();
+}
+
   /// UnaryExprAST - Expression class for a unary operator.
 UnaryExprAST::UnaryExprAST(int Opcode, std::unique_ptr<ExprAST> Operand, Parser_Struct parser_struct)
     : Opcode(Opcode), Operand(std::move(Operand)), parser_struct(parser_struct) {}
@@ -668,6 +673,7 @@ std::string BinaryExprAST::GetType(bool from_assignment) {
 
 
 Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
+  std::string operation = op_map[Op];
   L_dt = LHS->GetDataTree();
   R_dt = RHS->GetDataTree();
 
@@ -688,6 +694,7 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
 
   Elements = LType + "_" + RType;    
 
+
   // casts
   if (LType!=RType&&in_vec(LType, int_types)&&in_vec(RType, int_types)) {
     //Cast to L int type
@@ -703,12 +710,12 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     cast_R_to="int_to_float";
   }
   if (in_vec(LType, {"str", "charv"})) {
-      if (RType!="int"&&in_vec(RType, int_types))
+      if (RType!="int"&&in_vec(RType, int_types)) {
           cast_R_to="to_int";
-      Elements = LType+"_int";
+          Elements = LType+"_int";
+      }
   }
   // std::cout << Elements << " | " << Operation << "\n";
-  std::string operation = op_map[Op];
   Operation = Elements + "_" + operation;
 
   if (LType=="channel" && !in_str(RType, primary_data_tokens)&&RType!="str")
@@ -1195,7 +1202,6 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
 
   if(is_first_citizen) {
     data_type = this->Inner->GetDataTree().Nested_Data[0];
-    std::cout << "Set return as " << data_type.Type << "\n";
     return data_type;
   }
 
@@ -1369,6 +1375,11 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
   // specify array type
   if(Callee=="array_print")
     Callee = Callee + "_" + this->Inner->GetDataTree().Nested_Data[0].Type; 
+
+
+  if(Callee=="map_has")
+    Callee += "_" + this->Args[0]->GetDataTree().Type;
+
 
   // specify list type
   if(Callee=="list_append" && this->Args[0]->GetDataTree().Type=="int")

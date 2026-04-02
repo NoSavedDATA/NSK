@@ -204,6 +204,7 @@ std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self
                                              {"return", tok_ret},
 											 {"as", tok_as}, {"spawn", tok_spawn}, {"channel", tok_channel},
                                              {"main", tok_main},
+                                             {"nil", tok_nil},
                                              {"any", tok_any},
                                              {"proto", tok_proto},
                                              {"and", tok_and},
