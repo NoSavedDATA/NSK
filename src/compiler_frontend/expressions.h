@@ -482,7 +482,7 @@ class NameableLLVMIRCall : public Nameable {
 
 class NameableCall : public Nameable {
   public:
-  bool FromLib=false, is_nsk_fn=false, has_obj_overwrite;
+  bool FromLib=false, is_nsk_fn=false, has_obj_overwrite, is_first_citizen;
   int arg_type_check_offset=1; 
   std::vector<std::unique_ptr<ExprAST>> Args;
   std::string Callee, ReturnType="";

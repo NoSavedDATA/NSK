@@ -1193,12 +1193,6 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
   if (data_type.Type!="")
     return data_type;
 
-  if(is_first_citizen) {
-    data_type = this->Inner->GetDataTree().Nested_Data[0];
-    std::cout << "Set return as " << data_type.Type << "\n";
-    return data_type;
-  }
-
   Data_Tree ret = functions_return_data_type[Callee];
    
 
@@ -1248,7 +1242,7 @@ Data_Tree Nameable::GetDataTree(bool from_assignment) {
     else if(data_typeVars[parser_struct.function_name].find(Name)!=data_typeVars[parser_struct.function_name].end())
         data_type = data_typeVars[parser_struct.function_name][Name];
     else if(functions_return_data_type.count(Name)>0||function_return_overwrite.count(Name)>0) {
-        data_type = Data_Tree("function");
+        data_type = Data_Tree("Function");
         return data_type;
     }
     else {
@@ -1321,8 +1315,7 @@ NameableAppend::NameableAppend(Parser_Struct parser_struct, std::unique_ptr<Name
         std::string appended_type = this->Args[0]->GetDataTree().Type;
         std::string elem_type = inner_dt.Nested_Data[0].Type;
         
-        if(!(elem_type=="float"&&appended_type=="int") && appended_type!=elem_type&&\
-                elem_type!="Function")
+        if(!(elem_type=="float"&&appended_type=="int") && appended_type!=elem_type)
             LogErrorS(parser_struct.line, "Tried to append " + appended_type + " into a " + elem_type + " array.");
     }
 }
@@ -1346,15 +1339,15 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
   if(Depth>1) {    
     std::string inner_most_name = this->Inner->InnerMost()->Name;
 
-    if (in_str(inner_most_name, imported_libs)) {
+    if (in_str(inner_most_name, imported_libs))
+    {
       FromLib=true; //example_lib.sum  
       Callee = this->Inner->GetLibCallee();
     }
     else {  
       Data_Tree inner_dt = this->Inner->Inner->GetDataTree();
-      if(data_typeVars[inner_dt.Type].find(Callee)!=data_typeVars[inner_dt.Type].end()) { // self.linear1(x)  
+      if(data_typeVars[inner_dt.Type].find(Callee)!=data_typeVars[inner_dt.Type].end()) // self.linear1(x)    
         Callee = UnmangleVec(data_typeVars[inner_dt.Type][Callee]);
-      }
       else { // x.view()
         this->Inner = std::move(this->Inner->Inner);
         Callee = UnmangleVec(inner_dt) + "_" + Callee;
@@ -1380,7 +1373,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
   // check if exists
   if (functions_return_data_type.count(Callee)==0&&function_return_overwrite.count(Callee)==0\
-          &&!this->isSelf&&!is_first_citizen) {
+          &&!this->isSelf) {
     // std::cout << "" << Callee << "|" << std::to_string(!in_vec(Callee, template_fn)) << "\n";
     // std::cout << "" << this->isSelf << "\n";
       LogErrorS(parser_struct.line, "Function " + Callee + " not yet implemented.");
@@ -1421,8 +1414,8 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
       arg_type_check_offset++;
 
 
-  if(!is_first_citizen)
-      Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, sent_args, arg_type_check_offset);
+
+  Semantic_Arguments_Check(parser_struct, this->Args, Callee, is_nsk_fn, sent_args, arg_type_check_offset);
 }
 
 

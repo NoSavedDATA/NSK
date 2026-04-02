@@ -31,11 +31,19 @@ class tensor
 	array<int> dims
 	int dims_prod
 	float_pp ptr
+	bool is_weight, shall_prop
+	array<BackNode> reqs
 
 	ctor(array<int> dims)
 		self.dims = dims
 		self.dims_prod = array_int_prod(self.dims)
 		self.ptr = randu_cuda(self.dims_prod)
+		self.is_weight = false
+	
+
+	def float as_weight()
+		self.is_weight = true
+		self.shall_prop = true
 
 	def float print()
 		print(" ")
@@ -50,45 +58,68 @@ class tensor
 
 
 class BackNode
-tensor l, r, out
-	ctor(tensor l, tensor r, tensor out)
+	tensor l, r, out
+	bool solved
+	int op
+	ctor(tensor l, tensor r, tensor out, int op)
 		self.l = l
 		self.r = r
 		self.out = out
+		self.op = op
+		self.solved = false
+		if l.shall_prop
+			l.reqs.append(self)
+		if r.shall_prop
+			r.reqs.append(self)
+
+
 
 class backprop
 	array<BackNode> ops
+	int last_back_op
 	ctor()
-		0
+		self.last_back_op = 0
 
-	def float register(tensor l, tensor r, tensor out)
-		self.ops.append(new BackNode(l, r, out))
+	def float register(tensor l, tensor r, tensor out, int op)
+		self.ops.append(new BackNode(l, r, out, op))
 
 	def float backward()
-		for op in self.ops
-			print("L")
-			op.l.print()
-			print("R")
-			op.r.print()
-			print("OUT")
-			op.out.print()
+		int op_count=self.ops.size()
+		for i=0, i<op_count
+			var op = self.ops[op_count-1-i]
+			if op.l.shall_prop
+				print("L")
+			if op.r.shall_prop
+				print("R")
 
 
 def tensor tensor_tensor_add(tensor a, tensor b)
 	tensor ret = new tensor(a.dims)
 	ret.ptr = add_tensors(a.ptr, b.ptr, a.dims_prod)
-	@backprop.register(a, b, ret)
+
+	bool shall_prop = a.shall_prop or b.shall_prop
+	ret.shall_prop = shall_prop
+	if shall_prop
+		@backprop.register(a, b, ret)
 	return ret
+
 
 def tensor tensor_tensor_mma(tensor a, tensor b)
 	int m = a.dims[0]
 	int n = a.dims[1]
 	int p = b.dims[0]
+
 	array<int> new_dims = [m, p]
 	tensor ret = new tensor(new_dims)
 	ret.ptr = mma_tensors(a.ptr, b.ptr, m, n, p)
-	@backprop.register(a, b, ret)
+
+
+	bool shall_prop = a.shall_prop or b.shall_prop
+	ret.shall_prop = shall_prop
+	if shall_prop
+		@backprop.register(a, b, ret)
 	return ret
+
 
 
 main
@@ -97,8 +128,10 @@ main
 	#cuda_foo()
 
 
-	tensor x([2,8]), y([2,8])
 
+	tensor x([2,8]), y([2,8])
+	x.as_weight()
+	y.as_weight()
 
 	var w = x + y
 	w = x @ w

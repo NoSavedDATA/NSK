@@ -518,14 +518,10 @@ std::unique_ptr<ExprAST> ParseIdxExpr(Parser_Struct parser_struct, std::unique_p
 
 
   if (CurTok=='(')
-  {
-    LogBlue("Nested vector found call");
     return ParseCallExpr(parser_struct, std::move(vec_expr), class_name, depth);
-  }
   if (CurTok=='[')
     return ParseIdxExpr(parser_struct, std::move(vec_expr), class_name, depth);
-  if (CurTok=='.')
-  {
+  if (CurTok=='.') {
     getNextToken();
     return ParseNameableExpr(parser_struct, std::move(vec_expr), class_name, false, depth);
   }
@@ -2226,10 +2222,6 @@ std::unique_ptr<PrototypeAST> ParsePrototype(Parser_Struct parser_struct, bool f
 
       ArgNames.push_back(IdName);
 
-      // Function_Arg_Names[FnName].push_back(IdName);
-      // Function_Arg_Types[FnName][IdName] = data_type;
-      // Function_Arg_DataTypes[FnName][IdName] = data_tree;
-
       typeVars[FnName][IdName] = data_type;
       data_typeVars[FnName][IdName] = data_tree;
 
@@ -2314,19 +2306,8 @@ std::unique_ptr<ExprAST> ParseImport(Parser_Struct parser_struct) {
   // std::cout << "full_path_lib  " << full_path_lib<< "\n";
 
   // Import logic
-  if(fs::exists(full_path_lib))
-  {
-    // getNextToken();
+  if(fs::exists(full_path_lib)) {
     import_NSK_File(full_path_lib); // changed current
-    // tokenizer.cur_c = ' ';
-    // CurTok=tok_space;
-    // if (CurTok=='.') {
-    //     if(isalpha(tokenizer.cur_c)) {
-    //         CurTok=tok_space;
-    //     } else
-    //         getNextToken();
-    // }
-
     return nullptr;
   } else
     return std::make_unique<LibImportExprAST>(lib_name, is_default, parser_struct);

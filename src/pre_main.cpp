@@ -260,9 +260,15 @@ void MainLoop() {
     }
 }
 
+
 void InitializeTokenizer() {
     std::string lib_path = std::getenv("NSK_LIBS");
     std::string std_path = lib_path + "/std_lib/include.nk";
+
+    ParseClasses(std_path);
+    if (Sys_Arguments.size()>0)
+        ParseClasses(Sys_Arguments[0]);
+
     tokenizer = std::make_unique<Tokenizer>(std_path);
     getNextToken();
     MainLoop();

@@ -2742,7 +2742,6 @@ void SetUniques(Value *scope_struct) {
     for (auto class_name : Global_Uniques) {
         Value *ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[class_name]),
                                 const_int16(data_name_to_type[class_name])});
-        std::cout << "set " << class_name << "\n";
         std::string function_name = "__anon_expr";
         Allocate_On_Pointer_Stack(scope_struct, function_name, class_name, Data_Tree(class_name), ptr);
         StructType *st = struct_types["class_"+class_name]; 
@@ -2764,7 +2763,6 @@ void SetUniques(Value *scope_struct) {
           }
         }
         Global_Uniques_Idx[class_name] = idx++;
-        call("print_void_ptr", {ptr});
     }
 
 }
@@ -3450,19 +3448,14 @@ Value *NestedCallExprAST::codegen(Value *scope_struct) {
 Value *NameableRoot::codegen(Value *scope_struct) {
     return const_float(0);
 }
-Value *RecoverUniqueGlobal(Value *scope_struct, std::string name) {
-    LogBlue("load unique " + name);
-    std::cout << "" << Global_Uniques_Idx.count(name) << "\n";
 
+Value *RecoverUniqueGlobal(Value *scope_struct, std::string name) {
     // pointer to [N x i8*]
     Value *stack_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 2);
-
     // element pointer: &pointers_stack[i]
     // {0, i} first index the array object, then the element
     Value *void_ptr_gep = Builder->CreateGEP(ArrayType::get(int8PtrTy, ContextStackSize), stack_gep, { const_int(0), const_int(Global_Uniques_Idx[name]) });
-    
     Value *ret = Builder->CreateLoad(int8PtrTy, void_ptr_gep);
-    call("print_void_ptr", {ret});
     return  ret;
 }
 
@@ -3477,7 +3470,9 @@ Value *Nameable::codegen(Value *scope_struct) {
             return RecoverUniqueGlobal(scope_struct, Name);
         if(Name=="self")
             return get_scope_obj(scope_struct);
-        return function_values[parser_struct.function_name][Name];
+        if (function_values[parser_struct.function_name].count(Name)>0)
+            return function_values[parser_struct.function_name][Name];
+        return getFunctionCheck(Name);
     }
 
     std::string scope = Inner->GetDataTree().Type;
@@ -3881,8 +3876,14 @@ Value *NameableCall::codegen(Value *scope_struct) {
     if (ReturnType=="")
         GetDataTree();
 
-    ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct,\
+    if (!is_first_citizen)
+        ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Args, ArgTypes, scope_struct,\
             Callee, is_nsk_fn, arg_type_check_offset);
+    else {
+        for (int i=0; i<Args.size(); ++i)
+            ArgsV.push_back(Args[i]->codegen(scope_struct));
+    }
+
     if (has_obj_overwrite) // last time that cur fn values are used
         cur_self = nullptr;
 
@@ -3894,8 +3895,22 @@ Value *NameableCall::codegen(Value *scope_struct) {
     ret = llvm_callee[Callee](parser_struct, TheFunction, Callee, data_type, ArgTypes,
                               scope_struct, Args, ArgsV_slice);
   }
-  else
+  else if (is_first_citizen) {
+    Data_Tree inner_dt = Inner->GetDataTree();
+    Value *fn = Inner->codegen(scope_struct);
+    std::vector<llvm::Type*> types = {int8PtrTy};
+    for (int i=1; i<inner_dt.Nested_Data.size(); ++i)
+        types.push_back(get_type_from_data(inner_dt.Nested_Data[i]));
+    llvm::FunctionType *fnTy =
+        llvm::FunctionType::get(
+            get_type_from_data(inner_dt.Nested_Data[0]),
+            types,
+            false
+        );
+    ret = Builder->CreateCall(fnTy, fn, ArgsV);
+  } else
     ret = callret(Callee, ArgsV);
+  
   cur_self = nullptr;
 
   if (has_obj_overwrite) // Retrieve previous object
