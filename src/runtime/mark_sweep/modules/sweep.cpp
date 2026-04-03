@@ -156,9 +156,8 @@ void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *are
                 // if(check_initialized_field(slot))
                 //     work_list.push_back(GC_Node(*slot, nested_type));
                 void *slot = *(void **)(static_cast<char*>(root_ptr)+offset);
-                if (nested_type==27)
-                std::cout << data_type_to_name[type16] << " has " << data_type_to_name[nested_type] << " -- " << slot << "\n";
-
+                // if (nested_type==27)
+                // std::cout << data_type_to_name[type16] << " has " << data_type_to_name[nested_type] << " -- " << slot << "\n";
                 if(slot!=nullptr)
                     work_list.push_back(GC_Node(slot, nested_type));
                
@@ -215,8 +214,7 @@ void GC::CleanUp_Unused(int tid) {
                         if(u_type!=0) {
                             if(u_type!=5&&type_info[u_type]==nullptr) { // Not str and not class
                                 const std::string &obj_type = data_type_to_name[u_type]; 
-                                if(u_type!=12)
-                                std::cout << "Clean of " << u_type << "|" << obj_type << "|" << get_1(span->mark_bits, idx) << "\n";     
+                                // std::cout << "Clean of " << u_type << "|" << obj_type << "|" << get_1(span->mark_bits, idx) << "\n";     
                                 void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
                                 clean_up_functions[obj_type](obj_addr, tid);
                             }

@@ -214,7 +214,6 @@ class AdamW
 				self.v.append(new tensor(param.dims, "zeros"))
 
 			adamw_k(param.ptr, param.d, self.m[i].ptr, self.v[i].ptr, self.lr, param.dims_prod, self.beta1, self.beta2, self.ts)
-			print_void_ptrC(param.d)
 			param.d=nil
 			i=i+1
 			self.ts = self.ts+1
@@ -224,22 +223,24 @@ class AdamW
 main
 	#foo()
 	#bar()
-	#cuda_foo()
+
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
 
 
-	AdamW optim(0.01, 0.9, 0.98)
+	AdamW optim(0.001, 0.9, 0.98)
 	#SGD optim(0.01)
 
-	tensor x([2,8], "randu"), w([8,8], "randu"), w2([2,8], "randu")
+	tensor w([8,8], "randu"), w2([2,8], "randu")
 	tensor label([2,2], "zeros")
 
 	w.as_weight()
 	w2.as_weight()
 
-	for i=0, i<100
+	for i=0, i<1000
+		tensor x([2,8], "randu")
+		print("i: ", i)
 		var y = x @ w
 		y = y @ w2
 
@@ -251,4 +252,4 @@ main
 
 		optim.step()
 		scope_struct_Sweep()
-		GC_print()
+

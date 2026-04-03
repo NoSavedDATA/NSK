@@ -96,13 +96,15 @@ extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
 extern "C" float GC_print(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
     // std::cout << scope_struct << " has gc " << gc << "\n";
+    std::cout << "\n";
     std::cout << "Arena addr: " << gc->arena->arena << "\n";
     std::cout << "allocated: " << gc->arena->size_allocated << "\n";
     for (int i=0; i<GC_obj_sizes; ++i) {
-        std::cout << i << "|" << gc_sizes[i] << ": " << gc->arena->Spans[i].size() << "/" << gc->arena->Free_Spans[i].size() << "\n";
+        std::cout << gc_sizes[i] << ": " << gc->arena->Spans[i].size() << "\n";
         if (gc->arena->Spans[i].size()>0)
-            std::cout << "\t\t" << gc->arena->current_span[i]->free_idx << " / " << gc->arena->current_span[i]->N << "\n";
+            std::cout << "\t" << gc->arena->current_span[i]->free_idx << " / " << gc->arena->current_span[i]->N << "\n";
     }
+    std::cout << "\n";
     return 0;
 }
 

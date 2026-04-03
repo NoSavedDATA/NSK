@@ -297,16 +297,35 @@ Value *StringExprAST::codegen(Value *scope_struct) {
 }
 
 Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
-    Value *str = Builder->CreateExtractValue(DT_str_Val,{0});
+    Value *str  = Builder->CreateExtractValue(DT_str_Val, {0});
     Value *size = Builder->CreateExtractValue(DT_str_Val, {1});
 
+    Value *alloc_size = Builder->CreateAdd(size, const_int(1));
+
     Value *type_id = const_uint16(data_name_to_type["str"]);
-    Value *str_copy = callret("allocate_pool", {scope_struct, size, type_id});
+    Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size, type_id});
     
     call("memcpy", {str_copy, str, size});
 
+    // add \0
+    Value *end_ptr = Builder->CreateGEP(int8Ty, str_copy, size);
+    Builder->CreateStore(const_int8(0), end_ptr);
+
     return str_copy;
 }
+// Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
+//     Value *str = Builder->CreateExtractValue(DT_str_Val,{0});
+//     Value *size = Builder->CreateExtractValue(DT_str_Val, {1});
+
+//     Value *alloc_size = Builder->CreateAdd(size, const_int(1));
+
+//     Value *type_id = const_uint16(data_name_to_type["str"]);
+//     Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size, type_id});
+    
+//     call("memcpy", {str_copy, str, size});
+
+//     return str_copy;
+// }
 
 Value *CharExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
