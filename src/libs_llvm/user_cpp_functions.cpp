@@ -17,7 +17,7 @@ void set_user_functions() {
         "tensor_sum", "tensor_prod", "tensor_mean", "mean_tensor", "tensor_tmin", "tensor_argmin", "tensor_topk", "tensor_repeat_interleave",
         "tensor_save_img", "tensor_gpu", "tensor_gpuw", "tensor_save_as_int", "tensor_save_as_bin", "tensor_gather", "str_split_idx", "str_to_float", "list_print",
 		"__idx__", "__sliced_idx__", 
-		"scope_struct_Alloc_GC", 
+		"scope_struct_Alloc_GC", "GC_print", 
 		"channel_Create", "str_channel_message", "channel_str_message", "void_channel_message", "channel_void_message", "str_channel_Idx", "str_channel_terminate", "str_channel_alive", "float_channel_message", "channel_float_message", "float_channel_Idx", "float_channel_sum", "float_channel_mean", "float_channel_terminate", "float_channel_alive", "int_channel_message", "channel_int_message", "int_channel_Idx", "int_channel_sum", "int_channel_mean", "int_channel_terminate", "int_channel_alive", 
 		"min", "max", "logE2f", "roundE", "floorE", "logical_not", 
 		"LockMutex", "UnlockMutex", 

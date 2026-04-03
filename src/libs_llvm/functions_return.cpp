@@ -38,6 +38,7 @@ void set_functions_return_type() {
 						{"GetEmptyChar", "str"}, {"CopyString", "str"}, {"ConcatStr", "str"}, {"ConcatStrFreeLeft", "str"}, {"ConcatFloatToStr", "str"}, {"ConcatNumToStrFree", "str"}, 
 						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int"}, {"int_to_str_buffer", "int"}, {"int_print_bits", "int"}, 
 						{"scope_struct_spec", "float"}, {"scope_struct_CreateFirst", ""}, {"scope_struct_Create", ""}, {"scope_struct_Overwrite", ""}, {"get_scope_thread_id", "int"}, {"scope_struct_Reset_Threads", "float"}, {"scope_struct_Increment_Thread", "float"}, {"scope_struct_print", "float"}, 
+						{"GC_print", "float"}, 
 						{"str_Copy", "str"}, {"str_eq", "bool"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, 
 						{"channel_str_message", "float"}, {"channel_void_message", "float"}, {"str_channel_Idx", "str"}, {"str_channel_alive", "int"}, {"float_channel_message", "float"}, {"channel_float_message", "float"}, {"float_channel_Idx", "float"}, {"float_channel_sum", "float"}, {"float_channel_mean", "float"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_mean", "float"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
@@ -160,6 +161,7 @@ void set_functions_return_type() {
 	functions_return_data_type["print_vec_float"] = Data_Tree("int");
 	functions_return_data_type["dir_exists"] = Data_Tree("float");
 	functions_return_data_type["path_exists"] = Data_Tree("float");
+	functions_return_data_type["GC_print"] = Data_Tree("float");
 	functions_return_data_type["list_New"] = Data_Tree("list");
 	functions_return_data_type["list_append"] = Data_Tree("float");
 	functions_return_data_type["list_print"] = Data_Tree("float");

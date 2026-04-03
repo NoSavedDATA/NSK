@@ -959,6 +959,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("scope_struct_Alloc_GC", scope_struct_Alloc_GCTy);
 
+	FunctionType *GC_printTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("GC_print", GC_printTy);
+
 	FunctionType *array_CreateTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},

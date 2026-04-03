@@ -2359,18 +2359,11 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
         return nullptr;
 
 
-
     std::string operand_type = Operand->GetDataTree().Type;
-    if (Opcode=='-')
-    {
-        if (Operand->GetType()=="int")
-            return Builder->CreateMul(ConstantInt::get(Type::getInt32Ty(*TheContext), -1), OperandV, "multmp");
-
-        if (Operand->GetType()=="tensor")
-            return Builder->CreateFMul(ConstantFP::get(Type::getFloatTy(*TheContext), -1),
-                    OperandV, "multmp");
+    if (Opcode=='-') {
+        if (Operand->GetDataTree().Type=="int")
+            return Builder->CreateMul(const_int(-1), OperandV, "multmp");
     }
-
 
 
     if (Opcode==tok_not||Opcode=='!') {

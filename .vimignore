@@ -1,5 +1,8 @@
 include/stb
 lib/eigen3
+lib/nsk_cuda_old
+*backup*
+src_backup/
 .git/
 *.d
 *.o

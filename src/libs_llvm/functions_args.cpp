@@ -1107,6 +1107,12 @@ void set_functions_args_type() {
 		Function_Arg_DataTypes["scope_struct_Alloc_GC"]["0"] = Data_Tree("Scope_Struct");
 		
 		Function_Arg_Names["scope_struct_Alloc_GC"].push_back("0");
+		
+		Function_Arg_Types["GC_print"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["GC_print"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["GC_print"].push_back("0");
 	
 		
 		Function_Arg_Types["read_int"]["0"] = "Scope_Struct";

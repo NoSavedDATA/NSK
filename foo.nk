@@ -117,7 +117,7 @@ def int mma_backward(float_pp dout, tensor x, tensor y)
 
 def int mse_backward(float_pp dx, tensor x, tensor y)
 	mse_backward_kernel(dx, x.ptr, y.ptr, x.dims_prod)
-	x.printd()
+	#x.printd()
 
 
 
@@ -144,6 +144,8 @@ class backprop
 				float_pp dout=op.out.getd()
 				self.backs[op.op](dout, op.l, op.r)
 
+		self.ops.clear()
+
 
 def tensor tensor_tensor_add(tensor a, tensor b)
 	tensor ret = new tensor(a.dims, "none")
@@ -163,7 +165,7 @@ def tensor tensor_tensor_mma(tensor a, tensor b)
 
 	array<int> new_dims = [m, p]
 	tensor ret = new tensor(new_dims, "none")
-	ret.ptr = mma_tensors(a.ptr, b.ptr, m, p, n)
+	ret.ptr = mma_tensors(a.ptr, b.ptr, m, n, p)
 
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
@@ -187,12 +189,37 @@ class SGD
 	ctor(float lr)
 		self.lr = lr
 		0
-
 	def float step()
 		for param in $optim_info.params
 			sgd_k(param.ptr, param.d, self.lr, param.dims_prod)
 			param.d=nil
 		$optim_info.params.clear()
+
+class AdamW
+	float lr, beta1, beta2
+	array<tensor> m, v
+	int ts
+
+	ctor(float lr, float beta1, float beta2)
+		self.lr = lr
+		self.beta1 = beta1
+		self.beta2 = beta2
+		self.ts = 1
+
+	def float step()
+		int i=0
+		for param in $optim_info.params
+			if i+1>self.v.size()
+				self.m.append(new tensor(param.dims, "zeros"))
+				self.v.append(new tensor(param.dims, "zeros"))
+
+			adamw_k(param.ptr, param.d, self.m[i].ptr, self.v[i].ptr, self.lr, param.dims_prod, self.beta1, self.beta2, self.ts)
+			print_void_ptrC(param.d)
+			param.d=nil
+			i=i+1
+			self.ts = self.ts+1
+		$optim_info.params.clear()
+
 
 main
 	#foo()
@@ -203,24 +230,25 @@ main
 	$backprop.loss_backs["mse"] = mse_backward
 
 
-	SGD optim(0.001)
+	AdamW optim(0.01, 0.9, 0.98)
+	#SGD optim(0.01)
 
 	tensor x([2,8], "randu"), w([8,8], "randu"), w2([2,8], "randu")
 	tensor label([2,2], "zeros")
 
-
 	w.as_weight()
 	w2.as_weight()
 
-	for i=0, i<30
+	for i=0, i<100
 		var y = x @ w
 		y = y @ w2
 
-
 		var lo = mse_loss(y, label)
-		#y.print()
+		y.print()
 		#label.print()
 
 		$backprop.backward()
 
 		optim.step()
+		scope_struct_Sweep()
+		GC_print()
