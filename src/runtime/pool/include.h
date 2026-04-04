@@ -21,6 +21,7 @@ T *allocate(Scope_Struct *scope_struct, int size, std::string type) {
         return nullptr;
 
 
+
     auto it = data_name_to_type.find(type);
     if (it==data_name_to_type.end())
         LogErrorC(-1, std::string("Type ") + type + " not implemented.");

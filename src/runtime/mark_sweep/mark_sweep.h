@@ -43,6 +43,7 @@ struct Scope_Struct;
 struct GC_span_traits;
 struct GC_Arena;
 struct GC_Node;
+struct GC;
 
 extern std::array<GC_span_traits*, GC_obj_sizes> GC_span_traits_vec;
 
@@ -67,7 +68,6 @@ struct GC_Span {
     GC_Span *next_span=nullptr;
 
     int words, type_words, free_idx=0, elem_size, N;
-    bool is_free=true;
 
     // Interpretate type_metadata as int12
     uint64_t *mark_bits, *alloc_bits, *type_metadata;
@@ -75,10 +75,10 @@ struct GC_Span {
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
         if(free_idx<N) {
+            set_1(mark_bits, free_idx, gc_mark_bit);
             void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
             alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
             set_16_r12(type_metadata, free_idx, type_id);
-            set_1(mark_bits, free_idx, gc_mark_bit);
             free_idx++;
             return ret_ptr;
         }
@@ -86,10 +86,10 @@ struct GC_Span {
             uint64_t bits = alloc_bits[w] ^ ~0ULL;
             if (bits) {
                 int idx = (w<<6) + __builtin_ctzll(bits);
+                set_1(mark_bits, idx, gc_mark_bit);
                 void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
                 alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
                 set_16_r12(type_metadata, idx, type_id);
-                set_1(mark_bits, idx, gc_mark_bit);
                 return ret_ptr;
             }
         }
@@ -104,36 +104,73 @@ inline bool Check_Arena_Size_Ok(const int arena_size, const int size_allocated) 
     return true;
 }
 
+struct WorkList {
+    GC_Node node;
+    WorkList *next=nullptr;
+    WorkList(GC_Node);
+};
+
 struct GC_Arena {
     // Get an arena of 64MB, and set pages size to 8 KB
     const int arena_size=GC_arena_size, page=GC_page_size;
     // const int arena_size=65536, page=8192;
     int size_allocated=0,pages_allocated=0;
     void *arena, *metadata;
-    std::atomic<bool> marking{false};
+    GC *gc;
 
-    std::mutex mtx, sweep_mtx;
-    std::mutex gc_mtx;
+    std::mutex sweep_mtx, worklist_mtx;
 
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Spans;
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Free_Spans;
     std::array<GC_Span*, GC_obj_sizes> current_span{};
     std::array<GC_Span*, pages_per_arena> page_to_span;
-    std::vector<GC_Node> work_list;
+    std::vector<GC_Node> worklist, mutator_list;
+    bool owns_mutator=false;
+    WorkList *topw=nullptr;
+    // WorkList *mutatorw=nullptr;
+    std::atomic<WorkList*> mutatorw{nullptr};
 
     GC_Arena(int);
 
-
-    inline bool work_list_pop(GC_Node &node) {
-        std::unique_lock<std::mutex> lock(mtx);
-        if (work_list.empty()) return false;
-        node = work_list.back();
-        work_list.pop_back();
-        return true;
+    inline void mutator_push(void *ptr, uint16_t type_id) {
+        std::unique_lock<std::mutex> lock(worklist_mtx);
+        mutator_list.push_back(GC_Node(ptr, type_id));
+        // WorkList* node = new WorkList(GC_Node(ptr, type_id));
+        // WorkList* old_head;
+        // do {
+        //     old_head = mutatorw.load(std::memory_order_relaxed);
+        //     node->next = old_head;
+        // } while (!mutatorw.compare_exchange_weak(
+        //     old_head,
+        //     node,
+        //     std::memory_order_release,
+        // std::memory_order_relaxed));
     }
 
-    inline void work_list_push(void *ptr, uint16_t type_id) {
-        work_list.push_back(GC_Node(ptr, type_id));
+    inline void walkw() {
+        WorkList *old = topw;
+        topw = topw->next;
+        delete old;
+    }
+    inline void worklist_push(void *ptr, uint16_t type_id) {
+        std::unique_lock<std::mutex> lock(worklist_mtx);
+        mutator_list.push_back(GC_Node(ptr, type_id));
+        // WorkList *node = new WorkList(GC_Node(ptr, type_id));
+        // node->next = topw;
+        // topw = node;
+    }
+
+    inline bool worklist_pop(GC_Node &node) {
+        std::unique_lock<std::mutex> lock(worklist_mtx);
+        if (worklist.empty()) {
+            if (mutator_list.empty())
+                return false;
+            worklist.insert(worklist.end(), mutator_list.begin(), mutator_list.end());
+            mutator_list.clear();
+        }
+        node = worklist.back();
+        worklist.pop_back();
+        return true;
     }
 
     inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
@@ -177,15 +214,17 @@ struct GC_Arena {
         return span->Allocate(type_id, gc_mark_bit);
     }
 
+    bool get_is_marked(void *node_ptr, uint64_t mark_bit);
     bool mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit);
     void gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit);
-    void mark_worklist_pointers(uint64_t mark_bit);
+    void mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit);
     void check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bit);
 };
 
 struct GC {
     int allocations=0;
     uint64_t size_occupied=0, mark_bit=1ULL;
+    std::atomic<bool> marking{false};
     GC_Arena *arena;
     
     GC(int);

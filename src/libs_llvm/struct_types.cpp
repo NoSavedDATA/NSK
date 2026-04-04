@@ -77,7 +77,7 @@ void Generate_Struct_Types() {
     // GC
     StructType *GC_Struct_Type = StructType::create(
         *TheContext,
-        {intTy, longTy, void_vecTy},
+        {intTy, longTy, longTy, boolTy, void_vecTy},
         "GC"
     );
     // Scope_Struct

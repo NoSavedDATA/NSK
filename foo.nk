@@ -95,10 +95,10 @@ class BackNode
 		self.out = out
 		self.op = op
 		self.solved = false
-		if l.shall_prop
-			l.reqs.append(self)
-		if r.shall_prop
-			r.reqs.append(self)
+		#if l.shall_prop
+		#	l.reqs.append(self)
+		#if r.shall_prop
+		#	r.reqs.append(self)
 
 
 def int add_backward(float_pp dout, tensor x, tensor y)
@@ -131,6 +131,7 @@ class backprop
 
 	def float register(tensor l, tensor r, tensor out, str op)
 		self.ops.append(new BackNode(l, r, out, op))
+		
 
 	def float backward()
 		int op_count=self.ops.size()
@@ -209,6 +210,7 @@ class AdamW
 	def float step()
 		int i=0
 		for param in $optim_info.params
+			#print("OPTIMIZE " , i)
 			if i+1>self.v.size()
 				self.m.append(new tensor(param.dims, "zeros"))
 				self.v.append(new tensor(param.dims, "zeros"))
@@ -237,7 +239,7 @@ main
 	w.as_weight()
 	w2.as_weight()
 
-	for i=0, i<1000
+	for i=0, i<100000
 		tensor x([2,8], "randu")
 		print("i: ", i)
 		var y = x @ w

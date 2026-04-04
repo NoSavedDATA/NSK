@@ -31,7 +31,6 @@ GC_span_traits::GC_span_traits(int obj_size) : obj_size(obj_size) {
 }
 
 GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) : arena(arena), traits(traits) {
-
     // Get Span address
     span_address = static_cast<char*>(arena->arena) + arena->size_allocated;
     char *span_address_c = static_cast<char*>(span_address);
@@ -59,12 +58,9 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
        mark_bits[i] = mask; 
     }
 
-
+    // Protect unexisting slots
     for (int i=N; i<((N+63)/64)*64; ++i)
         set_1(alloc_bits, i, 1ULL);
-
-    
-
     
     // Initialize type-metadata
     int types_per_word = 64 / 16;
@@ -72,10 +68,6 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
     type_metadata = (uint64_t*)malloc(type_words*sizeof(uint64_t));
     for (int i=0; i<type_words; ++i)
        type_metadata[i] = 0ULL; 
-
-    for (int i=traits->N; i< ((traits->N + types_per_word-1) / types_per_word)*types_per_word; ++i) 
-        set_16_L2(type_metadata, i, 1u); // Set as protected
-    
 }
 
 GC_Arena::GC_Arena(int tid) {
@@ -86,8 +78,10 @@ GC_Arena::GC_Arena(int tid) {
 
 GC::GC(int tid) {
     arena = new GC_Arena(tid);
+    arena->gc = this;
 }
 
+WorkList::WorkList(GC_Node node) : node(node) {};
 
 void GC_Observer(Scope_Struct *scope_struct) {
     std::cout << "observer start" << "\n";
@@ -97,7 +91,7 @@ void GC_Observer(Scope_Struct *scope_struct) {
     int sweeps = 0;
     while(scope_struct->alive) {
         sweeps++;
-        next += std::chrono::microseconds(500);
+        next += std::chrono::microseconds(5000);
         std::this_thread::sleep_until(next);
         gc->Sweep(scope_struct);
     }

@@ -94,6 +94,20 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("LogErrorCall", LogErrorCallTy);
 
+	FunctionType *GC_write_barrierTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("GC_write_barrier", GC_write_barrierTy);
+
+	FunctionType *GC_write_barrier_objTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("GC_write_barrier_obj", GC_write_barrier_objTy);
+
 	FunctionType *read_floatTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy},
