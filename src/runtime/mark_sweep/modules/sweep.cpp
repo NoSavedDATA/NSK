@@ -22,60 +22,60 @@
 inline bool check_is_in_bounds(char *arena_addr, char *p) {
     bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
     return in_bounds;
-    // if (!in_bounds) {
-    //     std::cout << "Variable of type " << p << " address does not reside in any memory pool..\n";
-    //     std::cout << p << ".\n";
-    //     std::exit(0);
-    // }
 }
 
-inline bool mark_obj(GC_Arena *arena, char *arena_addr, void *node_ptr, uint16_t &type, uint64_t mark_bit) {
+bool GC_Arena::mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit) {
         if (!node_ptr)
             return false;
         
+        char *arena_addr = (char*)arena;
         char *p = static_cast<char*>(node_ptr);
+        
         if (!check_is_in_bounds(arena_addr, p))
             return false;
         
         long arena_offset = p - arena_addr;
         int page  =  (arena_offset / GC_page_size) % pages_per_arena;
  
-        GC_Span *span = arena->page_to_span[page];
+        GC_Span *span = page_to_span[page];
 
         long obj_idx = (p - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
         // prevent cyclic ref infinite loop
         bool was_handled = get_1(span->mark_bits, obj_idx) == mark_bit;
+        
+
 
         type = get_16_r12(span->type_metadata, obj_idx);
         set_1(span->mark_bits, obj_idx, mark_bit);
+
+
+
         return !was_handled;
 }
 
-
-
-inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_type, std::vector<GC_Node> &work_list, uint64_t mark_bit) {
+void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
     uint16_t type16;
     // if (root_type=="channel") {
     //     LogBlue("FROM ROOT OF CHANNEL");
     // }
-    if (root_type==uint16_t{6}) { // list
-        DT_list *list = static_cast<DT_list*>(ptr);
-        for (int i=0; i<list->size; ++i) {
-            const char *type = list->data_types->at(i).c_str(); 
-            uint16_t list_type = data_name_to_type[type];
-            if(in_vec(list_type, compound_types)) {
-                gc_list(arena, arena_addr, list->get<void*>(i), list_type, work_list, mark_bit);
-                continue;
-            }
-            if(list_type==uint16_t{5}) { //str
-                mark_obj(arena, arena_addr, list->get<char*>(i), type16, mark_bit);
-                continue;
-            }
-            if(!in_vec(list_type, primary_data_types)) //not a primary
-                mark_obj(arena, arena_addr, list->get<void*>(i), type16, mark_bit);
-        }
-    }
+    // if (root_type==uint16_t{6}) { // list
+    //     DT_list *list = static_cast<DT_list*>(ptr);
+    //     for (int i=0; i<list->size; ++i) {
+    //         const char *type = list->data_types->at(i).c_str(); 
+    //         uint16_t list_type = data_name_to_type[type];
+    //         if(in_vec(list_type, compound_types)) {
+    //             gc_list(list->get<void*>(i), list_type, mark_bit);
+    //             continue;
+    //         }
+    //         if(list_type==uint16_t{5}) { //str
+    //             mark_obj(list->get<char*>(i), type16, mark_bit);
+    //             continue;
+    //         }
+    //         if(!in_vec(list_type, primary_data_types)) //not a primary
+    //             mark_obj(list->get<void*>(i), type16, mark_bit);
+    //     }
+    // }
     if (root_type==uint16_t{12}) { // array 
         DT_array *array = static_cast<DT_array*>(ptr);
         void **data = static_cast<void **>(array->data);
@@ -83,7 +83,7 @@ inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_
             return;
 
         for (int i=0; i<array->virtual_size; ++i)
-            work_list.push_back(GC_Node(data[i], data_name_to_type[array->type]));
+            work_list_push(data[i], data_name_to_type[array->type]);
     }
     if (root_type==uint16_t{8}) { // map 
         DT_map *map = static_cast<DT_map*>(ptr);
@@ -96,11 +96,11 @@ inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_
         for (int i=0; i<map->capacity; ++i) {
             DT_map_node *node = map->nodes[i];
             while (node!=nullptr) {
-                mark_obj(arena, arena_addr, node, type16, mark_bit);
+                mark_obj(node, type16, mark_bit);
                 if (mark_key)
-                    mark_obj(arena, arena_addr, node->key, type16, mark_bit);
-                if(mark_val);
-                    work_list.push_back(GC_Node(node->value, vtype));
+                    mark_obj(node->key, type16, mark_bit);
+                if(mark_val)
+                    work_list_push(node->value, vtype);
                 node = node->next;
             }
         }
@@ -108,11 +108,15 @@ inline void gc_list(GC_Arena *arena, char *arena_addr, void *ptr, uint16_t root_
 }
 
 
-void mark_worklist_pointers(GC_Arena *arena, char *arena_addr, std::vector<GC_Node> &work_list, uint64_t mark_bit) {
+void GC_Arena::mark_worklist_pointers(uint64_t mark_bit) {
     uint16_t type16;
-    for (int i=0; i<work_list.size(); ++i) {
-        GC_Node &node = work_list[i];
-        if(!mark_obj(arena, arena_addr, node.ptr, type16, mark_bit))
+
+
+    // for (int i=0; i<work_list.size(); ++i) {
+    //     GC_Node &node = work_list[i];
+    GC_Node node;
+    while (work_list_pop(node)) {
+        if(!mark_obj(node.ptr, type16, mark_bit))
             continue;
 
         TypeInfo *class_info = type_info[type16]; 
@@ -121,28 +125,24 @@ void mark_worklist_pointers(GC_Arena *arena, char *arena_addr, std::vector<GC_No
                 PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
                 uint16_t offset = ptr_info->offset;
                 uint16_t nested_type = ptr_info->type;
-                // void **slot = (void **)(static_cast<char*>(node.ptr)+offset);
-                // if(check_initialized_field(slot))
-                //     work_list.push_back(GC_Node(*slot, nested_type));
+
                 void *slot = *(void **)(static_cast<char*>(node.ptr)+offset);
                 if(slot!=nullptr)
-                    work_list.push_back(GC_Node(slot, nested_type));
+                    work_list_push(slot, nested_type);
             }
         }
-        gc_list(arena, arena_addr, node.ptr, type16, work_list, mark_bit);
+        gc_list(node.ptr, type16, mark_bit);
     }
 }
 
 
-void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *arena_addr, uint64_t mark_bit) {
+void GC_Arena::check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bit) {
     uint16_t type16;
-    std::vector<GC_Node> work_list;
 
     for (int i=0; i<scope_struct->stack_top; ++i) {
         void *root_ptr = scope_struct->pointers_stack[i];
-        if (!mark_obj(arena, arena_addr, root_ptr, type16, mark_bit))
+        if (!mark_obj(root_ptr, type16, mark_bit))
             continue;
-
 
         TypeInfo *class_info = type_info[type16]; 
         if (class_info!=nullptr) {
@@ -151,22 +151,14 @@ void check_roots_worklist(Scope_Struct *scope_struct, GC_Arena *arena, char *are
                 int offset = ptr_info->offset;
                 uint16_t nested_type = ptr_info->type;
 
-
-                // void **slot = (void **)(static_cast<char*>(root_ptr)+offset);
-                // if(check_initialized_field(slot))
-                //     work_list.push_back(GC_Node(*slot, nested_type));
                 void *slot = *(void **)(static_cast<char*>(root_ptr)+offset);
-                // if (nested_type==27)
-                // std::cout << data_type_to_name[type16] << " has " << data_type_to_name[nested_type] << " -- " << slot << "\n";
                 if(slot!=nullptr)
-                    work_list.push_back(GC_Node(slot, nested_type));
-               
+                    work_list_push(slot, nested_type);
             }
         }
-
-        gc_list(arena, arena_addr, root_ptr, type16, work_list, mark_bit);
+        gc_list(root_ptr, type16, mark_bit);
     }
-    mark_worklist_pointers(arena, arena_addr, work_list, mark_bit);
+    mark_worklist_pointers(mark_bit);
 }
 
 
@@ -177,9 +169,9 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     int tid = scope_struct->thread_id;
     char *arena_addr = arena_base_addr[tid];
 
-    check_roots_worklist(scope_struct, arena, arena_addr, mark_bit);
+    arena->check_roots_worklist(scope_struct, mark_bit);
 
-    CleanUp_Unused(tid); // Trigger clean_up functions
+    CleanUp_Unused(tid);
     allocations=0;
     size_occupied=0;
 }
@@ -187,6 +179,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
 
 void GC::CleanUp_Unused(int tid) {
+    std::unique_lock<std::mutex> lock(arena->sweep_mtx);
     int get_mask = mark_bit ? 0 : 1;
     uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
 
@@ -214,7 +207,6 @@ void GC::CleanUp_Unused(int tid) {
                         if(u_type!=0) {
                             if(u_type!=5&&type_info[u_type]==nullptr) { // Not str and not class
                                 const std::string &obj_type = data_type_to_name[u_type]; 
-                                // std::cout << "Clean of " << u_type << "|" << obj_type << "|" << get_1(span->mark_bits, idx) << "\n";     
                                 void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
                                 clean_up_functions[obj_type](obj_addr, tid);
                             }

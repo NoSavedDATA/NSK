@@ -3,6 +3,7 @@
 #include <iostream>
 #include <map>
 #include <string>
+#include <thread>
 #include <vector>
 
 #include "../mark_sweep/include.h" 
@@ -24,7 +25,6 @@ struct Scope_Struct {
 
     std::vector<GC_Node> root_nodes;
 
-
     Scope_Struct *previous_scope=nullptr;
 
     char *first_arg = nullptr;
@@ -32,13 +32,14 @@ struct Scope_Struct {
     char *function_name = nullptr;
 
     Scope_Struct *inner_most = nullptr;
-
     
     int has_grad=1;
 
     int asyncs_count = 0;
 
-    bool is_at_return = false;
+    bool is_at_return = false, alive=true;
+
+    std::thread gc_thread;
 
 
 

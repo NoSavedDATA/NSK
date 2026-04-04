@@ -223,11 +223,10 @@ class AdamW
 main
 	#foo()
 	#bar()
-
+	#_quit_()
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
-
 
 	AdamW optim(0.001, 0.9, 0.98)
 	#SGD optim(0.01)
@@ -251,5 +250,5 @@ main
 		$backprop.backward()
 
 		optim.step()
-		scope_struct_Sweep()
+		#scope_struct_Sweep()
 

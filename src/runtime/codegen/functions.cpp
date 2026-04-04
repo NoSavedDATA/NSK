@@ -5,6 +5,12 @@
 namespace fs = std::filesystem;
 
 extern "C" float _quit_(Scope_Struct *scope_struct) {
+
+    scope_struct->alive = false;
+    if (scope_struct->gc_thread.joinable()) {
+        scope_struct->gc_thread.join();
+    }
+
     std::exit(0);
     return 0;
 }

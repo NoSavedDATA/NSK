@@ -93,13 +93,13 @@ inline uint32_t round_up_pow2_exp(uint32_t v) {
 }
 
 inline void *cache_pop(int size, int tid) {
-    int exp = round_up_pow2_exp(size);
-    auto& bucket = memory_cache[tid][exp];
-    if (bucket.empty())
+    // int exp = round_up_pow2_exp(size);
+    // auto& bucket = memory_cache[tid][exp];
+    // if (bucket.empty())
         return malloc(round_up_pow2(size));
-    void* ptr = bucket.back();
-    bucket.pop_back();
-    return ptr;
+    // void* ptr = bucket.back();
+    // bucket.pop_back();
+    // return ptr;
 }
 
 inline void cache_push(void* ptr, int size, int tid) {

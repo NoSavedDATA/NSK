@@ -2,6 +2,9 @@
 
 #include <cstdint>
 #include <map>
+#include <atomic>
+#include <mutex>
+#include <condition_variable>
 #include <string>
 #include <unordered_map>
 #include <vector>
@@ -43,6 +46,13 @@ struct GC_Node;
 
 extern std::array<GC_span_traits*, GC_obj_sizes> GC_span_traits_vec;
 
+struct GC_Node{
+    void *ptr;
+    uint16_t type;
+    GC_Node(void *, uint16_t);
+    GC_Node();
+};
+
 
 struct GC_span_traits {
     int pages=0, N=0, size, obj_size;
@@ -68,6 +78,7 @@ struct GC_Span {
             void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
             alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
             set_16_r12(type_metadata, free_idx, type_id);
+            set_1(mark_bits, free_idx, gc_mark_bit);
             free_idx++;
             return ret_ptr;
         }
@@ -78,6 +89,7 @@ struct GC_Span {
                 void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
                 alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
                 set_16_r12(type_metadata, idx, type_id);
+                set_1(mark_bits, idx, gc_mark_bit);
                 return ret_ptr;
             }
         }
@@ -98,19 +110,41 @@ struct GC_Arena {
     // const int arena_size=65536, page=8192;
     int size_allocated=0,pages_allocated=0;
     void *arena, *metadata;
+    std::atomic<bool> marking{false};
+
+    std::mutex mtx, sweep_mtx;
+    std::mutex gc_mtx;
 
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Spans;
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Free_Spans;
     std::array<GC_Span*, GC_obj_sizes> current_span{};
     std::array<GC_Span*, pages_per_arena> page_to_span;
+    std::vector<GC_Node> work_list;
 
     GC_Arena(int);
+
+
+    inline bool work_list_pop(GC_Node &node) {
+        std::unique_lock<std::mutex> lock(mtx);
+        if (work_list.empty()) return false;
+        node = work_list.back();
+        work_list.pop_back();
+        return true;
+    }
+
+    inline void work_list_push(void *ptr, uint16_t type_id) {
+        work_list.push_back(GC_Node(ptr, type_id));
+    }
+
     inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
-        // std::cout << "allocate " << size_class << " | " << type_id << "\n";
+        std::unique_lock<std::mutex> lock(sweep_mtx);
+
         GC_span_traits* traits = GC_span_traits_vec[size_class];
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
 
+
+        
         // FAST PATH
         if (span != nullptr)
         {
@@ -142,6 +176,11 @@ struct GC_Arena {
 
         return span->Allocate(type_id, gc_mark_bit);
     }
+
+    bool mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit);
+    void gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit);
+    void mark_worklist_pointers(uint64_t mark_bit);
+    void check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bit);
 };
 
 struct GC {
@@ -182,12 +221,6 @@ struct GC {
 //---------------------------------------------------------//
 
 
-struct GC_Node{
-    void *ptr;
-    uint16_t type;
-    
-    GC_Node(void *, uint16_t);
-};
 
 
 

@@ -313,19 +313,6 @@ Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
 
     return str_copy;
 }
-// Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
-//     Value *str = Builder->CreateExtractValue(DT_str_Val,{0});
-//     Value *size = Builder->CreateExtractValue(DT_str_Val, {1});
-
-//     Value *alloc_size = Builder->CreateAdd(size, const_int(1));
-
-//     Value *type_id = const_uint16(data_name_to_type["str"]);
-//     Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size, type_id});
-    
-//     call("memcpy", {str_copy, str, size});
-
-//     return str_copy;
-// }
 
 Value *CharExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
@@ -2821,6 +2808,8 @@ Value *MainExprAST::codegen(Value *scope_struct) {
         if (!body)
             return const_float(1);
     }
+
+    call("scope_struct_Join_GC", {scope_struct});
 
     return const_float(0);
 }

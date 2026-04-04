@@ -1,8 +1,10 @@
+#include <chrono>
 #include <cmath>
 #include <iostream>
 #include <limits>
 #include <map>
 #include <string>
+#include <thread>
 #include <unordered_map>
 
 #include "../compiler_frontend/global_vars.h"
@@ -86,9 +88,33 @@ GC::GC(int tid) {
     arena = new GC_Arena(tid);
 }
 
+
+void GC_Observer(Scope_Struct *scope_struct) {
+    std::cout << "observer start" << "\n";
+    auto next = std::chrono::steady_clock::now();
+    GC *gc = scope_struct->gc;
+    GC_Arena *arena = gc->arena;
+    int sweeps = 0;
+    while(scope_struct->alive) {
+        sweeps++;
+        next += std::chrono::microseconds(500);
+        std::this_thread::sleep_until(next);
+        gc->Sweep(scope_struct);
+    }
+    std::cout << "sweeps " << sweeps << "\n";
+}
+
+extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
+    scope_struct->alive = false;
+    if (scope_struct->gc_thread.joinable()) {
+        scope_struct->gc_thread.join();
+    }
+}
+
+
 extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
     scope_struct->gc = new GC(scope_struct->thread_id);
-    // std::cout << "alloc gc " << scope_struct->gc << " for " << scope_struct << "\n";
+    scope_struct->gc_thread = std::thread(GC_Observer, scope_struct);
 }
 
 
@@ -167,6 +193,7 @@ bool unprotect_pool_addr(Scope_Struct *scope_struct, void *addr) {
 // //---------------------------------------------------------//
 
 GC_Node::GC_Node(void *ptr, uint16_t type) : ptr(ptr), type(type) {}
+GC_Node::GC_Node() {}
 
 
 

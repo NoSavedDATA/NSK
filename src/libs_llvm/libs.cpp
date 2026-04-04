@@ -952,6 +952,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("readline", readlineTy);
 
+	FunctionType *scope_struct_Join_GCTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("scope_struct_Join_GC", scope_struct_Join_GCTy);
+
 	FunctionType *scope_struct_Alloc_GCTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
