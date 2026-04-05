@@ -146,6 +146,7 @@ class backprop
 				self.backs[op.op](dout, op.l, op.r)
 
 		self.ops.clear()
+		sweep()
 
 
 def tensor tensor_tensor_add(tensor a, tensor b)
@@ -226,6 +227,7 @@ main
 	#foo()
 	#bar()
 	#_quit_()
+	join_gc()
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
@@ -252,5 +254,5 @@ main
 		$backprop.backward()
 
 		optim.step()
-		#scope_struct_Sweep()
 
+		#psweep()

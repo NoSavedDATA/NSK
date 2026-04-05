@@ -127,24 +127,15 @@ struct GC_Arena {
     std::vector<GC_Node> worklist, mutator_list;
     bool owns_mutator=false;
     WorkList *topw=nullptr;
-    // WorkList *mutatorw=nullptr;
-    std::atomic<WorkList*> mutatorw{nullptr};
+    WorkList *mutatorw=nullptr;
+    // std::atomic<WorkList*> mutatorw{nullptr};
 
     GC_Arena(int);
 
     inline void mutator_push(void *ptr, uint16_t type_id) {
-        std::unique_lock<std::mutex> lock(worklist_mtx);
-        mutator_list.push_back(GC_Node(ptr, type_id));
-        // WorkList* node = new WorkList(GC_Node(ptr, type_id));
-        // WorkList* old_head;
-        // do {
-        //     old_head = mutatorw.load(std::memory_order_relaxed);
-        //     node->next = old_head;
-        // } while (!mutatorw.compare_exchange_weak(
-        //     old_head,
-        //     node,
-        //     std::memory_order_release,
-        // std::memory_order_relaxed));
+        WorkList* node = new WorkList(GC_Node(ptr, type_id));
+        node->next = mutatorw;
+        mutatorw = node;
     }
 
     inline void walkw() {
@@ -153,26 +144,12 @@ struct GC_Arena {
         delete old;
     }
     inline void worklist_push(void *ptr, uint16_t type_id) {
-        std::unique_lock<std::mutex> lock(worklist_mtx);
-        mutator_list.push_back(GC_Node(ptr, type_id));
-        // WorkList *node = new WorkList(GC_Node(ptr, type_id));
-        // node->next = topw;
-        // topw = node;
+        WorkList *node = new WorkList(GC_Node(ptr, type_id));
+        node->next = topw;
+        topw = node;
     }
 
-    inline bool worklist_pop(GC_Node &node) {
-        std::unique_lock<std::mutex> lock(worklist_mtx);
-        if (worklist.empty()) {
-            if (mutator_list.empty())
-                return false;
-            worklist.insert(worklist.end(), mutator_list.begin(), mutator_list.end());
-            mutator_list.clear();
-        }
-        node = worklist.back();
-        worklist.pop_back();
-        return true;
-    }
-
+    void *WriteBarrierAlloc(GC_Span *span, uint16_t type_id, uint64_t mark_bit);
     inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
         std::unique_lock<std::mutex> lock(sweep_mtx);
 
@@ -180,17 +157,15 @@ struct GC_Arena {
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
 
-
-        
         // FAST PATH
         if (span != nullptr)
         {
-            void* ptr = span->Allocate(type_id, gc_mark_bit);
+            void* ptr = WriteBarrierAlloc(span, type_id, gc_mark_bit);
             if (ptr != nullptr)
                 return ptr;
             while(span->next_span!=nullptr) { // only happens after resets
                 span = span->next_span;
-                ptr = span->Allocate(type_id, gc_mark_bit);
+                ptr = WriteBarrierAlloc(span, type_id, gc_mark_bit);
                 if (ptr!=nullptr) {
                     current_span[size_class] = span;
                     return ptr;
@@ -211,9 +186,10 @@ struct GC_Arena {
         current_span[size_class] = span;
         Spans[size_class].push_back(span);
 
-        return span->Allocate(type_id, gc_mark_bit);
+        return WriteBarrierAlloc(span, type_id, gc_mark_bit);
     }
 
+    bool is_safe(void *node_ptr);
     bool get_is_marked(void *node_ptr, uint64_t mark_bit);
     bool mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit);
     void gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit);
@@ -224,7 +200,8 @@ struct GC_Arena {
 struct GC {
     int allocations=0;
     uint64_t size_occupied=0, mark_bit=1ULL;
-    std::atomic<bool> marking{false};
+    // std::atomic<bool> marking{false};
+    bool marking = false;
     GC_Arena *arena;
     
     GC(int);

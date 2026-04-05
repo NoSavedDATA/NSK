@@ -94,16 +94,16 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("LogErrorCall", LogErrorCallTy);
 
-	FunctionType *GC_write_barrierTy= FunctionType::get(
+	FunctionType *GC_array_append_barrierTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy, Type::getInt16Ty(*TheContext)},
 		false
 	);
-	TheModule->getOrInsertFunction("GC_write_barrier", GC_write_barrierTy);
+	TheModule->getOrInsertFunction("GC_array_append_barrier", GC_array_append_barrierTy);
 
 	FunctionType *GC_write_barrier_objTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		{int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("GC_write_barrier_obj", GC_write_barrier_objTy);
@@ -965,6 +965,27 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("readline", readlineTy);
+
+	FunctionType *join_gcTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("join_gc", join_gcTy);
+
+	FunctionType *sweepTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("sweep", sweepTy);
+
+	FunctionType *psweepTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("psweep", psweepTy);
 
 	FunctionType *scope_struct_Join_GCTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),

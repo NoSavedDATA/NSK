@@ -1085,6 +1085,11 @@ Nameable *Nameable::InnerMost() {
     return this;
   return Inner->InnerMost(); 
 }
+Nameable *Nameable::Obj() {
+  if (Inner->Depth==1)
+    return this;
+  return Inner->Obj(); 
+}
 
 
 std::string Nameable::GetLibCallee() {

@@ -40,6 +40,9 @@ struct Scope_Struct {
     bool is_at_return = false, alive=true;
 
     std::thread gc_thread;
+    std::mutex mtx;
+    std::condition_variable cv;
+    bool force_sweep = false, joined=false;
 
 
 

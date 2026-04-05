@@ -25,6 +25,25 @@ inline bool check_is_in_bounds(char *arena_addr, char *p) {
     return in_bounds;
 }
 
+void *GC_Arena::WriteBarrierAlloc(GC_Span *span, uint16_t type_id, uint64_t mark_bit) {
+    void *ptr = span->Allocate(type_id, mark_bit);
+    // if (gc->marking)
+    //     mutator_push(ptr, type_id);
+    return ptr;
+}
+
+bool GC_Arena::is_safe(void *node_ptr) {
+    if (!node_ptr)
+        return false;
+    
+    char *arena_addr = (char*)arena;
+    char *p = static_cast<char*>(node_ptr);
+    
+    if (!check_is_in_bounds(arena_addr, p))
+        return false;
+
+    return true;
+}
 
 bool GC_Arena::get_is_marked(void *node_ptr, uint64_t mark_bit) {
         if (!node_ptr)
@@ -69,10 +88,13 @@ bool GC_Arena::mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit) {
         type = get_16_r12(span->type_metadata, obj_idx);
         set_1(span->mark_bits, obj_idx, mark_bit);
 
-        return !was_handled;
+        // return !was_handled;
+        return true;
 }
 
 void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
+    if (!is_safe(ptr))
+        return;
     uint16_t type16;
     // if (root_type=="channel") {
     //     LogBlue("FROM ROOT OF CHANNEL");
@@ -100,8 +122,11 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
             return;
 
         void **data = static_cast<void **>(array->data);
+        if (!data)
+            return;
         for (int i=0; i<array->virtual_size; ++i) {
-            worklist_push(data[i], data_name_to_type[array->type]);
+            if(!get_is_marked(data[i], data_name_to_type[array->type]))
+                worklist_push(data[i], data_name_to_type[array->type]);
         }
     }
     if (root_type==uint16_t{8}) { // map 
@@ -125,34 +150,73 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
     }
 }
 
-extern "C" void GC_write_barrier(GC *gc, void *ptr, uint16_t type) {
-    // std::cout << "GC_write_barrier " << ptr << "/" << type << "\n";
-    if (!ptr)
-        return;
-    gc->arena->mutator_list.push_back(GC_Node(ptr, type));
-}
 
-extern "C" void GC_write_barrier_obj(GC *gc, void **slot, void *ptr, uint16_t type) {
+extern "C" void GC_array_append_barrier(GC *gc, DT_array *vec, int idx, void *ptr, uint16_t type) {
+    if (idx>=vec->size) {
+        std::cout << "VEC BAD SIZE" << "\n";
+        std::exit(0);
+    } 
+    void **data = (void**)vec->data;
+    void **slot = &((void**)vec->data)[idx];
+    void *old = __atomic_load_n(slot, __ATOMIC_ACQUIRE);
+
     GC_Arena *arena = gc->arena;
     
-    if (!gc->marking.load(std::memory_order_acquire)) {
-        *slot = ptr;
-        return;
-    }
-    void *old = *slot;
-    if(old && !arena->get_is_marked(old, gc->mark_bit))
+    std::unique_lock<std::mutex> lock(arena->worklist_mtx);
+    
+
+    bool is_marked = arena->get_is_marked(vec, gc->mark_bit);
+
+    // Yuasa
+    if(!is_marked&&old!=nullptr)
         arena->mutator_push(old, type);
-    std::atomic_thread_fence(std::memory_order_release);
-    *slot = ptr;
-    if(ptr && !arena->get_is_marked(ptr, gc->mark_bit))
-        arena->mutator_push(ptr, type);
+    __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
+    // Dijkstra
+    // if(is_marked&&ptr!=nullptr)
+    //     arena->mutator_push(ptr, type);
 }
+
+extern "C" void GC_write_barrier_obj(GC *gc, void *src, void **slot, void *ptr, uint16_t type) {
+    GC_Arena *arena = gc->arena;
+    std::unique_lock<std::mutex> lock(arena->worklist_mtx);
+    // Yuasa
+    bool is_marked = arena->get_is_marked(src, gc->mark_bit);
+
+    void* old = __atomic_load_n(slot, __ATOMIC_ACQUIRE);
+    if(!is_marked&&old!=nullptr)
+        arena->mutator_push(old, type);
+    __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
+    // Dijkstra
+    // if(is_marked&&ptr!=nullptr)
+    //     arena->mutator_push(ptr, type);
+}
+
 
 void GC_Arena::mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit) {
     uint16_t type16;
     GC_Node node;
 
-    while (worklist_pop(node)&&scope_struct->alive) {
+    std::unique_lock<std::mutex> lock(sweep_mtx, std::defer_lock);
+    bool locked=false;
+    while (scope_struct->alive) {
+        std::unique_lock<std::mutex> lock2(worklist_mtx);
+        if (!topw) {
+            if (!locked) {
+                lock.lock();
+                locked = true;
+            }
+            WorkList *stolen = mutatorw;
+            mutatorw = nullptr;
+            if(!stolen) {
+                if (!mutatorw)
+                    break;
+                continue;
+            }
+            topw = stolen;
+        }
+
+        node = topw->node;
+        walkw();
         if(!mark_obj(node.ptr, type16, mark_bit))
             continue;
         TypeInfo *class_info = type_info[type16]; 
@@ -162,49 +226,27 @@ void GC_Arena::mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_
                 uint16_t offset = ptr_info->offset;
                 uint16_t nested_type = ptr_info->type;
                 
-                void *slot = *(void **)(static_cast<char*>(node.ptr)+offset);
-                if(slot!=nullptr)
+                if(!node.ptr)
+                    continue;
+                void** slot_ptr = reinterpret_cast<void**>(
+                    static_cast<char*>(node.ptr) + offset
+                );
+                void* slot = __atomic_load_n(slot_ptr, __ATOMIC_ACQUIRE);
+
+                if(slot)
                     worklist_push(slot, nested_type);
             }
         }
         gc_list(node.ptr, type16, mark_bit);
     }
+    if (!locked)
+        lock.lock();
 
-    // while (scope_struct->alive) {
-    //     while (topw) {
-    //         node = topw->node;
-    //         walkw();
-    //         if(!mark_obj(node.ptr, type16, mark_bit))
-    //             continue;
-            // TypeInfo *class_info = type_info[type16]; 
-            // if (class_info!=nullptr) {
-            //     for (int ptr_i=0; ptr_i<class_info->pointers_count; ++ptr_i) {
-            //         PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
-            //         uint16_t offset = ptr_info->offset;
-            //         uint16_t nested_type = ptr_info->type;
-                    
-            //         void *slot = *(void **)(static_cast<char*>(node.ptr)+offset);
-            //         if(slot!=nullptr)
-            //             worklist_push(slot, nested_type);
-            //     }
-            // }
-            // gc_list(node.ptr, type16, mark_bit);
-    //     }
-
-    //     WorkList* stolen = mutatorw.exchange(nullptr, std::memory_order_acquire);
-
-    //     if (!stolen) {
-    //         // double check: did we miss anything?
-    //         if (mutatorw.load(std::memory_order_acquire) == nullptr)
-    //             break;
-    //         else
-    //             continue;
-    //     }
-
-    //     topw = stolen;
-    // }
-    gc->marking.store(false, std::memory_order_release);
+    gc->marking = false;
     topw=nullptr;
+    if(scope_struct->alive)
+        gc->CleanUp_Unused(scope_struct->thread_id);
+    lock.unlock();
 }
 
 
@@ -243,13 +285,12 @@ void GC_Arena::check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bi
 void GC::Sweep(Scope_Struct *scope_struct) {
     int tid = scope_struct->thread_id;
 
-    marking.store(true, std::memory_order_release);
+    marking = true;
     arena->check_roots_worklist(scope_struct, mark_bit);
-    marking.store(false, std::memory_order_release);
+    marking = false;
 
     std::cout << "sweep " << "\n";
 
-    CleanUp_Unused(tid);
 
     allocations=0;
     size_occupied=0;
@@ -258,7 +299,6 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
 
 void GC::CleanUp_Unused(int tid) {
-    std::unique_lock<std::mutex> lock(arena->sweep_mtx);
     int get_mask = mark_bit ? 0 : 1;
     uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
     int all_alloc=0;

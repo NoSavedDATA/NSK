@@ -84,24 +84,69 @@ GC::GC(int tid) {
 WorkList::WorkList(GC_Node node) : node(node) {};
 
 void GC_Observer(Scope_Struct *scope_struct) {
-    std::cout << "observer start" << "\n";
-    auto next = std::chrono::steady_clock::now();
+    std::cout << "observer start\n";
+
     GC *gc = scope_struct->gc;
-    GC_Arena *arena = gc->arena;
     int sweeps = 0;
-    while(scope_struct->alive) {
+
+    auto next = std::chrono::steady_clock::now();
+
+    while (scope_struct->alive) {
         sweeps++;
         next += std::chrono::microseconds(5000);
-        std::this_thread::sleep_until(next);
+
+        std::unique_lock<std::mutex> lock(scope_struct->mtx);
+
+        scope_struct->cv.wait_until(
+            lock,
+            next,
+            [&] { return !scope_struct->alive || scope_struct->force_sweep; }
+        );
+
+        // consume the signal
+        bool forced = scope_struct->force_sweep;
+        scope_struct->force_sweep = false;
+
+        lock.unlock();
+
+        if (!scope_struct->alive) break;
+
         gc->Sweep(scope_struct);
     }
+
     std::cout << "sweeps " << sweeps << "\n";
 }
 
-extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
+extern "C" float join_gc(Scope_Struct *scope_struct) {
     scope_struct->alive = false;
     if (scope_struct->gc_thread.joinable()) {
         scope_struct->gc_thread.join();
+    }
+    scope_struct->alive = true;
+    scope_struct->joined = true;
+    return 0;
+}
+
+extern "C" float sweep(Scope_Struct *scope_struct) {
+    scope_struct->gc->Sweep(scope_struct);
+    return 0;
+}
+
+extern "C" float psweep(Scope_Struct *scope_struct) {
+    {
+        std::lock_guard<std::mutex> lock(scope_struct->mtx);
+        scope_struct->force_sweep = true;
+    }
+    scope_struct->cv.notify_one();
+    return 0;
+}
+
+extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
+    if(scope_struct->alive&&!scope_struct->joined) {
+        scope_struct->alive = false;
+        if (scope_struct->gc_thread.joinable()) {
+            scope_struct->gc_thread.join();
+        }
     }
 }
 

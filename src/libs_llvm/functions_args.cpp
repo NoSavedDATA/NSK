@@ -1102,6 +1102,24 @@ void set_functions_args_type() {
 		Function_Arg_Names["object_Load_on_Offset"].push_back("1");
 	
 		
+		Function_Arg_Types["join_gc"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["join_gc"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["join_gc"].push_back("0");
+		
+		Function_Arg_Types["sweep"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["sweep"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["sweep"].push_back("0");
+		
+		Function_Arg_Types["psweep"]["0"] = "Scope_Struct";
+		
+		Function_Arg_DataTypes["psweep"]["0"] = Data_Tree("Scope_Struct");
+		
+		Function_Arg_Names["psweep"].push_back("0");
+		
 		Function_Arg_Types["scope_struct_Join_GC"]["0"] = "Scope_Struct";
 		
 		Function_Arg_DataTypes["scope_struct_Join_GC"]["0"] = Data_Tree("Scope_Struct");

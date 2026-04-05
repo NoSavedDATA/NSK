@@ -452,6 +452,7 @@ class Nameable : public ExprAST {
   Value *codegen(Value *scope_struct) override;
   Data_Tree GetDataTree(bool from_assignment=false) override;
   Nameable *InnerMost();
+  Nameable *Obj();
   std::string GetLibCallee();
 };
 

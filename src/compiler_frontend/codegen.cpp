@@ -2117,33 +2117,36 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
             } else { // self|attr 
                 LHSV->Load_Last=false;
+                Value *src = LHSV->Inner->codegen(scope_struct);
                 Value *obj_ptr = LHSV->codegen(scope_struct);
                 
                 if (!in_vec(LType, primary_data_tokens) && LType!="charv") {
                     Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
                     Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-                    // Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
-                    // Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
+                    Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
+                    Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
 
-                    // Function *TheFunction = Builder->GetInsertBlock()->getParent();
-                    // BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-                    // BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-                    // BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
+                    Function *TheFunction = Builder->GetInsertBlock()->getParent();
+                    BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
+                    BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
+                    BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
                     
-                    // Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
+                    Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
 
-                    // Builder->SetInsertPoint(WriteBarrierBB);
-                    call("GC_write_barrier_obj", {gc, obj_ptr, Val, const_int16(data_name_to_type[LType])});
-                    // Builder->CreateBr(AfterBB);
+                    Builder->SetInsertPoint(WriteBarrierBB);
+                    call("GC_write_barrier_obj", {gc, src, obj_ptr, Val, const_int16(data_name_to_type[LType])});
+                    Builder->CreateBr(AfterBB);
 
-                    // Builder->SetInsertPoint(StoreBB);
-                    // Builder->CreateStore(Val, obj_ptr);
-                    // Builder->CreateBr(AfterBB);
-
-                    // Builder->SetInsertPoint(AfterBB);
-
-                }
+                    Builder->SetInsertPoint(StoreBB);
                     Builder->CreateStore(Val, obj_ptr);
+                    Builder->CreateBr(AfterBB);
+
+                    Builder->SetInsertPoint(AfterBB);
+
+                } else {
+                    Builder->CreateStore(Val, obj_ptr);
+                }
+
             }
         } else
             LogErrorC(-1, "Variable " + Lname + " could not be attributed");
@@ -3813,24 +3816,6 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
     if (inner_dt.Type=="array")
     {
-                // if (!in_vec(elem_type, primary_data_tokens) && elem_type!="charv") {
-                //     Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
-                //     Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-                //     Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
-                //     Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
-
-                //     Function *TheFunction = Builder->GetInsertBlock()->getParent();
-                //     BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-                //     BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-                    
-                //     Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
-
-                //     Builder->SetInsertPoint(WriteBarrierBB);
-                //     call("GC_write_barrier", {gc, appended_val, const_int16(data_name_to_type[elem_type])});
-                //     Builder->CreateBr(StoreBB);
-
-                //     Builder->SetInsertPoint(StoreBB);
-                // }
         if (elem_type=="float"&&Args[0]->GetDataTree().Type=="int")
             appended_val = Builder->CreateSIToFP(appended_val, floatTy, "lfp");
 
@@ -3852,6 +3837,25 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         BasicBlock *good_sizeBB = BasicBlock::Create(*TheContext, "array.append.ok_size", TheFunction);
         BasicBlock *bad_sizeBB = BasicBlock::Create(*TheContext, "array.append.bad_size", TheFunction);
         BasicBlock *postBB = BasicBlock::Create(*TheContext, "array.append.post", TheFunction);
+
+        if (!in_vec(elem_type, primary_data_tokens) && elem_type!="charv") {
+            BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
+            BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
+
+            Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
+            Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
+            Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
+            Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
+            
+            Builder->CreateCondBr(is_marking, WriteBarrierBB, StandardBB);
+
+            Builder->SetInsertPoint(WriteBarrierBB);
+            call("GC_array_append_barrier", {gc, loaded_var, vsize, appended_val, const_int16(data_name_to_type[elem_type])});
+            Builder->CreateBr(postBB);
+
+            Builder->SetInsertPoint(StandardBB);
+        }
+
 
         Value *Cond = Builder->CreateICmpSLT(vsize, size);
         Builder->CreateCondBr(Cond, good_sizeBB, bad_sizeBB);
