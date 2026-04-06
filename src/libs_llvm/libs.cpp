@@ -1010,7 +1010,7 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *array_CreateTy= FunctionType::get(
 		int8PtrTy,
-		{int8PtrTy, int8PtrTy},
+		{int8PtrTy, Type::getInt16Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("array_Create", array_CreateTy);
@@ -1031,7 +1031,7 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *array_double_sizeTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		{int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("array_double_size", array_double_sizeTy);

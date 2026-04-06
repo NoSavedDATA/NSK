@@ -70,7 +70,14 @@ extern "C" int prebuild() {
 
     for (int i=0; i<4096; ++i)
         type_info[i] = nullptr;
+
         
+    for (const auto& [name, type] : data_name_to_type)
+    {
+        // If duplicates exist (like type 6), keep first or last depending on policy
+        data_type_to_name[type] = name;
+        data_type_to_size[type] = data_name_to_size[name];
+    }
 
 
 

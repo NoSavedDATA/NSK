@@ -205,7 +205,8 @@ struct GC_Arena {
     bool get_is_marked(void *node_ptr, uint64_t mark_bit);
     bool mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit);
     void gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit);
-    void mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit, bool);
+    bool mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit);
+    bool mark_worklist_pointers2(Scope_Struct *scope_struct, uint64_t mark_bit);
     void check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bit);
     void Work(Scope_Struct *);
 };

@@ -51,26 +51,21 @@ std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"fl
 std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
 
 
-std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}, {"float_ptr", 8}, {"Function", 8}};
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}, {"Function", 8}};
+std::unordered_map<uint16_t, uint16_t> data_type_to_size; 
 
-std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"str", 5},
-                                                               {"list", 6}, {"float_ptr", 23}, 
-                                                               {"tuple", 7}, {"map", 8}, {"channel", 9},
-                                                               {"int_vec", 10},
-                                                               {"float_vec", 11}, {"array", 12}, {"map_node", 13},
-                                                               {"char", 15},  {"charv", 16},
-                                                               {"i64", 17}, {"i8", 18}, {"i16", 19}, {"vec", 20},
-                                                               {"str_view", 21}, {"any", 22}, {"Function", 24}};
+std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"double", 5},
+                                                               {"i8", 6}, {"i16", 7}, {"i64", 8},
+                                                               {"str", 100},
+                                                               {"list", 101},
+                                                               {"tuple", 107}, {"map", 108}, {"channel", 109},
+                                                               {"array", 102}, {"map_node", 103},
+                                                               {"char", 104},  {"charv", 105},
+                                                               {"vec", 106},
+                                                               {"str_view", 110}, {"any", 111}, {"Function", 112}};
+std::unordered_map<uint16_t, std::string> data_type_to_name;
 
-std::unordered_map<uint16_t, std::string> data_type_to_name = {{2, "int"}, {3, "float"}, {4, "bool"}, {5, "str"},
-                                                               {6, "list"}, {23, "float_ptr"},
-                                                               {7, "tuple"}, {8, "map"}, {9, "channel"},
-                                                               {10, "int_vec"}, {24, "Function"},
-                                                               {11, "float_vec"}, {12, "array"}, {13, "map_node"},
-                                                               {15, "char"}, {16, "charv"},
-                                                               {17, "i64"}, {18, "i8"}, {19, "i16"}, {20, "vec"},
-                                                               {21, "str_view"}, {22, "any"}};
-uint16_t data_type_count=25;
+uint16_t data_type_count=113;
 
 
 
@@ -83,5 +78,5 @@ std::vector<std::string> compound_tokens = {"tuple", "list", "array", "map", "ve
 std::vector<std::string> primary_data_tokens = {"vec", "int", "float", "bool", "foreach_control_var", "i64", "int8", "char"};
 
 
-std::vector<uint16_t> primary_data_types = {2, 3, 4, 6, 15, 16, 17, 18, 21};
+std::vector<uint16_t> primary_data_types = {2, 3, 4, 5, 6, 15, 16, 17, 18, 21};
 std::vector<uint16_t> compound_types = {6, 7, 8, 9, 12};

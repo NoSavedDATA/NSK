@@ -49,7 +49,7 @@ struct DT_map {
     std::string val_type;    // sizeof(value)
 
     DT_map();
-    void New(int, int, int, std::string, std::string);
+    void New(Scope_Struct *, int, int, int, std::string, std::string);
     void Insert(int hash_pos, DT_map_node *node, DT_map_node **nodes);
 
     void print();

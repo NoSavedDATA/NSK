@@ -22,7 +22,8 @@ DT_map_node::DT_map_node(int key_size, int value_size) {
 
 DT_map::DT_map() {}
 
-void DT_map::New(int size, int key_size, int value_size, std::string key_type, std::string value_type) {
+void DT_map::New(Scope_Struct *ctx, int size, int key_size, int value_size, std::string key_type, std::string value_type) {
+    // std::unique_lock<std::mutex> lock(ctx->gc->arena->sweep_mtx);
     this->size = size;
     this->key_size = key_size;
     this->val_size = value_size;
@@ -62,7 +63,7 @@ extern "C" DT_map *map_Create(Scope_Struct *scope_struct, Data_Tree dt) {
         value_size = 8;
 
     DT_map *map = newT<DT_map>(scope_struct, "map");
-    map->New(0, key_size, value_size, key_type, value_type); 
+    map->New(scope_struct, 0, key_size, value_size, key_type, value_type); 
 
     
     return map;
@@ -190,7 +191,7 @@ extern "C" void map_print(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(scope_struct, map->size, map->key_size, map->key_type);
+    array->New(scope_struct, map->size, map->key_size, data_name_to_type[map->key_type]);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {
@@ -220,7 +221,7 @@ extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_values(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(scope_struct, map->size, map->val_size, map->val_type);
+    array->New(scope_struct, map->size, map->val_size, data_name_to_type[map->val_type]);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {

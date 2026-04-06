@@ -95,10 +95,10 @@ class BackNode
 		self.out = out
 		self.op = op
 		self.solved = false
-		if l.shall_prop
-			l.reqs.append(self)
-		if r.shall_prop
-			r.reqs.append(self)
+		#if l.shall_prop
+		#	l.reqs.append(self)
+		#if r.shall_prop
+		#	r.reqs.append(self)
 
 
 def int add_backward(float_pp dout, tensor x, tensor y)
@@ -144,8 +144,8 @@ class backprop
 			else
 				float_pp dout=op.out.getd()
 				self.backs[op.op](dout, op.l, op.r)
-			op.l.reqs.clear()
-			op.r.reqs.clear()
+			#op.l.reqs.clear()
+			#op.r.reqs.clear()
 
 		self.ops.clear()
 		#sweep()
@@ -164,9 +164,7 @@ def tensor tensor_tensor_add(tensor a, tensor b)
 
 
 def tensor tensor_tensor_mma(tensor a, tensor b)
-	int m = a.dims[0]
-	int n = a.dims[1]
-	int p = b.dims[0]
+	int m = a.dims[0], n = a.dims[1], p = b.dims[0]
 
 	array<int> new_dims = [m, p]
 	tensor ret = new tensor(new_dims, "none")
@@ -214,7 +212,6 @@ class AdamW
 	def float step()
 		int i=0
 		for param in $optim_info.params
-			#print("OPTIMIZE " , i)
 			if i+1>self.v.size()
 				self.m.append(new tensor(param.dims, "zeros"))
 				self.v.append(new tensor(param.dims, "zeros"))
@@ -230,7 +227,7 @@ main
 	#foo()
 	#bar()
 	#_quit_()
-	#join_gc()
+	join_gc()
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
@@ -241,11 +238,11 @@ main
 	tensor w([8,8], "randu"), w2([2,8], "randu")
 	tensor label([2,2], "zeros")
 
+	tensor x([2,8], "randu")
 	w.as_weight()
 	w2.as_weight()
 
 	for i=0, i<1000000
-		tensor x([2,8], "randu")
 		print("i: ", i)
 		var y = x @ w
 		y = y @ w2
@@ -255,9 +252,8 @@ main
 		#label.print()
 
 		$backprop.backward()
-
 		optim.step()
 
-		#sweep()
+		sweep()
 		#psweep()
 		#GC_print()

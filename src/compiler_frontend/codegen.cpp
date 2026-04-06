@@ -593,6 +593,36 @@ void check_scope_struct_sweep(Function *TheFunction, Value *scope_struct, const 
 }
 
 
+void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
+                        Value *src, Value *ptr, Value *ref,
+                        std::string type) {
+    if (type=="float") {
+        std::cout << "GOT FLOAT" << "\n";
+        std::exit(0);
+    }
+
+    Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
+    Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
+    Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
+    Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
+
+    BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
+    BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
+    BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
+    
+    Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
+
+    Builder->SetInsertPoint(WriteBarrierBB);
+    call("GC_write_barrier_obj", {gc, src, ptr, ref, const_int16(data_name_to_type[type])});
+    Builder->CreateBr(AfterBB);
+
+    Builder->SetInsertPoint(StoreBB);
+    Builder->CreateStore(ref, ptr);
+    Builder->CreateBr(AfterBB);
+
+    Builder->SetInsertPoint(AfterBB);
+}
+
 
 Value *UnkVarExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
@@ -954,12 +984,16 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
                     if (create_fn=="array_Create" || create_fn=="map_Create") {
 
-                        Data_Tree *dt = new Data_Tree(data_type.Type);
-                        dt->Nested_Data.push_back(data_type.Nested_Data[0]);
-                        if(create_fn=="map_Create")
-                            dt->Nested_Data.push_back(data_type.Nested_Data[1]);
+                        if (create_fn=="array_Create")  {
+                            ArgsV.push_back(const_int16(data_name_to_type[data_type.Nested_Data[0].Type]));
+                        } else {
+                            Data_Tree *dt = new Data_Tree(data_type.Type);
+                            dt->Nested_Data.push_back(data_type.Nested_Data[0]);
+                            if(create_fn=="map_Create")
+                                dt->Nested_Data.push_back(data_type.Nested_Data[1]);
+                            ArgsV.push_back(VoidPtr_toValue(dt));
+                        }
                         
-                        ArgsV.push_back(VoidPtr_toValue(dt));
                     }
                     else {
                         std::vector<Data_Tree> ArgTypes;
@@ -2121,31 +2155,11 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 Value *obj_ptr = LHSV->codegen(scope_struct);
                 
                 if (!in_vec(LType, primary_data_tokens) && LType!="charv") {
-                    Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
-                    Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-                    Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
-                    Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
+                    MakeWriteBarrier(Builder->GetInsertBlock()->getParent(), scope_struct,
+                                        src, obj_ptr, Val, LType);
 
-                    Function *TheFunction = Builder->GetInsertBlock()->getParent();
-                    BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-                    BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-                    BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-                    
-                    Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
-
-                    Builder->SetInsertPoint(WriteBarrierBB);
-                    call("GC_write_barrier_obj", {gc, src, obj_ptr, Val, const_int16(data_name_to_type[LType])});
-                    Builder->CreateBr(AfterBB);
-
-                    Builder->SetInsertPoint(StoreBB);
+                } else
                     Builder->CreateStore(Val, obj_ptr);
-                    Builder->CreateBr(AfterBB);
-
-                    Builder->SetInsertPoint(AfterBB);
-
-                } else {
-                    Builder->CreateStore(Val, obj_ptr);
-                }
 
             }
         } else
@@ -2808,11 +2822,15 @@ void SetUniques(Value *scope_struct) {
           if (in_vec(type, compound_tokens)) {
             int attr_idx = ClassAttrs[class_name][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
-            Data_Tree *dt_ptr = new Data_Tree(type);
-            dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
-            if(type=="map")
-                dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
-            ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            if (create_fn=="array_Create")  {
+                ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+            } else {
+                Data_Tree *dt_ptr = new Data_Tree(type);
+                dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+                if(type=="map")
+                    dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+                ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            }
             Value *compound = callret(create_fn, ArgsDT_Create);
             Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
             Builder->CreateStore(compound, compound_gep);
@@ -3081,6 +3099,7 @@ Value *NewDictExprAST::codegen(Value *scope_struct) {
 
 
 
+
 Value *ObjectExprAST::codegen(Value *scope_struct) {
     if (not ShallCodegen)
         return ConstantFP::get(*TheContext, APFloat(0.0f));
@@ -3130,14 +3149,19 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
                   if (in_vec(type, compound_tokens)) {
                     int attr_idx = ClassAttrs[ClassName][attr];
                     std::vector<Value *> ArgsDT_Create = {scope_struct};
-                    Data_Tree *dt_ptr = new Data_Tree(type);
-                    dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
-                    if(type=="map")
-                        dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
-                    ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+                    if (create_fn=="array_Create")  {
+                        ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+                    } else {
+                        Data_Tree *dt_ptr = new Data_Tree(type);
+                        dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+                        if(type=="map")
+                            dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+                        ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+                    }
                     Value *compound = callret(create_fn, ArgsDT_Create);
                     Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
-                    Builder->CreateStore(compound, compound_gep);
+
+                    MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
                   }
                 }
 
@@ -3162,6 +3186,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
             cast<PointerType>(int8PtrTy)
             );
 
+    Function *TheFunction = Builder->GetInsertBlock()->getParent();
     std::vector<Value *> ArgsV = {scope_struct};
 
     if (Args.size()>0) {
@@ -3190,14 +3215,19 @@ Value *NewExprAST::codegen(Value *scope_struct) {
           if (in_vec(type, compound_tokens)) {
             int attr_idx = ClassAttrs[DataName][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
-            Data_Tree *dt_ptr = new Data_Tree(type);
-            dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
-            if(type=="map")
-                dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
-            ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            if (create_fn=="array_Create")  {
+                ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+            } else {
+                Data_Tree *dt_ptr = new Data_Tree(type);
+                dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
+                if(type=="map")
+                    dt_ptr->Nested_Data.push_back(dt.Nested_Data[1]);
+                ArgsDT_Create.push_back(VoidPtr_toValue(dt_ptr));
+            }
             Value *compound = callret(create_fn, ArgsDT_Create);
             Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
-            Builder->CreateStore(compound, compound_gep);
+            // Builder->CreateStore(compound, compound_gep);
+            MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
           }
         }
         set_scope_obj(scope_struct, ptr);
@@ -3839,6 +3869,10 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         BasicBlock *postBB = BasicBlock::Create(*TheContext, "array.append.post", TheFunction);
 
         if (!in_vec(elem_type, primary_data_tokens) && elem_type!="charv") {
+            if (elem_type=="float") {
+                std::cout << "GOT FLOAT V" << "\n";
+                std::exit(0);
+            }
             BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
             BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "standard_bb", TheFunction);
 
@@ -3872,8 +3906,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
         //bad size (thus double array size)
         Builder->SetInsertPoint(bad_sizeBB);
-        Value *new_size = Builder->CreateMul(size, const_int(2));
-        call("array_double_size", {scope_struct, loaded_var, new_size}); 
+        call("array_double_size", {scope_struct, loaded_var}); 
         vec = Load_Array(parser_struct.function_name, loaded_var);
         elem_gep = Builder->CreateGEP(elemTy, vec, vsize); 
         Builder->CreateStore(appended_val, elem_gep);

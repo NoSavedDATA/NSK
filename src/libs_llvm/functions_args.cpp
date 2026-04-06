@@ -691,10 +691,10 @@ void set_functions_args_type() {
 	
 		
 		Function_Arg_Types["array_Create"]["0"] = "Scope_Struct";
-		Function_Arg_Types["array_Create"]["1"] = "Data_Tree";
+		Function_Arg_Types["array_Create"]["1"] = "uint16_t";
 		
 		Function_Arg_DataTypes["array_Create"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["array_Create"]["1"] = Data_Tree("Data_Tree");
+		Function_Arg_DataTypes["array_Create"]["1"] = Data_Tree("uint16_t");
 		
 		Function_Arg_Names["array_Create"].push_back("0");
 		Function_Arg_Names["array_Create"].push_back("1");
@@ -712,17 +712,14 @@ void set_functions_args_type() {
 		
 		Function_Arg_Types["array_double_size"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_double_size"]["1"] = "array";
-		Function_Arg_Types["array_double_size"]["2"] = "int";
 		
 		Function_Arg_DataTypes["array_double_size"]["0"] = Data_Tree("Scope_Struct");
 		Data_Tree array_double_size_1 = Data_Tree("array");
 		array_double_size_1.Nested_Data.push_back(Data_Tree("any"));
 		Function_Arg_DataTypes["array_double_size"]["1"] = array_double_size_1;
-		Function_Arg_DataTypes["array_double_size"]["2"] = Data_Tree("int");
 		
 		Function_Arg_Names["array_double_size"].push_back("0");
 		Function_Arg_Names["array_double_size"].push_back("1");
-		Function_Arg_Names["array_double_size"].push_back("2");
 		
 		Function_Arg_Types["array_clear"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_clear"]["1"] = "array";
