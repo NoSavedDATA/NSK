@@ -58,8 +58,8 @@ class tensor
 	def float_pp getd()
 		if !self.d
 			self.d = zeros_cuda(self.dims_prod)
-			if self.is_weight
-				$optim_info.register(self)
+		if self.is_weight
+			$optim_info.register(self)
 		return self.d
 
 	def float as_weight()
@@ -95,10 +95,10 @@ class BackNode
 		self.out = out
 		self.op = op
 		self.solved = false
-		#if l.shall_prop
-		#	l.reqs.append(self)
-		#if r.shall_prop
-		#	r.reqs.append(self)
+		if l.shall_prop
+			l.reqs.append(self)
+		if r.shall_prop
+			r.reqs.append(self)
 
 
 def int add_backward(float_pp dout, tensor x, tensor y)
@@ -144,9 +144,12 @@ class backprop
 			else
 				float_pp dout=op.out.getd()
 				self.backs[op.op](dout, op.l, op.r)
+			op.l.reqs.clear()
+			op.r.reqs.clear()
 
 		self.ops.clear()
-		sweep()
+		#sweep()
+		#psweep()
 
 
 def tensor tensor_tensor_add(tensor a, tensor b)
@@ -227,7 +230,7 @@ main
 	#foo()
 	#bar()
 	#_quit_()
-	join_gc()
+	#join_gc()
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
@@ -241,7 +244,7 @@ main
 	w.as_weight()
 	w2.as_weight()
 
-	for i=0, i<100000
+	for i=0, i<1000000
 		tensor x([2,8], "randu")
 		print("i: ", i)
 		var y = x @ w
@@ -255,4 +258,6 @@ main
 
 		optim.step()
 
+		#sweep()
 		#psweep()
+		#GC_print()

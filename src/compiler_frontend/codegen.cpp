@@ -3840,7 +3840,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
         if (!in_vec(elem_type, primary_data_tokens) && elem_type!="charv") {
             BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-            BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
+            BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "standard_bb", TheFunction);
 
             Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
             Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);

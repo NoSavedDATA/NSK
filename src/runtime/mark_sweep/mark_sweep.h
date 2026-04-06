@@ -70,12 +70,14 @@ struct GC_Span {
     int words, type_words, free_idx=0, elem_size, N;
 
     // Interpretate type_metadata as int12
-    uint64_t *mark_bits, *alloc_bits, *type_metadata;
+    // uint64_t *mark_bits, *alloc_bits, *type_metadata;
+    uint64_t *alloc_bits, *type_metadata;
+    std::atomic<uint64_t>* mark_bits;
     
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
         if(free_idx<N) {
-            set_1(mark_bits, free_idx, gc_mark_bit);
+            set_1_atomic(mark_bits, free_idx, gc_mark_bit);
             void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
             alloc_bits[free_idx >> 6] |= (1ULL << (free_idx & 63));
             set_16_r12(type_metadata, free_idx, type_id);
@@ -86,7 +88,7 @@ struct GC_Span {
             uint64_t bits = alloc_bits[w] ^ ~0ULL;
             if (bits) {
                 int idx = (w<<6) + __builtin_ctzll(bits);
-                set_1(mark_bits, idx, gc_mark_bit);
+                set_1_atomic(mark_bits, idx, gc_mark_bit);
                 void *ret_ptr = static_cast<char*>(span_address) + elem_size*idx;
                 alloc_bits[idx >> 6] |= (1ULL << (idx & 63));
                 set_16_r12(type_metadata, idx, type_id);
@@ -127,15 +129,25 @@ struct GC_Arena {
     std::vector<GC_Node> worklist, mutator_list;
     bool owns_mutator=false;
     WorkList *topw=nullptr;
-    WorkList *mutatorw=nullptr;
-    // std::atomic<WorkList*> mutatorw{nullptr};
+    // WorkList *mutatorw=nullptr;
+    std::atomic<WorkList*> mutatorw{nullptr};
 
     GC_Arena(int);
 
     inline void mutator_push(void *ptr, uint16_t type_id) {
+        // WorkList* node = new WorkList(GC_Node(ptr, type_id));
+        // node->next = mutatorw;
+        // mutatorw = node;
         WorkList* node = new WorkList(GC_Node(ptr, type_id));
-        node->next = mutatorw;
-        mutatorw = node;
+        WorkList* old_head;
+        do {
+            old_head = mutatorw.load(std::memory_order_relaxed);
+            node->next = old_head;
+        } while (!mutatorw.compare_exchange_weak(
+            old_head,
+            node,
+            std::memory_order_release,
+        std::memory_order_relaxed));
     }
 
     inline void walkw() {
@@ -193,8 +205,9 @@ struct GC_Arena {
     bool get_is_marked(void *node_ptr, uint64_t mark_bit);
     bool mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit);
     void gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit);
-    void mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit);
+    void mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit, bool);
     void check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bit);
+    void Work(Scope_Struct *);
 };
 
 struct GC {
@@ -230,6 +243,7 @@ struct GC {
 
 
     void Sweep(Scope_Struct *);
+    void Worker(Scope_Struct *);
     void CleanUp_Unused(int);
 };
 

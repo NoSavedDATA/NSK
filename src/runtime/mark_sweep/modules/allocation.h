@@ -1,5 +1,5 @@
 #pragma once
-
+#include <atomic>
 
 
 
@@ -162,6 +162,20 @@ inline void set_1(uint64_t* mark_bits, uint32_t idx, uint64_t val) {
     uint64_t mask = 1ULL << (idx & 63);
     uint64_t &word = mark_bits[idx >> 6];
     word = (word & ~mask) | ((val & 1ULL) << (idx & 63));
+}
+inline bool get_1_atomic(std::atomic<uint64_t>* mark_bits, uint32_t idx) {
+    uint64_t word = mark_bits[idx >> 6].load(std::memory_order_acquire);
+    return (word >> (idx & 63)) & 1;
+}
+inline void set_1_atomic(std::atomic<uint64_t>* mark_bits, uint32_t idx, bool val) {
+    uint64_t mask = 1ULL << (idx & 63);
+    auto& word = mark_bits[idx >> 6];
+
+    if (val) {
+        word.fetch_or(mask, std::memory_order_release);
+    } else {
+        word.fetch_and(~mask, std::memory_order_release);
+    }
 }
 inline int mark_bits_find(uint64_t* mark_bits, int words, uint64_t gc_mark_bit) {
     uint64_t mask = gc_mark_bit ? ~0ULL : 0ULL;

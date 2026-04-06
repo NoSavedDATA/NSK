@@ -190,7 +190,7 @@ extern "C" void map_print(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(map->size, map->key_size, map->key_type);
+    array->New(scope_struct, map->size, map->key_size, map->key_type);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {
@@ -220,7 +220,7 @@ extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_values(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(map->size, map->val_size, map->val_type);
+    array->New(scope_struct, map->size, map->val_size, map->val_type);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {

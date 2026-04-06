@@ -51,11 +51,12 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
     // Get & initialize mark-bits
     uint64_t mask = gc_mark_bit ? 0ULL : ~0ULL;
     words = (traits->N + 63) / 64;
-    mark_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
+    // mark_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
+    mark_bits = new std::atomic<uint64_t>[words];
     alloc_bits = (uint64_t*)malloc(words*sizeof(uint64_t));
     for (int i=0; i<words; ++i) {
        alloc_bits[i] = 0ULL;
-       mark_bits[i] = mask; 
+       mark_bits[i].store(mask, std::memory_order_release); 
     }
 
     // Protect unexisting slots
@@ -152,8 +153,10 @@ extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
 
 
 extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
-    scope_struct->gc = new GC(scope_struct->thread_id);
+    GC *gc = new GC(scope_struct->thread_id);
+    scope_struct->gc = gc;
     scope_struct->gc_thread = std::thread(GC_Observer, scope_struct);
+    // scope_struct->gc_thread = std::thread(&GC::Worker, gc, scope_struct);
 }
 
 
