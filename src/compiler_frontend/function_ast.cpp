@@ -605,6 +605,12 @@ void InitializeModule() {
   );
   TheModule->getOrInsertFunction("print_codegen", print_codegenTy);
 
+  // FunctionType *GC_write_barrier_objTy= FunctionType::get(
+		// Type::getVoidTy(*TheContext),
+		// {int8PtrTy, int8PtrTy, int8PtrTy->getPointerTo(), int8PtrTy, Type::getInt16Ty(*TheContext)},
+		// false
+  // );
+  // TheModule->getOrInsertFunction("GC_write_barrier_obj", GC_write_barrier_objTy);
 
   TheModule->getOrInsertFunction(
     "posix_memalign",

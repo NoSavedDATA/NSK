@@ -6,24 +6,37 @@
 
 
 // Gets the 12 rightmost bits from a 16 bits value inside a uint64_t vec
-inline uint16_t get_16_r12(const uint64_t* base, int idx) {
-    int per_word = 4; // 64 / 16;
+inline uint16_t get_16_r12(const std::atomic<uint64_t>* base, int idx) {
+    constexpr int per_word = 4;
     int w = idx / per_word;
     int o = (idx % per_word) * 16;
 
-    // 0xFFF gets the first 12 bits
-    return (base[w] >> o) & 0xFFF;
+    uint64_t word = base[w].load(std::memory_order_relaxed);
+    return (word >> o) & 0xFFF;
 }
 
-inline void set_16_r12(uint64_t* base, int idx, uint16_t value) {
-    value &= 0xFFF;             // keep 12 bits
+inline void set_16_r12(std::atomic<uint64_t>* base, int idx, uint16_t value) {
+    value &= 0xFFF;
 
-    int per_word = 4; // 64 / 16;
+    constexpr int per_word = 4;
     int w = idx / per_word;
     int o = (idx % per_word) * 16;
 
     uint64_t mask = (uint64_t)0xFFFF << o;
-    base[w] = (base[w] & ~mask) | ((uint64_t)value << o);
+
+    std::atomic<uint64_t>& target = base[w];
+
+    uint64_t old = target.load(std::memory_order_relaxed);
+    uint64_t desired;
+
+    do {
+        desired = (old & ~mask) | ((uint64_t)value << o);
+    } while (!target.compare_exchange_weak(
+        old,
+        desired,
+        std::memory_order_release,
+        std::memory_order_relaxed
+    ));
 }
 
 // Set rightmost 12 and also set as marked

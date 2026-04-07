@@ -95,10 +95,10 @@ class BackNode
 		self.out = out
 		self.op = op
 		self.solved = false
-		#if l.shall_prop
-		#	l.reqs.append(self)
-		#if r.shall_prop
-		#	r.reqs.append(self)
+		if l.shall_prop
+			l.reqs.append(self)
+		if r.shall_prop
+			r.reqs.append(self)
 
 
 def int add_backward(float_pp dout, tensor x, tensor y)
@@ -144,8 +144,8 @@ class backprop
 			else
 				float_pp dout=op.out.getd()
 				self.backs[op.op](dout, op.l, op.r)
-			#op.l.reqs.clear()
-			#op.r.reqs.clear()
+			op.l.reqs.clear()
+			op.r.reqs.clear()
 
 		self.ops.clear()
 		#sweep()
@@ -227,7 +227,7 @@ main
 	#foo()
 	#bar()
 	#_quit_()
-	join_gc()
+	#join_gc()
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
@@ -254,6 +254,6 @@ main
 		$backprop.backward()
 		optim.step()
 
-		sweep()
+		#sweep()
 		#psweep()
 		#GC_print()

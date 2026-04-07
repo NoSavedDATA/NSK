@@ -52,6 +52,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("print_void_ptrC", print_void_ptrCTy);
 
+	FunctionType *print_int16Ty= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{Type::getInt16Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_int16", print_int16Ty);
+
 	FunctionType *print_intTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{Type::getInt32Ty(*TheContext)},
@@ -96,14 +103,14 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *GC_array_append_barrierTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy, Type::getInt16Ty(*TheContext)},
+		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("GC_array_append_barrier", GC_array_append_barrierTy);
 
 	FunctionType *GC_write_barrier_objTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("GC_write_barrier_obj", GC_write_barrier_objTy);

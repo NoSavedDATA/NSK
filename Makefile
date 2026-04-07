@@ -1,11 +1,9 @@
 CXX := clang++-19 -std=c++17
-MAIN_CXXFLAGS := -O3 -rdynamic -march=native -mavx -mavx2 -fno-exceptions
-# CXXFLAGS := -O0 -g -rdynamic
+MAIN_CXXFLAGS := -rdynamic -fno-exceptions #-march=native -mavx -mavx2 -O3
 LLVM_CONFIG := llvm-config-19 --link-static --libs core orcjit native
-SYSTEM_LIBS := -ldl -lrt -pthread #-fsanitize=thread
-# OTHER_FLAGS := -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -fsanitize=address -w
+SYSTEM_LIBS := -ldl -lrt -pthread -fsanitize=thread -g -O1 -fno-omit-frame-pointer
 RUNTIME_FLAGS := -lc -lstdc++ -lgcc_s -lgcc -lm 
-OTHER_FLAGS := -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH -flto -finline-functions -funroll-loops -w
+OTHER_FLAGS := -D_ALLOW_COMPILER_AND_STL_VERSION_MISMATCH #-finline-functions -funroll-loops -w -flto
 
 # Get LLVM flags (must be from static LLVM build)
 LLVM_CXXFLAGS := $(shell $(LLVM_CONFIG) --cxxflags)
@@ -16,7 +14,7 @@ LLVM_LIBS := $(shell $(LLVM_CONFIG) --libs core orcjit native)
 
 # Combine all flags
 CXXFLAGS := $(MAIN_CXXFLAGS) $(LLVM_CXXFLAGS) -mavx -w
-LDFLAGS := $(LLVM_LDFLAGS) -static-libstdc++ -static-libgcc
+LDFLAGS := $(LLVM_LDFLAGS) #-static-libstdc++ -static-libgcc
 LIBS := $(LLVM_LIBS) $(LLVM_SYSTEM_LIBS) $(SYSTEM_LIBS)
 
 # SYS_LIBS += -Wl,-rpath,'$$ORIGIN/../sys_lib'

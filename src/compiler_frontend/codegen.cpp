@@ -596,11 +596,6 @@ void check_scope_struct_sweep(Function *TheFunction, Value *scope_struct, const 
 void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
                         Value *src, Value *ptr, Value *ref,
                         std::string type) {
-    if (type=="float") {
-        std::cout << "GOT FLOAT" << "\n";
-        std::exit(0);
-    }
-
     Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
     Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
     Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
@@ -613,7 +608,12 @@ void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
     Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
 
     Builder->SetInsertPoint(WriteBarrierBB);
-    call("GC_write_barrier_obj", {gc, src, ptr, ref, const_int16(data_name_to_type[type])});
+    // p2t("Write " + type + " - " + std::to_string(data_name_to_type[type]));
+    // call("print_void_ptr", {src});
+    // call("print_void_ptr", {ptr});
+    // call("print_void_ptr", {ref});
+    // call("print_int16", {const_int16(data_name_to_type[type])});
+    call("GC_write_barrier_obj", {const_int16(data_name_to_type[type]), gc, src, ptr, ref});
     Builder->CreateBr(AfterBB);
 
     Builder->SetInsertPoint(StoreBB);
@@ -2155,6 +2155,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 Value *obj_ptr = LHSV->codegen(scope_struct);
                 
                 if (!in_vec(LType, primary_data_tokens) && LType!="charv") {
+                    // p2t("Store " + LHSV->Inner->GetDataTree().Type + " -- " + LType);
                     MakeWriteBarrier(Builder->GetInsertBlock()->getParent(), scope_struct,
                                         src, obj_ptr, Val, LType);
 
@@ -3161,6 +3162,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
                     Value *compound = callret(create_fn, ArgsDT_Create);
                     Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
 
+                    // p2t("obj()");
                     MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
                   }
                 }
@@ -3227,6 +3229,8 @@ Value *NewExprAST::codegen(Value *scope_struct) {
             Value *compound = callret(create_fn, ArgsDT_Create);
             Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
             // Builder->CreateStore(compound, compound_gep);
+
+            // p2t("new");
             MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
           }
         }
@@ -3884,7 +3888,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
             Builder->CreateCondBr(is_marking, WriteBarrierBB, StandardBB);
 
             Builder->SetInsertPoint(WriteBarrierBB);
-            call("GC_array_append_barrier", {gc, loaded_var, vsize, appended_val, const_int16(data_name_to_type[elem_type])});
+            call("GC_array_append_barrier", {const_int16(data_name_to_type[elem_type]), gc, loaded_var, vsize, appended_val});
             Builder->CreateBr(postBB);
 
             Builder->SetInsertPoint(StandardBB);

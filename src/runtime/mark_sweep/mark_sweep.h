@@ -71,8 +71,8 @@ struct GC_Span {
 
     // Interpretate type_metadata as int12
     // uint64_t *mark_bits, *alloc_bits, *type_metadata;
-    uint64_t *alloc_bits, *type_metadata;
-    std::atomic<uint64_t>* mark_bits;
+    uint64_t *alloc_bits;
+    std::atomic<uint64_t> *mark_bits, *type_metadata;
     
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
@@ -131,6 +131,7 @@ struct GC_Arena {
     WorkList *topw=nullptr;
     // WorkList *mutatorw=nullptr;
     std::atomic<WorkList*> mutatorw{nullptr};
+    std::vector<WorkList*> retire_list;
 
     GC_Arena(int);
 
@@ -151,9 +152,11 @@ struct GC_Arena {
     }
 
     inline void walkw() {
-        WorkList *old = topw;
+        // WorkList *old = topw;
+        // topw = topw->next;
+        // delete old;
+        retire_list.push_back(topw);
         topw = topw->next;
-        delete old;
     }
     inline void worklist_push(void *ptr, uint16_t type_id) {
         WorkList *node = new WorkList(GC_Node(ptr, type_id));

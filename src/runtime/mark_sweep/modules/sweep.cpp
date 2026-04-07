@@ -19,6 +19,59 @@
 
 
 
+bool GC_Arena::mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit) {
+    uint16_t type16;
+    GC_Node node;
+
+    std::unique_lock<std::mutex> lock(sweep_mtx, std::defer_lock);
+    bool locked=false;
+    while (scope_struct->alive) {
+        if (!topw) {
+            if (!locked) {
+                lock.lock();
+                locked = true;
+            }
+            topw = mutatorw.exchange(nullptr, std::memory_order_acquire);
+            if(!topw) {
+                break;
+            }
+        }
+
+        node = topw->node;
+        walkw();
+        if(!mark_obj(node.ptr, type16, mark_bit))
+            continue;
+        TypeInfo *class_info = type_info[type16]; 
+        if (class_info!=nullptr) {
+            for (int ptr_i=0; ptr_i<class_info->pointers_count; ++ptr_i) {
+                PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
+                uint16_t offset = ptr_info->offset;
+                uint16_t nested_type = ptr_info->type;
+                
+                if(!node.ptr)
+                    continue;
+                void** slot_ptr = reinterpret_cast<void**>(
+                    static_cast<char*>(node.ptr) + offset
+                );
+                void* slot = __atomic_load_n(slot_ptr, __ATOMIC_ACQUIRE);
+
+                if(slot)
+                    worklist_push(slot, nested_type);
+            }
+        }
+        gc_list(node.ptr, type16, mark_bit);
+    }
+    if (!locked)
+        lock.lock();
+
+    gc->marking = false;
+    topw=nullptr;
+    if(scope_struct->alive)
+        gc->CleanUp_Unused(scope_struct->thread_id);
+    lock.unlock();
+    return true;
+}
+
 
 inline bool check_is_in_bounds(char *arena_addr, char *p) {
     bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
@@ -95,11 +148,11 @@ bool GC_Arena::mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit) {
 
         // prevent cyclic ref infinite loop
         bool was_handled = get_1_atomic(span->mark_bits, obj_idx) == mark_bit;
+        if (was_handled) return false;
         
         type = get_16_r12(span->type_metadata, obj_idx);
         set_1_atomic(span->mark_bits, obj_idx, mark_bit);
 
-        // return !was_handled;
         return true;
 }
 
@@ -129,7 +182,9 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
     // }
     if (root_type==uint16_t{102}) { // array 
         DT_array *array = static_cast<DT_array*>(ptr);
-        void **data = static_cast<void **>(array->data);
+        // void **data = static_cast<void **>(array->data);
+        void *datap = __atomic_load_n(&array->data, __ATOMIC_ACQUIRE);
+        void **data = (void**)datap;
         int size = __atomic_load_n(&array->virtual_size, __ATOMIC_ACQUIRE);
         uint16_t type = __atomic_load_n(&array->type, __ATOMIC_ACQUIRE);
         if (!data)
@@ -140,9 +195,9 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
 
         for (int i=0; i<size; ++i) {
             void *elem = __atomic_load_n(&data[i], __ATOMIC_ACQUIRE);
-            if(!get_is_marked(elem, type)) {
+            // if(!get_is_marked(elem, type)) {
                 worklist_push(elem, type);
-            }
+            // }
         }
     }
     if (root_type==uint16_t{108}) { // map 
@@ -168,33 +223,22 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
 
 
 int marks = 0;
-extern "C" void GC_array_append_barrier(GC *gc, DT_array *vec, int idx, void *ptr, uint16_t type) {
-    // if (idx>=vec->size) {
-    //     std::cout << "VEC BAD SIZE" << "\n";
-    //     std::exit(0);
-    // } 
-    // void **data = (void**)vec->data;
-    // void **slot = &((void**)vec->data)[idx];
+extern "C" void GC_array_append_barrier(uint16_t type, GC *gc, DT_array *vec, int idx, void *ptr) {
     size_t size = __atomic_load_n(&vec->size, __ATOMIC_ACQUIRE);
     if (idx>=size) {
         std::cout << "VEC BAD SIZE" << "\n";
         std::exit(0);
     } 
-    void **data = __atomic_load_n((void***)&vec->data, __ATOMIC_ACQUIRE);
+    void *tmp = __atomic_load_n(&vec->data, __ATOMIC_ACQUIRE);
+    void **data = (void**)tmp;
     void **slot = &data[idx];
     void *old = __atomic_load_n(slot, __ATOMIC_ACQUIRE);
 
     GC_Arena *arena = gc->arena;
     marks++;
     
+    // printf("gc=%p vec=%p idx=%d ptr=%p type=%u\n", gc, vec, idx, ptr, type);
     bool is_marked = arena->get_is_marked(vec, gc->mark_bit);
-    // Yuasa (Black mutator)
-    // if(!is_marked&&old!=nullptr)
-    //     arena->mutator_push(old, type);
-    // __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
-    // Dijkstra (Grey mutator)
-    // if(is_marked&&ptr!=nullptr)
-    //     arena->mutator_push(ptr, type);
     if(old!=nullptr)
         arena->mutator_push(old, type);
     if(is_marked&&ptr!=nullptr)
@@ -202,9 +246,8 @@ extern "C" void GC_array_append_barrier(GC *gc, DT_array *vec, int idx, void *pt
     __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
 }
 
-extern "C" void GC_write_barrier_obj(GC *gc, void *src, void **slot, void *ptr, uint16_t type) {
+extern "C" void GC_write_barrier_obj(uint16_t type, GC *gc, void *src, void **slot, void *ptr) {
     marks++;
-    // if (type==3) return;
     GC_Arena *arena = gc->arena;
     bool is_marked = arena->get_is_marked(src, gc->mark_bit);
     // std::cout << "WRITE BARRIER " << marks << "\n";
@@ -214,14 +257,6 @@ extern "C" void GC_write_barrier_obj(GC *gc, void *src, void **slot, void *ptr, 
     // std::cout << "type " << type << "|" << data_type_to_name[type] << "\n";
     // std::cout << "\n";
 
-    // Yuasa (Black mutator)
-    // void* old = __atomic_load_n(slot, __ATOMIC_ACQUIRE);
-    // if(!is_marked&&old!=nullptr)
-    //     arena->mutator_push(old, type);
-    // __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
-    // Dijkstra (Grey mutator)
-    // if(is_marked&&ptr!=nullptr)
-    //     arena->mutator_push(ptr, type);
     void* old = __atomic_load_n(slot, __ATOMIC_ACQUIRE);
     if(old!=nullptr)
         arena->mutator_push(old, type);
@@ -230,60 +265,6 @@ extern "C" void GC_write_barrier_obj(GC *gc, void *src, void **slot, void *ptr, 
     __atomic_store_n(slot, ptr, __ATOMIC_RELEASE);
 }
 
-
-bool GC_Arena::mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit) {
-    uint16_t type16;
-    GC_Node node;
-
-    std::unique_lock<std::mutex> lock(sweep_mtx, std::defer_lock);
-    bool locked=false;
-    while (scope_struct->alive) {
-        if (!topw) {
-            if (!locked) {
-                lock.lock();
-                locked = true;
-            }
-            topw = mutatorw.exchange(nullptr, std::memory_order_acquire);
-            if(!topw) {
-                break;
-            }
-        }
-
-        node = topw->node;
-        walkw();
-        if(!mark_obj(node.ptr, type16, mark_bit))
-            continue;
-        TypeInfo *class_info = type_info[type16]; 
-        if (class_info!=nullptr) {
-            for (int ptr_i=0; ptr_i<class_info->pointers_count; ++ptr_i) {
-                PtrInfo *ptr_info = &class_info->ptr_info[ptr_i];
-                uint16_t offset = ptr_info->offset;
-                uint16_t nested_type = ptr_info->type;
-                
-                if(!node.ptr)
-                    continue;
-                void** slot_ptr = reinterpret_cast<void**>(
-                    static_cast<char*>(node.ptr) + offset
-                );
-                void* slot = __atomic_load_n(slot_ptr, __ATOMIC_ACQUIRE);
-
-                if(slot)
-                    worklist_push(slot, nested_type);
-            }
-        }
-        gc_list(node.ptr, type16, mark_bit);
-    }
-    if (!locked)
-        lock.lock();
-
-    marks=0;
-    gc->marking = false;
-    topw=nullptr;
-    if(scope_struct->alive)
-        gc->CleanUp_Unused(scope_struct->thread_id);
-    lock.unlock();
-    return true;
-}
 
 bool GC_Arena::mark_worklist_pointers2(Scope_Struct *scope_struct, uint64_t mark_bit) {
     uint16_t type16;
@@ -371,7 +352,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
             lock.unlock();
         
         bool empty = arena->mark_worklist_pointers2(scope_struct, mark_bit);
-        void *mutatorw = arena->mutatorw.load(std::memory_order_relaxed);
+        void *mutatorw = arena->mutatorw.load(std::memory_order_acquire);
         if (first) {
             first=false;
             lock.lock();
@@ -380,7 +361,13 @@ void GC::Sweep(Scope_Struct *scope_struct) {
             std::cout << "sweep " << "\n";
             if(scope_struct->alive)
                 CleanUp_Unused(scope_struct->thread_id);
-            lock.unlock(); return;
+            marking = false;
+            allocations=0;
+            size_occupied=0;
+            marks=0;
+
+            lock.unlock();
+            return;
         } 
         arena->mark_worklist_pointers2(scope_struct, mark_bit);
     }

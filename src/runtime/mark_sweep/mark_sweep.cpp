@@ -66,9 +66,9 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
     // Initialize type-metadata
     int types_per_word = 64 / 16;
     type_words = (traits->N + types_per_word-1) / types_per_word;
-    type_metadata = (uint64_t*)malloc(type_words*sizeof(uint64_t));
+    type_metadata = new std::atomic<uint64_t>[type_words];
     for (int i=0; i<type_words; ++i)
-       type_metadata[i] = 0ULL; 
+       type_metadata[i].store(0ULL, std::memory_order_release); 
 }
 
 GC_Arena::GC_Arena(int tid) {
@@ -163,7 +163,7 @@ extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
 
 extern "C" float GC_print(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
-    // std::cout << scope_struct << " has gc " << gc << "\n";
+    std::cout << scope_struct << " has gc " << gc << "\n";
     std::cout << "\n";
     std::cout << "Arena addr: " << gc->arena->arena << "\n";
     std::cout << "allocated: " << gc->arena->size_allocated << "\n";
@@ -183,48 +183,46 @@ extern "C" float GC_print(Scope_Struct *scope_struct) {
 
 
 void protect_pool_addr(Scope_Struct *scope_struct, void *addr) {
+    // int tid = scope_struct->thread_id;
+    // char *p = static_cast<char*>(addr);
 
-    int tid = scope_struct->thread_id;
-    char *p = static_cast<char*>(addr);
+    // char *arena_addr = arena_base_addr[tid];
 
-    char *arena_addr = arena_base_addr[tid];
+    // int arena_id=-1;
+    // bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
+    // if (!in_bounds) {
+    //     std::cout << "protect_pool_addr()\n------>Address " << addr << " address does not reside in any memory pool.\n";
+    //     std::exit(0);
+    // }
+    // long arena_offset = p - arena_addr;
+    // int page  =  (arena_offset / GC_page_size) % pages_per_arena;
 
-    int arena_id=-1;
-    bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
-    if (!in_bounds) {
-        std::cout << "protect_pool_addr()\n------>Address " << addr << " address does not reside in any memory pool.\n";
-        std::exit(0);
-    }
-    long arena_offset = p - arena_addr;
-    int page  =  (arena_offset / GC_page_size) % pages_per_arena;
+    // GC_Span *span = scope_struct->gc->arena->page_to_span[page];
 
-    GC_Span *span = scope_struct->gc->arena->page_to_span[page];
-
-    long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
-    set_16_L2(span->type_metadata, obj_idx, 1u);
+    // long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
+    // set_16_L2(span->type_metadata, obj_idx, 1u);
 }
 
 bool unprotect_pool_addr(Scope_Struct *scope_struct, void *addr) {
+    // int tid = scope_struct->thread_id;
+    // char *p = static_cast<char*>(addr);
 
-    int tid = scope_struct->thread_id;
-    char *p = static_cast<char*>(addr);
+    // char *arena_addr = arena_base_addr[tid];
 
-    char *arena_addr = arena_base_addr[tid];
+    // int arena_id=-1;
+    // bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
 
-    int arena_id=-1;
-    bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
+    // if (!in_bounds) {
+    //     std::cout << "unprotect_pool_addr()\n--------Address " << addr << " address does not reside in any memory pool.";
+    //     return false;
+    // }
+    // long arena_offset = p - arena_addr;
+    // int page  =  (arena_offset / GC_page_size) % pages_per_arena;
 
-    if (!in_bounds) {
-        std::cout << "unprotect_pool_addr()\n--------Address " << addr << " address does not reside in any memory pool.";
-        return false;
-    }
-    long arena_offset = p - arena_addr;
-    int page  =  (arena_offset / GC_page_size) % pages_per_arena;
+    // GC_Span *span = scope_struct->gc->arena->page_to_span[page];
 
-    GC_Span *span = scope_struct->gc->arena->page_to_span[page];
-
-    long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
-    set_16_L2(span->type_metadata, obj_idx, 0u);
+    // long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
+    // set_16_L2(span->type_metadata, obj_idx, 0u);
     return true;
 }
 
