@@ -19,6 +19,8 @@ void DT_array::New(Scope_Struct *ctx, int size, int elem_size, int tid, uint16_t
     __atomic_store_n(&this->type, type, __ATOMIC_RELEASE);
 
     size = ((size + 7) / 8)*8;
+    if (size<8)
+        size = 8;
     __atomic_store_n(&this->size, size, __ATOMIC_RELEASE);
 
     __atomic_store_n(&this->data, cache_pop(size*elem_size, tid), __ATOMIC_RELEASE);
@@ -32,6 +34,8 @@ void DT_array::New(Scope_Struct *ctx, int size, int tid, uint16_t type) {
     __atomic_store_n(&this->type, type, __ATOMIC_RELEASE);
 
     size = ((size + 7) / 8)*8;
+    if (size<8)
+        size = 8;
     __atomic_store_n(&this->size, size, __ATOMIC_RELEASE);
     
     __atomic_store_n(&this->data, cache_pop(size*elem_size, tid), __ATOMIC_RELEASE);
@@ -47,7 +51,6 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, uint16_t elem_type
       elem_size = data_type_to_size[elem_type];
   else
       elem_size = 8;
-
 
   DT_array *vec = newT<DT_array>(scope_struct, "array");
   vec->New(scope_struct, 8, elem_size, scope_struct->thread_id, elem_type);
@@ -74,24 +77,38 @@ extern "C" int array_bad_idx(int line, int idx, int size) {
 
 
 extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec) {
-    // vec->data 
     std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
     int tid = scope_struct->thread_id;
-
-    int old_size = vec->size*vec->elem_size;
+    void *data = __atomic_load_n(&vec->data, __ATOMIC_ACQUIRE);
+    int vsize = __atomic_load_n(&vec->virtual_size, __ATOMIC_ACQUIRE);
+    int elem_size = __atomic_load_n(&vec->elem_size, __ATOMIC_ACQUIRE);
+    int old_size = vsize*elem_size;
     int vec_size = old_size*4;
 
     void *new_data = cache_pop(vec_size, tid);
-    memcpy(new_data, vec->data, old_size);
+    memcpy(new_data, data, old_size);
 
-    if (scope_struct->gc->marking) {
-        std::cout << "DOUBLE IS MARKING" << "\n";
-        std::exit(0);
-    }
     cache_push(vec->data, old_size, tid);
     __atomic_store_n(&vec->data, new_data, __ATOMIC_RELEASE);
-    vec->size = vec_size;
-    vec->virtual_size++;
+    int size = __atomic_load_n(&vec->size, __ATOMIC_ACQUIRE);
+    __atomic_store_n(&vec->size, size*4, __ATOMIC_RELEASE);
+    __atomic_store_n(&vec->virtual_size, vsize+1, __ATOMIC_RELEASE);
+
+    // std::cout << "double size " << scope_struct << ", " << vec << "\n";
+    // int tid = scope_struct->thread_id;
+    // int old_size = vec->size*vec->elem_size;
+    // int vec_size = old_size*2;
+    // std::cout << "size " << old_size << ", " << vec_size << ", elem " << vec->elem_size << ", size " << vec->size << "\n";
+
+    // // void *new_data = (void*)malloc(vec_size);
+    // void *new_data = cache_pop(vec_size, tid);
+    // memcpy(new_data, vec->data, old_size);
+
+    // // free(vec->data);
+    // cache_push(vec->data, old_size, tid);
+    // vec->data = new_data;
+    // vec->size *= 2;
+    // vec->virtual_size++;
 }
 
 extern "C" float array_clear(Scope_Struct *scope_struct, DT_array *vec) {

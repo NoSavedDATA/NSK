@@ -152,11 +152,11 @@ struct GC_Arena {
     }
 
     inline void walkw() {
-        // WorkList *old = topw;
-        // topw = topw->next;
-        // delete old;
-        retire_list.push_back(topw);
+        WorkList *old = topw;
         topw = topw->next;
+        delete old;
+        // retire_list.push_back(topw);
+        // topw = topw->next;
     }
     inline void worklist_push(void *ptr, uint16_t type_id) {
         WorkList *node = new WorkList(GC_Node(ptr, type_id));

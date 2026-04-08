@@ -51,7 +51,7 @@ std::map<std::string, std::vector<std::string>> Equivalent_Types = {{"int", {"fl
 std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
 
 
-std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}, {"Function", 8}};
+std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}, {"Function", 8}, {"array", 8}};
 std::unordered_map<uint16_t, uint16_t> data_type_to_size; 
 
 std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"double", 5},

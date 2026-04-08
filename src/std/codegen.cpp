@@ -180,7 +180,6 @@ Value *alloc(Parser_Struct parser_struct, Function *TheFunction,
         ret = view_val;
     }
     return ret;
-    // return callret("allocate_void", {scope_struct, ArgsV[1], ArgsV[2]});
 }
 
 Value *str_size(Parser_Struct parser_struct, Function *TheFunction,
@@ -308,11 +307,4 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
     return const_float(0);
 }
 
-
-
-
-
-
-  // cudaMallocHost(&tensor_cpu, round_to_nearest_pow2(dims_prod)*sizeof(float));
-  // cudaMemcpy(tensor_cpu, tensor_ptr, dims_prod*sizeof(float), cudaMemcpyDeviceToHost);
 

@@ -598,29 +598,15 @@ void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
                         std::string type) {
     Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
     Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-    Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
-    Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
+    if (type=="str") {
+        Value *str_v = Builder->CreateExtractValue(ref, {0});
+        Value *size = Builder->CreateExtractValue(ref, {1});
+        call("GC_write_barrier_str", {const_int16(data_name_to_type[type]), gc, src, ptr, str_v, size});
+    }
+    else
+        call("GC_write_barrier_obj", {const_int16(data_name_to_type[type]), gc, src, ptr, ref});
 
-    BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-    BasicBlock *StoreBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-    BasicBlock *AfterBB = BasicBlock::Create(*TheContext, "store_bb", TheFunction);
-    
-    Builder->CreateCondBr(is_marking, WriteBarrierBB, StoreBB);
-
-    Builder->SetInsertPoint(WriteBarrierBB);
-    // p2t("Write " + type + " - " + std::to_string(data_name_to_type[type]));
-    // call("print_void_ptr", {src});
-    // call("print_void_ptr", {ptr});
-    // call("print_void_ptr", {ref});
-    // call("print_int16", {const_int16(data_name_to_type[type])});
-    call("GC_write_barrier_obj", {const_int16(data_name_to_type[type]), gc, src, ptr, ref});
-    Builder->CreateBr(AfterBB);
-
-    Builder->SetInsertPoint(StoreBB);
-    Builder->CreateStore(ref, ptr);
-    Builder->CreateBr(AfterBB);
-
-    Builder->SetInsertPoint(AfterBB);
+    // Builder->CreateStore(ref, ptr);
 }
 
 
@@ -2150,8 +2136,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 function_values[parser_struct.function_name][Lname] = Val;
 
             } else { // self|attr 
-                LHSV->Load_Last=false;
                 Value *src = LHSV->Inner->codegen(scope_struct);
+                LHSV->Load_Last=false;
                 Value *obj_ptr = LHSV->codegen(scope_struct);
                 
                 if (!in_vec(LType, primary_data_tokens) && LType!="charv") {
@@ -3162,7 +3148,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
                     Value *compound = callret(create_fn, ArgsDT_Create);
                     Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
 
-                    // p2t("obj()");
+                    // p2t("obj() " + ClassName);
                     MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
                   }
                 }
@@ -3230,7 +3216,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
             Value *compound_gep = Builder->CreateStructGEP(st, ptr, attr_idx);
             // Builder->CreateStore(compound, compound_gep);
 
-            // p2t("new");
+            // p2t("new " + DataName);
             MakeWriteBarrier(TheFunction, scope_struct, ptr, compound_gep, compound, type);
           }
         }
@@ -3569,7 +3555,6 @@ Value *Nameable::codegen(Value *scope_struct) {
 
     std::string scope = Inner->GetDataTree().Type;
     Value *obj_ptr = Inner->codegen(scope_struct);
-    // p2t("1 " + Name + "|" + scope);
     // call("print_void_ptr", {obj_ptr});
 
     StructType *st = struct_types["class_"+scope]; 
@@ -3578,8 +3563,9 @@ Value *Nameable::codegen(Value *scope_struct) {
     int offset = ClassVariables[scope][Name];
     int attr_idx = ClassAttrs[scope][Name];
 
-    obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
+    // p2t(Name + "|" + scope + ": " + std::to_string(attr_idx) + " -- " + std::to_string(offset) + " / " + std::to_string(ClassSize[scope]));
 
+    obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
 
     if(Load_Last||!IsLeaf) {
         llvm::Type *Ty = get_type_from_data(attr_type);
@@ -3587,6 +3573,7 @@ Value *Nameable::codegen(Value *scope_struct) {
                     ? Builder->CreateLoad(Ty, obj_ptr) \
                     : Builder->CreateInBoundsGEP(Ty, obj_ptr, {const_int(0), const_int(0)}); //&arr[0]
     }
+
     return obj_ptr;
 }
 
@@ -3858,7 +3845,13 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         llvm::Type *elemTy;
         Value *vec = Load_Array(parser_struct.function_name, loaded_var);
 
+        Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
+        Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
+        call("GC_array_append_barrier", {gc, loaded_var, appended_val, const_int16(data_name_to_type[elem_type])});
+        return const_float(0);
+
         elemTy = get_type_from_str(elem_type); 
+
 
         Value *vsize_gep = Builder->CreateStructGEP(st, loaded_var, 0);
         Value *vsize = Builder->CreateLoad(intTy, vsize_gep);
@@ -3872,27 +3865,6 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         BasicBlock *bad_sizeBB = BasicBlock::Create(*TheContext, "array.append.bad_size", TheFunction);
         BasicBlock *postBB = BasicBlock::Create(*TheContext, "array.append.post", TheFunction);
 
-        if (!in_vec(elem_type, primary_data_tokens) && elem_type!="charv") {
-            if (elem_type=="float") {
-                std::cout << "GOT FLOAT V" << "\n";
-                std::exit(0);
-            }
-            BasicBlock *WriteBarrierBB = BasicBlock::Create(*TheContext, "write_barrier_bb", TheFunction);
-            BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "standard_bb", TheFunction);
-
-            Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
-            Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-            Value *is_marking_gep = Builder->CreateStructGEP(struct_types["GC"], gc, 3);
-            Value *is_marking = Builder->CreateLoad(boolTy, is_marking_gep);
-            
-            Builder->CreateCondBr(is_marking, WriteBarrierBB, StandardBB);
-
-            Builder->SetInsertPoint(WriteBarrierBB);
-            call("GC_array_append_barrier", {const_int16(data_name_to_type[elem_type]), gc, loaded_var, vsize, appended_val});
-            Builder->CreateBr(postBB);
-
-            Builder->SetInsertPoint(StandardBB);
-        }
 
 
         Value *Cond = Builder->CreateICmpSLT(vsize, size);

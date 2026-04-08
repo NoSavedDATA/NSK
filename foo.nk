@@ -3,7 +3,9 @@ import nsk_cuda
 
 def float foo()
 	Csv f("games.csv", ',')
+	print("done")
 	var col = f.get_col("gender")
+	print("print col")
 	col.print()
 	for c in f.get_cols()
 		print(c)
@@ -33,7 +35,6 @@ class optim_info
 		self.params.append(x)
 
 class tensor
-	char sep
 	array<int> dims
 	int dims_prod
 	float_pp ptr, d
@@ -227,7 +228,9 @@ main
 	#foo()
 	#bar()
 	#_quit_()
+
 	#join_gc()
+
 	$backprop.backs["add"] = add_backward
 	$backprop.backs["mma"] = mma_backward
 	$backprop.loss_backs["mse"] = mse_backward
@@ -255,5 +258,5 @@ main
 		optim.step()
 
 		#sweep()
-		#psweep()
+		psweep()
 		#GC_print()

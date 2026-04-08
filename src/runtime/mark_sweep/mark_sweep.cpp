@@ -156,7 +156,6 @@ extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
     GC *gc = new GC(scope_struct->thread_id);
     scope_struct->gc = gc;
     scope_struct->gc_thread = std::thread(GC_Observer, scope_struct);
-    // scope_struct->gc_thread = std::thread(&GC::Worker, gc, scope_struct);
 }
 
 

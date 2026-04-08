@@ -103,10 +103,17 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *GC_array_append_barrierTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy},
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("GC_array_append_barrier", GC_array_append_barrierTy);
+
+	FunctionType *GC_write_barrier_strTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("GC_write_barrier_str", GC_write_barrier_strTy);
 
 	FunctionType *GC_write_barrier_objTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
