@@ -60,7 +60,7 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, uint16_t elem_type
 
 void array_Clean_Up(void *data_ptr, int tid) {
     DT_array *array = static_cast<DT_array *>(data_ptr);
-    cache_push(array->data, array->size, tid);
+    // cache_push(array->data, array->size, tid);
 }
 
 extern "C" int array_size(Scope_Struct *scope_struct, DT_array *vec) {
@@ -75,9 +75,11 @@ extern "C" int array_bad_idx(int line, int idx, int size) {
 }
 
 
+DT_array_retire::DT_array_retire(void *data, int size, int tid)
+            : data(data), size(size), tid(tid) {}
+
 
 extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec) {
-    std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
     int tid = scope_struct->thread_id;
     void *data = __atomic_load_n(&vec->data, __ATOMIC_ACQUIRE);
     int vsize = __atomic_load_n(&vec->virtual_size, __ATOMIC_ACQUIRE);
@@ -88,11 +90,13 @@ extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec) {
     void *new_data = cache_pop(vec_size, tid);
     memcpy(new_data, data, old_size);
 
-    cache_push(vec->data, old_size, tid);
+    {
+        std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
+        scope_struct->gc->retire_arr(data, old_size, tid);
+    }
     __atomic_store_n(&vec->data, new_data, __ATOMIC_RELEASE);
     int size = __atomic_load_n(&vec->size, __ATOMIC_ACQUIRE);
     __atomic_store_n(&vec->size, size*4, __ATOMIC_RELEASE);
-    __atomic_store_n(&vec->virtual_size, vsize+1, __ATOMIC_RELEASE);
 
     // std::cout << "double size " << scope_struct << ", " << vec << "\n";
     // int tid = scope_struct->thread_id;
@@ -104,11 +108,10 @@ extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec) {
     // void *new_data = cache_pop(vec_size, tid);
     // memcpy(new_data, vec->data, old_size);
 
-    // // free(vec->data);
-    // cache_push(vec->data, old_size, tid);
     // vec->data = new_data;
     // vec->size *= 2;
-    // vec->virtual_size++;
+    // cache_push(vec->data, old_size, tid);
+    // // free(vec->data);
 }
 
 extern "C" float array_clear(Scope_Struct *scope_struct, DT_array *vec) {

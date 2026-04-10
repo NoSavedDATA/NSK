@@ -90,11 +90,10 @@ void GC_Observer(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
     int sweeps = 0;
 
-    auto next = std::chrono::steady_clock::now();
-
+    auto next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
+ 
     while (scope_struct->alive) {
         sweeps++;
-        next += std::chrono::microseconds(5000);
 
         std::unique_lock<std::mutex> lock(scope_struct->mtx);
 
@@ -113,6 +112,7 @@ void GC_Observer(Scope_Struct *scope_struct) {
         if (!scope_struct->alive) break;
 
         gc->Sweep(scope_struct);
+        next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
     }
 
     std::cout << "sweeps " << sweeps << "\n";
@@ -142,8 +142,11 @@ extern "C" float psweep(Scope_Struct *scope_struct) {
     return 0;
 }
 
+// bool concurrent=false;
+bool concurrent=true;
+
 extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
-    if(scope_struct->alive&&!scope_struct->joined) {
+    if(concurrent && scope_struct->alive&&!scope_struct->joined) {
         scope_struct->alive = false;
         if (scope_struct->gc_thread.joinable()) {
             scope_struct->gc_thread.join();
@@ -155,7 +158,8 @@ extern "C" void scope_struct_Join_GC(Scope_Struct *scope_struct) {
 extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
     GC *gc = new GC(scope_struct->thread_id);
     scope_struct->gc = gc;
-    scope_struct->gc_thread = std::thread(GC_Observer, scope_struct);
+    if(concurrent)
+        scope_struct->gc_thread = std::thread(GC_Observer, scope_struct);
 }
 
 

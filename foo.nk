@@ -226,11 +226,10 @@ class AdamW
 
 
 main
-	#foo()
-	#bar()
-	#_quit_()
-
 	#join_gc()
+	foo()
+	#bar()
+	_quit_()
 
 	$backprop.backs[2] = add_backward
 	$backprop.backs[0] = mma_backward
@@ -260,4 +259,4 @@ main
 
 		#sweep()
 		#psweep()
-		#GC_print()
+		GC_print()

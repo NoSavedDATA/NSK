@@ -302,24 +302,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["scope_struct_Delete"].push_back("0");
 	
 		
-		Function_Arg_Types["GC_array_append_barrier"]["0"] = "Scope_Struct";
-		Function_Arg_Types["GC_array_append_barrier"]["1"] = "array";
-		Function_Arg_Types["GC_array_append_barrier"]["2"] = "void";
-		Function_Arg_Types["GC_array_append_barrier"]["3"] = "uint16_t";
-		
-		Function_Arg_DataTypes["GC_array_append_barrier"]["0"] = Data_Tree("Scope_Struct");
-		Data_Tree GC_array_append_barrier_1 = Data_Tree("array");
-		GC_array_append_barrier_1.Nested_Data.push_back(Data_Tree("any"));
-		Function_Arg_DataTypes["GC_array_append_barrier"]["1"] = GC_array_append_barrier_1;
-		Function_Arg_DataTypes["GC_array_append_barrier"]["2"] = Data_Tree("void");
-		Function_Arg_DataTypes["GC_array_append_barrier"]["3"] = Data_Tree("uint16_t");
-		
-		Function_Arg_Names["GC_array_append_barrier"].push_back("0");
-		Function_Arg_Names["GC_array_append_barrier"].push_back("1");
-		Function_Arg_Names["GC_array_append_barrier"].push_back("2");
-		Function_Arg_Names["GC_array_append_barrier"].push_back("3");
-	
-		
 		Function_Arg_Types["allocate_void"]["0"] = "Scope_Struct";
 		Function_Arg_Types["allocate_void"]["1"] = "int";
 		Function_Arg_Types["allocate_void"]["2"] = "const";

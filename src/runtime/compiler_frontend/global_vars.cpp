@@ -35,6 +35,7 @@ std::string CurrentFile = "main";
 
 bool has_main=false;
 bool IsJIT = true;
+int Array_Size=-1;
 
 std::map<char, int> BinopPrecedence;
 

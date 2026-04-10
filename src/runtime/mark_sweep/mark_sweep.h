@@ -12,6 +12,7 @@
 #include "../compiler_frontend/global_vars.h"
 #include "../compiler_frontend/logging_v.h"
 #include "../clean_up/clean_up.h"
+#include "../data_types/array.h"
 #include "../data_types/list.h"
 #include "../mangler/scope_struct.h"
 #include "../pool/pool.h"
@@ -39,6 +40,7 @@ constexpr size_t GC_N = GC_max_object_size / GC_ALIGN;
 extern uint16_t GC_size_to_class[GC_N+1];
 extern uint16_t GC_size_to_c[GC_N+1];
 
+struct DT_array_retire;
 struct Scope_Struct;
 struct GC_span_traits;
 struct GC_Arena;
@@ -75,6 +77,7 @@ struct GC_Span {
     std::atomic<uint64_t> *mark_bits, *type_metadata;
     
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
+    void Sweep(uint64_t mark_bit);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
         if(free_idx<N) {
             set_1_atomic(mark_bits, free_idx, gc_mark_bit);
@@ -123,24 +126,17 @@ struct GC_Arena {
     std::mutex sweep_mtx, worklist_mtx;
 
     std::array<std::vector<GC_Span*>, GC_obj_sizes> Spans;
-    std::array<std::vector<GC_Span*>, GC_obj_sizes> Free_Spans;
-    std::array<GC_Span*, GC_obj_sizes> current_span{};
+    std::array<GC_Span*, GC_obj_sizes> current_span{}, unsweeped{};
     std::array<GC_Span*, pages_per_arena> page_to_span;
     std::vector<GC_Node> worklist, mutator_list;
     bool owns_mutator=false;
     WorkList *topw=nullptr;
-    // WorkList *mutatorw=nullptr;
     std::atomic<WorkList*> mutatorw{nullptr};
-    std::vector<WorkList*> retire_list;
 
     GC_Arena(int);
 
     inline void mutator_push(void *ptr, uint16_t type_id) {
-        // WorkList* node = new WorkList(GC_Node(ptr, type_id));
-        // node->next = mutatorw;
-        // mutatorw = node;
-        WorkList* node = new WorkList(GC_Node(ptr, type_id));
-        WorkList* old_head;
+        WorkList *old_head, *node = new WorkList(GC_Node(ptr, type_id));
         do {
             old_head = mutatorw.load(std::memory_order_relaxed);
             node->next = old_head;
@@ -155,8 +151,6 @@ struct GC_Arena {
         WorkList *old = topw;
         topw = topw->next;
         delete old;
-        // retire_list.push_back(topw);
-        // topw = topw->next;
     }
     inline void worklist_push(void *ptr, uint16_t type_id) {
         WorkList *node = new WorkList(GC_Node(ptr, type_id));
@@ -164,35 +158,40 @@ struct GC_Arena {
         topw = node;
     }
 
-    void *WriteBarrierAlloc(GC_Span *span, uint16_t type_id, uint64_t mark_bit);
     inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
         std::unique_lock<std::mutex> lock(sweep_mtx);
+        gc_mark_bit=0;
 
         GC_span_traits* traits = GC_span_traits_vec[size_class];
         GC_Span* span = current_span[size_class];
         GC_Span *prev_span = span;
 
         // FAST PATH
-        if (span != nullptr)
-        {
-            void* ptr = WriteBarrierAlloc(span, type_id, gc_mark_bit);
+        if (span != nullptr) {
+            void* ptr = span->Allocate(type_id, gc_mark_bit);
             if (ptr != nullptr)
                 return ptr;
-            while(span->next_span!=nullptr) { // only happens after resets
-                span = span->next_span;
-                ptr = WriteBarrierAlloc(span, type_id, gc_mark_bit);
-                if (ptr!=nullptr) {
-                    current_span[size_class] = span;
-                    return ptr;
-                }
-            }
         }
 
+        // Try to get unsweeped span
+        // std::cout << "GET UNSWEEPED" << "\n";
+        // span = unsweeped[size_class];
+        // while(span) {
+        //     span->Sweep(gc_mark_bit);
+        //     // void* ptr = span->Allocate(type_id, gc_mark_bit);
+        //     current_span[size_class] = span;
 
-        // SLOW PATH — need new span
+        //     span = span->next_span;
+        //     unsweeped[size_class] = span;
+
+        //     if (ptr)
+        //         return ptr;
+        // }
+
+
+        // Need new span
         if (!Check_Arena_Size_Ok(arena_size, size_allocated + traits->size))
             return nullptr;
-
 
         span = new GC_Span(this, traits, gc_mark_bit);
         if (prev_span!=nullptr)
@@ -201,7 +200,7 @@ struct GC_Arena {
         current_span[size_class] = span;
         Spans[size_class].push_back(span);
 
-        return WriteBarrierAlloc(span, type_id, gc_mark_bit);
+        return span->Allocate(type_id, gc_mark_bit);
     }
 
     bool is_safe(void *node_ptr);
@@ -217,16 +216,14 @@ struct GC_Arena {
 struct GC {
     int allocations=0;
     uint64_t size_occupied=0, mark_bit=1ULL;
-    // std::atomic<bool> marking{false};
     bool marking = false;
     GC_Arena *arena;
+    DT_array_retire *retired_arr=nullptr;
     
     GC(int);
     inline void *Allocate(Scope_Struct *scope_struct, int size, uint16_t type_id, int tid) {
 
-        // std::cout << "Allocate " << scope_struct << " | " << size << " - " << type_id << " | " << tid << "\n";
         int obj_class = GC_size_to_c[(size+7)/8];
-        // std::cout << "obj class " << obj_class << "\n";
 
         if(size>GC_max_object_size) {
             LogErrorC(-1, "Allocated object of size " + std::to_string(size) + ", but the maximum supported object size is " + std::to_string(GC_max_object_size) + ".");
@@ -246,6 +243,8 @@ struct GC {
     }
 
 
+    void retire_arr(void *, int, int);
+    void retire_clean();
     void Sweep(Scope_Struct *);
     void Worker(Scope_Struct *);
     void CleanUp_Unused(int);

@@ -105,49 +105,50 @@ extern "C" int prebuild() {
         data_type_to_size[type] = data_name_to_size[name];
     }
 
+    Array_Size = GC_size_to_c[(sizeof(DT_array)+7)/8];
 
 
-  Data_Tree aux = Data_Tree("array");
-  aux.Nested_Data.push_back(Data_Tree("int"));
-  functions_return_data_type["randint_array"] = aux;
-  functions_return_data_type["arange_int"] = aux;
-  functions_return_data_type["array_int_add"] = aux;
-  functions_return_data_type["zeros_int"] = aux;
-  functions_return_data_type["ones_int"] = aux;
-  aux.Nested_Data[0] = Data_Tree("float");
-  functions_return_data_type["randfloat_array"] = aux;
-  functions_return_data_type["arange_float"] = aux;
-  functions_return_data_type["array_float_add"] = aux;
-  functions_return_data_type["zeros_float"] = aux;
-  functions_return_data_type["ones_float"] = aux;
+    Data_Tree aux = Data_Tree("array");
+    aux.Nested_Data.push_back(Data_Tree("int"));
+    functions_return_data_type["randint_array"] = aux;
+    functions_return_data_type["arange_int"] = aux;
+    functions_return_data_type["array_int_add"] = aux;
+    functions_return_data_type["zeros_int"] = aux;
+    functions_return_data_type["ones_int"] = aux;
+    aux.Nested_Data[0] = Data_Tree("float");
+    functions_return_data_type["randfloat_array"] = aux;
+    functions_return_data_type["arange_float"] = aux;
+    functions_return_data_type["array_float_add"] = aux;
+    functions_return_data_type["zeros_float"] = aux;
+    functions_return_data_type["ones_float"] = aux;
 
-  Data_Tree split_str_dt = Data_Tree("array");
-  split_str_dt.Nested_Data.push_back(Data_Tree("str")); 
-  functions_return_data_type["str_split"] = split_str_dt;
+    Data_Tree split_str_dt = Data_Tree("array");
+    split_str_dt.Nested_Data.push_back(Data_Tree("str")); 
+    functions_return_data_type["str_split"] = split_str_dt;
 
-
-
-
-  
-  
-  functions_return_data_type["scope_struct_Sweep"] = Data_Tree("float");
 
 
 
   
-  vararg_methods = {"zip"};
-  template_fn = {"simd_load"};
+  
+    functions_return_data_type["scope_struct_Sweep"] = Data_Tree("float");
 
-  // tensor + string + ...
-  // e.g: x.view(), str.split()
-  native_methods = {"err", "split", "split_idx", "str_vec_print", "file_open", "file_read", "file_close", "file_open",
+
+
+
+    vararg_methods = {"zip"};
+    template_fn = {"simd_load"};
+
+    // tensor + string + ...
+    // e.g: x.view(), str.split()
+    native_methods = {"err", "split", "split_idx", "str_vec_print", "file_open", "file_read", "file_close", "file_open",
                     "file_opened", "c_open", "c_read", "c_strlen", "c_memchr", "c_memcpy", "fexists", "str_set", "vec_print", "vec_movemask", "int_print_bits"};
-  native_methods = concat_str_vec(native_methods, user_cpp_functions);
+    native_methods = concat_str_vec(native_methods, user_cpp_functions);
 
-  return_string_fn = {"to_string", "cat_str_float"};
+    return_string_fn = {"to_string", "cat_str_float"};
 
 
-  native_functions = {"ShuffleStrVec", "gload_img", "wload_img", "silent_sleep", "__slee_p_",
+    native_functions = {"ShuffleStrVec", "gload_img", "wload_img", "silent_sleep", "__slee_p_",
                       "LenStrVec", "zeros_vec", "ones_vec", "start_timer", "end_timer",
                       "_glob_b_", "print", "cross_entropy", "backprop", "AdamW", "SGD",
                       "load_preprocess_img", "max", "min", "unbug",
@@ -159,14 +160,14 @@ extern "C" int prebuild() {
                       "network_ema", "mse", "priority_sample", "priority_sample_val",
                       "importance_sample_idx", "importance_sample_weight",
                       "cross_entropy_idx"};
-  native_functions = concat_str_vec(native_functions, return_string_fn);
-  native_fn = concat_str_vec(native_methods, native_functions);
+    native_functions = concat_str_vec(native_functions, return_string_fn);
+    native_fn = concat_str_vec(native_methods, native_functions);
 
 
 
-  reverse_ops = {{"float_tensor", "tensor_float"}};
+    reverse_ops = {{"float_tensor", "tensor_float"}};
 
-  elements_type_return = {{"tensor_tensor", "tensor"}, {"float_float", "float"}, {"str_str", "str"}, {"str_float", "str"},
+    elements_type_return = {{"tensor_tensor", "tensor"}, {"float_float", "float"}, {"str_str", "str"}, {"str_float", "str"},
                      {"float_str", "str"}, {"int_int", "int"}, {"int_float", "float"}, {"float_int", "float"}, {"str_int", "str"}, {"int_str", "str"},
                      {"str_bool", "str"}, {"bool_str", "str"}, {"bool_bool", "bool"},
                      {"tensor_float", "tensor"}, {"pinned_tensor_pinned_tensor", "pinned_tensor"},
@@ -176,7 +177,7 @@ extern "C" int prebuild() {
                      {"channel_str", "float"}, {"channel_int", "float"},
                      {"int_channel", "int"}, {"channel_float", "float"}, {"float_channel", "float"}, {"i64_i64", "i64"}};
 
-  ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"},
+    ops_type_return = {{"int_int_higher", "bool"}, {"int_int_minor", "bool"},
                      {"int_int_equal", "bool"},  {"int_int_different", "bool"},
                      {"int_int_higher_eq", "bool"}, {"int_int_minor_eq", "bool"},
                      {"i8_i8_higher", "bool"}, {"i8_i8_minor", "bool"},
@@ -196,18 +197,18 @@ extern "C" int prebuild() {
 
                      
 
-  op_map = {{'*', "mult"}, {'@', "mma"},  {'+', "add"}, {'-', "sub"}, {'/', "div"}, {'<', "minor"},
+    op_map = {{'*', "mult"}, {'@', "mma"},  {'+', "add"}, {'-', "sub"}, {'/', "div"}, {'<', "minor"},
             {'>', "higher"}, {tok_equal, "equal"},
             {tok_diff, "different"}, {tok_higher_eq, "higher_eq"}, {tok_minor_eq, "minor_eq"}, {'%', "mod"}, {'=', "attr"},
             {77, "error"}, {tok_arrow, "message"}, {tok_and, "and"}, {tok_not, "not"}, {tok_or, "or"},
             {tok_xor, "xor"}, {tok_offby, "offby"}};
 
-  for (auto pair : op_map)
+    for (auto pair : op_map)
     op_map_names.push_back(pair.second);
 
 
-  
-  notators_str = {"bias", "fp32", "fp16", "causal"};
 
-  return 0;
+    notators_str = {"bias", "fp32", "fp16", "causal"};
+
+    return 0;
 }

@@ -598,6 +598,15 @@ void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
                         std::string type) {
     Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
     Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
+    Value *marking = Builder->CreateLoad(boolTy,
+                                Builder->CreateStructGEP(struct_types["GC"], gc, 3));
+
+    BasicBlock *MarkingBB = BasicBlock::Create(*TheContext, "array.marking", TheFunction);
+    BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "array.standard", TheFunction);
+    BasicBlock *PostBB = BasicBlock::Create(*TheContext, "array.standard", TheFunction);
+    
+    Builder->CreateCondBr(marking, MarkingBB, StandardBB);
+    Builder->SetInsertPoint(MarkingBB);
     if (type=="str") {
         Value *str_v = Builder->CreateExtractValue(ref, {0});
         Value *size = Builder->CreateExtractValue(ref, {1});
@@ -605,8 +614,13 @@ void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
     }
     else
         call("GC_write_barrier_obj", {const_int16(data_name_to_type()[type]), gc, src, ptr, ref});
+    Builder->CreateBr(PostBB);
 
-    // Builder->CreateStore(ref, ptr);
+    Builder->SetInsertPoint(StandardBB);
+    Builder->CreateStore(ref, ptr);
+    Builder->CreateBr(PostBB);
+
+    Builder->SetInsertPoint(PostBB);
 }
 
 
@@ -3852,6 +3866,11 @@ Value *NameableAppend::codegen(Value *scope_struct) {
 
     if (inner_dt.Type=="array")
     {
+        Function *TheFunction = Builder->GetInsertBlock()->getParent();
+        BasicBlock *good_sizeBB = BasicBlock::Create(*TheContext, "array.append.ok_size", TheFunction);
+        BasicBlock *bad_sizeBB = BasicBlock::Create(*TheContext, "array.append.bad_size", TheFunction);
+        BasicBlock *postBB = BasicBlock::Create(*TheContext, "array.append.post", TheFunction);
+
         if (elem_type=="float"&&Args[0]->GetDataTree().Type=="int")
             appended_val = Builder->CreateSIToFP(appended_val, floatTy, "lfp");
 
@@ -3860,8 +3879,30 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         llvm::Type *elemTy;
         Value *vec = Load_Array(parser_struct.function_name, loaded_var);
 
-        call("GC_array_append_barrier", {scope_struct, loaded_var, appended_val, const_int16(data_name_to_type()[elem_type])});
-        return const_float(0);
+        if (!in_vec(elem_type, primary_data_tokens)) {
+            Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
+            Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
+            Value *marking = Builder->CreateLoad(boolTy,
+                                        Builder->CreateStructGEP(struct_types["GC"], gc, 3));
+
+            BasicBlock *MarkingBB = BasicBlock::Create(*TheContext, "array.marking", TheFunction);
+            BasicBlock *StandardBB = BasicBlock::Create(*TheContext, "array.standard", TheFunction);
+            
+            Builder->CreateCondBr(marking, MarkingBB, StandardBB);
+            Builder->SetInsertPoint(MarkingBB);
+
+            if (elem_type=="str") {
+                Value *str  = Builder->CreateExtractValue(appended_val, {0});
+                Value *size = Builder->CreateExtractValue(appended_val, {1});
+                call("GC_array_append_str_barrier",
+                     {const_int16(data_name_to_type()[elem_type]), scope_struct, loaded_var, str, size});
+            } else
+                call("GC_array_append_barrier",
+                     {const_int16(data_name_to_type()[elem_type]), scope_struct, loaded_var, appended_val});
+            Builder->CreateBr(postBB);
+
+            Builder->SetInsertPoint(StandardBB);
+        }
 
         elemTy = get_type_from_str(elem_type); 
 
@@ -3873,10 +3914,6 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         Value *size = Builder->CreateLoad(intTy, size_gep);
 
 
-        Function *TheFunction = Builder->GetInsertBlock()->getParent();
-        BasicBlock *good_sizeBB = BasicBlock::Create(*TheContext, "array.append.ok_size", TheFunction);
-        BasicBlock *bad_sizeBB = BasicBlock::Create(*TheContext, "array.append.bad_size", TheFunction);
-        BasicBlock *postBB = BasicBlock::Create(*TheContext, "array.append.post", TheFunction);
 
 
 
@@ -3899,6 +3936,8 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         vec = Load_Array(parser_struct.function_name, loaded_var);
         elem_gep = Builder->CreateGEP(elemTy, vec, vsize); 
         Builder->CreateStore(appended_val, elem_gep);
+        next_vsize = Builder->CreateAdd(vsize, const_int(1));
+        Builder->CreateStore(next_vsize, vsize_gep);
         Builder->CreateBr(postBB);
 
 

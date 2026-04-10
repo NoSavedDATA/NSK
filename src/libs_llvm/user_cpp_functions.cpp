@@ -45,7 +45,7 @@ void set_user_functions() {
 		"read_float", "float_ptr_print", "float_to_str", "float_to_str_buffer", "nsk_pow", "nsk_sqrt", 
 		"bool_to_str", "bool_to_str_buffer", 
 		"Delete_Ptr", 
-		"GC_array_append_barrier", "GC_write_barrier_str", "GC_write_barrier_obj", 
+		"GC_array_append_str_barrier", "GC_array_append_barrier", "GC_write_barrier_str", "GC_write_barrier_obj", 
 		"print_codegen", "print_codegen_silent", "LogErrorCall", 
 		"GetEmptyChar", "FreeCharFromFunc", "FreeChar", "CopyString", "ConcatStr", "ConcatStrFreeLeft", "ConcatFloatToStr", "ConcatNumToStrFree", 
 		"__slee_p_", "random_sleep", "silent_sleep", "start_timer", "end_timer", 

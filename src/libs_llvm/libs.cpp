@@ -101,9 +101,16 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("LogErrorCall", LogErrorCallTy);
 
+	FunctionType *GC_array_append_str_barrierTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("GC_array_append_str_barrier", GC_array_append_str_barrierTy);
+
 	FunctionType *GC_array_append_barrierTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt16Ty(*TheContext)},
+		{Type::getInt16Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("GC_array_append_barrier", GC_array_append_barrierTy);

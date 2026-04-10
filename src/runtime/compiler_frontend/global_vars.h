@@ -28,6 +28,7 @@ constexpr int32_t TERMINATE_VARARG = -2147483647;
 constexpr int32_t COPY_TO_END_INST = 0x7FADBEEF;
 
 extern bool Shall_Exit;
+extern int Array_Size;
 
 extern bool has_main;
 extern bool IsJIT;
