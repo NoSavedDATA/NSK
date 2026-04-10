@@ -89,8 +89,8 @@ class tensor
 class BackNode
 	tensor l, r, out
 	bool solved
-	str op
-	ctor(tensor l, tensor r, tensor out, str op)
+	int op
+	ctor(tensor l, tensor r, tensor out, int op)
 		self.l = l
 		self.r = r
 		self.out = out
@@ -103,7 +103,6 @@ class BackNode
 
 
 def int add_backward(float_pp dout, tensor x, tensor y)
-	print("add back")
 	float_pp dx, dy
 	dx = x.getd()
 	dy = y.getd()
@@ -124,13 +123,13 @@ def int mse_backward(float_pp dx, tensor x, tensor y)
 
 class backprop
 	array<BackNode> ops
-	map<str, Function<int, float_pp, tensor, tensor>> backs
-	map<str, Function<int, float_pp, tensor, tensor>> loss_backs
+	map<int, Function<int, float_pp, tensor, tensor>> backs
+	map<int, Function<int, float_pp, tensor, tensor>> loss_backs
 	int last_back_op
 	ctor()
 		self.last_back_op = 0
 
-	def float register(tensor l, tensor r, tensor out, str op)
+	def float register(tensor l, tensor r, tensor out, int op)
 		self.ops.append(new BackNode(l, r, out, op))
 		
 
@@ -160,7 +159,7 @@ def tensor tensor_tensor_add(tensor a, tensor b)
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
 	if shall_prop
-		$backprop.register(a, b, ret, "add")
+		$backprop.register(a, b, ret, 2)
 	return ret
 
 
@@ -169,12 +168,14 @@ def tensor tensor_tensor_mma(tensor a, tensor b)
 
 	array<int> new_dims = [m, p]
 	tensor ret = new tensor(new_dims, "none")
+	#new_dims.print()
 	ret.ptr = mma_tensors(a.ptr, b.ptr, m, n, p)
+	#new_dims.print()
 
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
 	if shall_prop
-		$backprop.register(a, b, ret, "mma")
+		$backprop.register(a, b, ret, 0)
 	return ret
 
 
@@ -184,7 +185,7 @@ def tensor mse_loss(tensor a, tensor b)
 	bool shall_prop = a.shall_prop or b.shall_prop
 	ret.shall_prop = shall_prop
 	if shall_prop
-		$backprop.register(a, b, ret, "mse")
+		$backprop.register(a, b, ret, 1)
 	return ret
 	
 
@@ -231,9 +232,9 @@ main
 
 	#join_gc()
 
-	$backprop.backs["add"] = add_backward
-	$backprop.backs["mma"] = mma_backward
-	$backprop.loss_backs["mse"] = mse_backward
+	$backprop.backs[2] = add_backward
+	$backprop.backs[0] = mma_backward
+	$backprop.loss_backs[1] = mse_backward
 
 	AdamW optim(0.001, 0.9, 0.98)
 	#SGD optim(0.01)
@@ -245,7 +246,7 @@ main
 	w.as_weight()
 	w2.as_weight()
 
-	for i=0, i<1000000
+	for i=0, i<5000000
 		print("i: ", i)
 		var y = x @ w
 		y = y @ w2
@@ -258,5 +259,5 @@ main
 		optim.step()
 
 		#sweep()
-		psweep()
+		#psweep()
 		#GC_print()

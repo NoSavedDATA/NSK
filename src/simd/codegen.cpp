@@ -40,7 +40,7 @@ Data_Tree simd_load_ret(Parser_Struct parser_struct, std::vector<std::unique_ptr
   Data_Tree dt = Data_Tree("vec");
   auto stmt_1 = dynamic_cast<IntExprAST*>(Args[1].get());
   auto stmt_2 = dynamic_cast<IntExprAST*>(Args[2].get());
-  dt.Nested_Data.push_back(Data_Tree(data_type_to_name[stmt_1->Val]));
+  dt.Nested_Data.push_back(Data_Tree(data_type_to_name()[stmt_1->Val]));
   dt.Nested_Data.push_back(Data_Tree(std::to_string(stmt_2->Val)));
   return dt;
 }

@@ -71,11 +71,37 @@ extern "C" int prebuild() {
     for (int i=0; i<4096; ++i)
         type_info[i] = nullptr;
 
+
+    auto& name_to_type = data_name_to_type();
+    auto& type_to_name = data_type_to_name();
+
+    name_to_type["int"] = 2;
+    name_to_type["float"] = 3;
+    name_to_type["bool"] = 4;
+    name_to_type["double"] = 5;
+    name_to_type["i8"] = 6;
+    name_to_type["i16"] = 7;
+    name_to_type["i64"] = 8;
+    name_to_type["char"] = 9;
+
+    name_to_type["str"] = 100;
+    name_to_type["list"] = 101;
+    name_to_type["array"] = 102;
+    name_to_type["map_node"] = 103;
+    name_to_type["map"] = 104;
+    name_to_type["charv"] = 105;
+    name_to_type["vec"] = 106;
+    name_to_type["tuple"] = 107;
+    name_to_type["channel"] = 108;
+    name_to_type["str_view"] = 109;
+    name_to_type["Funtcion"] = 110;
+    name_to_type["any"] = 111;
+
         
-    for (const auto& [name, type] : data_name_to_type)
+    for (const auto& [name, type] : name_to_type)
     {
         // If duplicates exist (like type 6), keep first or last depending on policy
-        data_type_to_name[type] = name;
+        type_to_name[type] = name;
         data_type_to_size[type] = data_name_to_size[name];
     }
 

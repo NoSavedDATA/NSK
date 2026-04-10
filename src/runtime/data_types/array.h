@@ -16,3 +16,4 @@ class DT_array {
 
 void array_Clean_Up(void *data_ptr, int);
 
+extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec);

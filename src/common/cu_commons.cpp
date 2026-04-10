@@ -1,5 +1,3 @@
-// REFERENCES:
-// https://github.com/karpathy/llm.c/blob/master/dev/cuda/common.h
 
 #include <stdlib.h>
 #include <stdio.h>

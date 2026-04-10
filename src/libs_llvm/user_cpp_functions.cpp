@@ -34,7 +34,7 @@ void set_user_functions() {
 		"list_New", "list_append_int", "list_append_float", "list_append_bool", "list_append", "list_print", "tuple_print", "list_Create", "list_shuffle", "list_size", "list_CalculateIdx", "to_int", "to_float", "to_bool", "assign_wise_list_Idx", "int_list_Store_Idx", "float_list_Store_Idx", "list_Store_Idx", "zip", "list_Idx", "tuple_Idx", 
 		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
 		"print", "print_void_ptr", "print_void_ptrC", "print_int16", "print_int", "print_int64", "print_uint64", 
-		"map_Create", "map_expand", "map_has_str", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
+		"map_Create", "map_expand", "map_has_str", "map_has_int", "map_has_float", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"dir_exists", "path_exists", 
 		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"charv_print", 

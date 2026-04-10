@@ -22,7 +22,7 @@ void set_functions_return_type() {
                            {"mean_tensor", "tensor"},
                            {"BatchNorm2d", "tensor"}, {"Pool2d", "tensor"}, {"LSTM", "tensor"}, {"MHSA", "tensor"}, {"Embedding", "tensor"},
 						{"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"ShuffleStrVec", "str_vec"},
-						{"map_Create", "map"}, {"map_has_str", "bool"}, {"map_keys", "array"}, {"map_values", "array"}, 
+						{"map_Create", "map"}, {"map_has_str", "bool"}, {"map_has_int", "bool"}, {"map_has_float", "bool"}, {"map_keys", "array"}, {"map_values", "array"}, 
 						{"read_float", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
@@ -72,6 +72,8 @@ void set_functions_return_type() {
 	functions_return_data_type["int_channel_alive"] = Data_Tree("bool");
 	functions_return_data_type["map_Create"] = Data_Tree("map");
 	functions_return_data_type["map_has_str"] = Data_Tree("bool");
+	functions_return_data_type["map_has_int"] = Data_Tree("bool");
+	functions_return_data_type["map_has_float"] = Data_Tree("bool");
 	functions_return_data_type["map_keys"] = Data_Tree("array");
 	functions_return_data_type["map_values"] = Data_Tree("array");
 	functions_return_data_type["CreateNotesVector"] = Data_Tree("list");

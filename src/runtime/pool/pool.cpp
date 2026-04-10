@@ -21,14 +21,13 @@ bool check_initialized_field(void *ptr) {
 
 
 extern "C" void *allocate_void(Scope_Struct *scope_struct, int size, const char *type) { 
-    auto it = data_name_to_type.find(type);
-    if (it==data_name_to_type.end())
+    auto it = data_name_to_type().find(type);
+    if (it==data_name_to_type().end())
         LogErrorC(-1, std::string("Type ") + type + " not implemented.");
     uint16_t type_id = it->second;
     // std::cout << type << " -> " << type_id << "\n";
 
     void *ptr = scope_struct->Allocate(size, type_id);
-    // memset(ptr, SENTINEL_BYTE, size);
     scope_struct->gc->size_occupied += size;
     scope_struct->gc->allocations++;
     return ptr;
@@ -36,7 +35,6 @@ extern "C" void *allocate_void(Scope_Struct *scope_struct, int size, const char 
 
 extern "C" void *allocate_pool(Scope_Struct *scope_struct, int size, uint16_t type_id) { 
     void *ptr = scope_struct->Allocate(size, type_id);
-    // memset(ptr, SENTINEL_BYTE, size);
     scope_struct->gc->size_occupied += size;
     scope_struct->gc->allocations++;
     return ptr;

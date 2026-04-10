@@ -111,7 +111,7 @@ void Generate_Class_Types() {
         );
         struct_types["class_"+class_name] = st;
 
-        uint16_t type16 = data_name_to_type[class_name];
+        uint16_t type16 = data_name_to_type()[class_name];
         if (type_info[type16]==nullptr) {
             const llvm::DataLayout &DL = TheModule->getDataLayout();
             const llvm::StructLayout *layout = DL.getStructLayout(st);
@@ -127,7 +127,7 @@ void Generate_Class_Types() {
                 if (!in_vec(dt.Type, {primary_data_tokens}) && dt.Type!="charv") {
                     uint64_t offset = layout->getElementOffset(idx);
                     offsets.push_back(offset);
-                    types16.push_back(data_name_to_type[dt.Type]);
+                    types16.push_back(data_name_to_type()[dt.Type]);
                     pointers_count++;
                 }
                 idx++;

@@ -238,6 +238,20 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("map_has_str", map_has_strTy);
 
+	FunctionType *map_has_intTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_has_int", map_has_intTy);
+
+	FunctionType *map_has_floatTy= FunctionType::get(
+		Type::getInt1Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_has_float", map_has_floatTy);
+
 	FunctionType *print_strTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{int8PtrTy},
@@ -1206,7 +1220,7 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *allocate_voidTy= FunctionType::get(
 		int8PtrTy,
-		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
+		{int8PtrTy, Type::getInt32Ty(*TheContext), int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
 		false
 	);
 	TheModule->getOrInsertFunction("allocate_void", allocate_voidTy);

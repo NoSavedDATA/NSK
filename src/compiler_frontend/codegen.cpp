@@ -302,7 +302,7 @@ Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
 
     Value *alloc_size = Builder->CreateAdd(size, const_int(1));
 
-    Value *type_id = const_uint16(data_name_to_type["str"]);
+    Value *type_id = const_uint16(data_name_to_type()["str"]);
     Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size, type_id});
     
     call("memcpy", {str_copy, str, size});
@@ -601,10 +601,10 @@ void MakeWriteBarrier(Function *TheFunction, Value *scope_struct,
     if (type=="str") {
         Value *str_v = Builder->CreateExtractValue(ref, {0});
         Value *size = Builder->CreateExtractValue(ref, {1});
-        call("GC_write_barrier_str", {const_int16(data_name_to_type[type]), gc, src, ptr, str_v, size});
+        call("GC_write_barrier_str", {const_int16(data_name_to_type()[type]), gc, src, ptr, str_v, size});
     }
     else
-        call("GC_write_barrier_obj", {const_int16(data_name_to_type[type]), gc, src, ptr, ref});
+        call("GC_write_barrier_obj", {const_int16(data_name_to_type()[type]), gc, src, ptr, ref});
 
     // Builder->CreateStore(ref, ptr);
 }
@@ -743,17 +743,21 @@ inline Value *Prepare_Stack_Pointer_Value(Data_Tree dt, Value *val) {
 void Allocate_On_Pointer_Stack(Value *scope_struct, std::string function_name, std::string var_name, Data_Tree dt, Value *val) {
     // val = Prepare_Stack_Pointer_Value(dt, val);
     Value *stack_top_value = function_values[function_name]["QQ_stack_top"];
+    function_pointers[function_name][var_name] = stack_top_value;
+
     // pointer to [N x i8*]
     Value *stack_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 2);
 
     // element pointer: &pointers_stack[i]
     // {0, i} first index the array object, then the element
     Value *void_ptr_gep = Builder->CreateGEP(ArrayType::get(int8PtrTy, ContextStackSize), stack_gep, { const_int(0), stack_top_value });
-    Builder->CreateStore(val, void_ptr_gep);
     
-    function_pointers[function_name][var_name] = stack_top_value;
     stack_top_value = Builder->CreateAdd(stack_top_value, const_int(1));
+    Builder->CreateStore(stack_top_value,
+                         Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3));
     function_values[function_name]["QQ_stack_top"] = stack_top_value;
+
+    Builder->CreateStore(val, void_ptr_gep);
     // p2t("allocate " + var_name);
 }
 
@@ -770,6 +774,8 @@ void Allocate_On_Pointer_Stack_no_metadata(Value *scope_struct, std::string func
     Builder->CreateStore(val, void_ptr_gep);
     
     stack_top_value = Builder->CreateAdd(stack_top_value, const_int(1));
+    Builder->CreateStore(stack_top_value,
+                         Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3));
     function_values[function_name]["QQ_stack_top"] = stack_top_value;
 }
 
@@ -970,9 +976,9 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
                     if (create_fn=="array_Create" || create_fn=="map_Create") {
 
-                        if (create_fn=="array_Create")  {
-                            ArgsV.push_back(const_int16(data_name_to_type[data_type.Nested_Data[0].Type]));
-                        } else {
+                        if (create_fn=="array_Create")
+                            ArgsV.push_back(const_int16(data_name_to_type()[data_type.Nested_Data[0].Type]));
+                        else {
                             Data_Tree *dt = new Data_Tree(data_type.Type);
                             dt->Nested_Data.push_back(data_type.Nested_Data[0]);
                             if(create_fn=="map_Create")
@@ -985,7 +991,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
                         std::vector<Data_Tree> ArgTypes;
                         ArgsV = Codegen_Argument_List(parser_struct, std::move(ArgsV), Notes, ArgTypes,
                                                       scope_struct, create_fn, true, 1);
-                        if(in_str(create_fn, vararg_methods))
+                        if(in_vec(create_fn, vararg_methods))
                             ArgsV.push_back(const_int(TERMINATE_VARARG));
 
                     }
@@ -993,7 +999,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
                     if(struct_create_fn.count(dt_type)>0) {
                         initial_value = (struct_type_size.count(Type)>0) ? callret("allocate_pool", {scope_struct,
                                     const_int(struct_type_size[Type]),
-                                    const_int16(data_name_to_type[Type])}) : nullptr;
+                                    const_int16(data_name_to_type()[Type])}) : nullptr;
                         initial_value = struct_create_fn[dt_type](parser_struct, TheFunction,
                                 VarName, Type, data_type,
                                 scope_struct, 
@@ -1010,8 +1016,7 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
 
 
-        if(is_self)
-        {
+        if(is_self) {
             int object_ptr_offset = ClassVariables[parser_struct.class_name][VarName]; 
             Value *obj = get_scope_obj(scope_struct);
             call("object_ptr_Attribute_object", {obj, const_int(object_ptr_offset), initial_value});
@@ -1868,7 +1873,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
                 // Create the node to be stored
                 Value *new_node_ptr = callret("allocate_pool", {scope_struct, const_int(24), \
-                                                                const_int16(data_name_to_type["map_node"])});
+                                                                const_int16(data_name_to_type()["map_node"])});
                 Value *new_node_key_gep = Builder->CreateStructGEP(st_node, new_node_ptr, 0);
                 if (key_type=="int") {
                     Value *int_ptr = callret("malloc", {const_int(4)});
@@ -2798,7 +2803,7 @@ void SetUniques(Value *scope_struct) {
     int idx = 0;
     for (auto class_name : Global_Uniques) {
         Value *ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[class_name]),
-                                const_int16(data_name_to_type[class_name])});
+                                const_int16(data_name_to_type()[class_name])});
         std::string function_name = "__anon_expr";
         Allocate_On_Pointer_Stack(scope_struct, function_name, class_name, Data_Tree(class_name), ptr);
         StructType *st = struct_types["class_"+class_name]; 
@@ -2810,7 +2815,7 @@ void SetUniques(Value *scope_struct) {
             int attr_idx = ClassAttrs[class_name][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
             if (create_fn=="array_Create")  {
-                ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+                ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
             } else {
                 Data_Tree *dt_ptr = new Data_Tree(type);
                 dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
@@ -3108,7 +3113,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
             Value *ptr;
             if (Init==nullptr) // no attribution
                 ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[ClassName]),
-                                        const_int16(data_name_to_type[ClassName])});
+                                        const_int16(data_name_to_type()[ClassName])});
             else
                 ptr = Init->codegen(scope_struct);
             Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, VarName, Data_Tree(ClassName), ptr);
@@ -3137,7 +3142,7 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
                     int attr_idx = ClassAttrs[ClassName][attr];
                     std::vector<Value *> ArgsDT_Create = {scope_struct};
                     if (create_fn=="array_Create")  {
-                        ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+                        ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
                     } else {
                         Data_Tree *dt_ptr = new Data_Tree(type);
                         dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
@@ -3194,7 +3199,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
     if (is_high_level_obj) {
         Value *previous_obj = get_scope_obj(scope_struct);
         Value *ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[DataName]),\
-                                               const_int16(data_name_to_type[DataName])});
+                                               const_int16(data_name_to_type()[DataName])});
         StructType *st = struct_types["class_"+DataName]; 
         for (auto attr : ClassAttrsName[DataName]) {
           Data_Tree dt = data_typeVars[DataName][attr];
@@ -3204,7 +3209,7 @@ Value *NewExprAST::codegen(Value *scope_struct) {
             int attr_idx = ClassAttrs[DataName][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
             if (create_fn=="array_Create")  {
-                ArgsDT_Create.push_back(const_int16(data_name_to_type[dt.Nested_Data[0].Type]));
+                ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
             } else {
                 Data_Tree *dt_ptr = new Data_Tree(type);
                 dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
@@ -3555,7 +3560,7 @@ Value *Nameable::codegen(Value *scope_struct) {
 
     std::string scope = Inner->GetDataTree().Type;
     Value *obj_ptr = Inner->codegen(scope_struct);
-    // call("print_void_ptr", {obj_ptr});
+
 
     StructType *st = struct_types["class_"+scope]; 
 
@@ -3563,9 +3568,15 @@ Value *Nameable::codegen(Value *scope_struct) {
     int offset = ClassVariables[scope][Name];
     int attr_idx = ClassAttrs[scope][Name];
 
+
     // p2t(Name + "|" + scope + ": " + std::to_string(attr_idx) + " -- " + std::to_string(offset) + " / " + std::to_string(ClassSize[scope]));
 
     obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
+
+    // if (Name=="dims"){
+    //     p2t("dims");
+    //     call("print_void_ptr", {obj_ptr});
+    // }
 
     if(Load_Last||!IsLeaf) {
         llvm::Type *Ty = get_type_from_data(attr_type);
@@ -3573,6 +3584,10 @@ Value *Nameable::codegen(Value *scope_struct) {
                     ? Builder->CreateLoad(Ty, obj_ptr) \
                     : Builder->CreateInBoundsGEP(Ty, obj_ptr, {const_int(0), const_int(0)}); //&arr[0]
     }
+    // if (Name=="dims"){
+    //     p2t("dims post");
+    //     call("print_void_ptr", {obj_ptr});
+    // }
 
     return obj_ptr;
 }
@@ -3845,9 +3860,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
         llvm::Type *elemTy;
         Value *vec = Load_Array(parser_struct.function_name, loaded_var);
 
-        Value *gc_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 5);
-        Value *gc = Builder->CreateLoad(int8PtrTy, gc_gep);
-        call("GC_array_append_barrier", {gc, loaded_var, appended_val, const_int16(data_name_to_type[elem_type])});
+        call("GC_array_append_barrier", {scope_struct, loaded_var, appended_val, const_int16(data_name_to_type()[elem_type])});
         return const_float(0);
 
         elemTy = get_type_from_str(elem_type); 

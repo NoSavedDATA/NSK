@@ -66,9 +66,6 @@ std::map<std::string, llvm::Type *> ClassStructs;
 
 
 std::string Extract_List_Suffix(const std::string& input) {
-    static std::mutex mtx;
-    std::lock_guard<std::mutex> lock(mtx);
-
     std::string target = "_list";
     size_t pos = input.find(target);
     if (pos != std::string::npos) {
@@ -95,9 +92,6 @@ std::string Extract_List_Suffix(const std::string& input) {
 
 
 std::string Extract_List_Prefix(const std::string& input) {
-    static std::mutex mtx;
-    std::lock_guard<std::mutex> lock(mtx);
-
     std::string target = "_list";
     size_t pos = input.find(target);
     if (pos != std::string::npos)
@@ -1350,7 +1344,7 @@ std::optional<std::vector<std::unique_ptr<ExprAST>>> Parse_Arguments(Parser_Stru
           nameable->AddNested(std::make_unique<NameableRoot>(parser_struct));
           Args.push_back(ParseCallExpr(parser_struct, std::move(nameable), class_name, 1));
         } else
-            Args.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
+            Args.push_back(std::make_unique<IntExprAST>(data_name_to_type()[IdentifierStr]));
       }
       
       else if (auto Arg = ParseExpression(parser_struct, class_name, false))
@@ -1601,7 +1595,7 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
         notes.push_back(std::make_unique<NumberExprAST>(NumVal));
         getNextToken();
       } else if (CurTok==tok_data&&data_type=="vec"&&arg_idx==0) {
-        notes.push_back(std::make_unique<IntExprAST>(data_name_to_type[IdentifierStr]));
+        notes.push_back(std::make_unique<IntExprAST>(data_name_to_type()[IdentifierStr]));
         getNextToken();
       } else if (CurTok==tok_str) {
         notes.push_back(std::make_unique<StringExprAST>(IdentifierStr));
@@ -2420,8 +2414,8 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
   uint16_t pointers_count = 0;
 
   uint16_t type16 = data_type_count;
-  data_name_to_type[Name] = data_type_count;
-  data_type_to_name[data_type_count++] = Name;
+  data_name_to_type()[Name] = data_type_count;
+  data_type_to_name()[data_type_count++] = Name;
 
 
 
@@ -2502,7 +2496,7 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
         Ty = ArrayType::get(int8Ty, size);
       } else {
         class_pointers.push_back(last_offset);
-        class_pointers_type.push_back(data_name_to_type[data_type]);
+        class_pointers_type.push_back(data_name_to_type()[data_type]);
         Ty = int8PtrTy;
         pointers_count++;
       }

@@ -38,7 +38,7 @@ std::string get_pool_obj_type(Scope_Struct *scope_struct, void *ptr) {
 
     long obj_idx = (static_cast<char*>(ptr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
-    return data_type_to_name[get_16_r12(span->type_metadata, obj_idx)];
+    return data_type_to_name()[get_16_r12(span->type_metadata, obj_idx)];
 }
 
 uint16_t get_pool_obj_u16(Scope_Struct *scope_struct, void *ptr) {

@@ -159,6 +159,28 @@ extern "C" bool map_has_str(Scope_Struct *scope_struct, DT_map *map, char *query
     }
     return false;
 }
+extern "C" bool map_has_int(Scope_Struct *scope_struct, DT_map *map, int query) {
+    int hash_pos = query % map->capacity;
+    DT_map_node *cur_node = map->nodes[hash_pos];
+    while(cur_node!=nullptr) {
+        int *key = static_cast<int*>(cur_node->key);
+        if (query == *key)
+            return true;
+        cur_node = cur_node->next;
+    }
+    return false;
+}
+extern "C" bool map_has_float(Scope_Struct *scope_struct, DT_map *map, float query) {
+    int hash_pos = float_hash(query) % map->capacity;
+    DT_map_node *cur_node = map->nodes[hash_pos];
+    while(cur_node!=nullptr) {
+        float *key = static_cast<float*>(cur_node->key);
+        if (query == *key)
+            return true;
+        cur_node = cur_node->next;
+    }
+    return false;
+}
 
 extern "C" void print_str(char *str) {
     std::cout << "print_str: " << str << ".\n";
@@ -191,7 +213,7 @@ extern "C" void map_print(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(scope_struct, map->size, map->key_size, data_name_to_type[map->key_type]);
+    array->New(scope_struct, map->size, map->key_size, data_name_to_type()[map->key_type]);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {
@@ -221,7 +243,7 @@ extern "C" DT_array *map_keys(Scope_Struct *scope_struct, DT_map *map) {
 
 extern "C" DT_array *map_values(Scope_Struct *scope_struct, DT_map *map) {
     DT_array *array = newT<DT_array>(scope_struct, "array");
-    array->New(scope_struct, map->size, map->val_size, data_name_to_type[map->val_type]);
+    array->New(scope_struct, map->size, map->val_size, data_name_to_type()[map->val_type]);
     
     int idx=0;
     for (int i=0; i<map->capacity; ++i) {

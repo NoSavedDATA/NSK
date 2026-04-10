@@ -8,7 +8,6 @@
 #include <fstream>
 #include <iostream>
 #include <map>
-#include <mutex>
 #include <string>
 #include <vector>
 
@@ -31,13 +30,11 @@ namespace fs = std::filesystem;
 
 std::vector<fs::path> glob_cpp(const fs::path& rootDir, std::string extension=".cpp") {
     std::vector<fs::path> cppFiles;
-    std::mutex mtx;
 
     for (const auto& entry : fs::recursive_directory_iterator(rootDir)) {
         const std::string filename = entry.path().string();
         if (filename.size() >= extension.size() &&
             filename.compare(filename.size() - extension.size(), extension.size(), extension) == 0) {
-            std::lock_guard<std::mutex> lock(mtx);
             cppFiles.push_back(entry.path());
         }
     }
@@ -60,9 +57,9 @@ inline void recognize_data_type(std::string type) {
     if(!in_str(nsk_type, data_tokens))
         data_tokens.push_back(nsk_type);
 
-    if (data_name_to_type.count(nsk_type)==0) {
-        data_name_to_type[nsk_type] = data_type_count;
-        data_type_to_name[data_type_count++] = nsk_type;
+    if (data_name_to_type().count(nsk_type)==0) {
+        data_name_to_type()[nsk_type] = data_type_count;
+        data_type_to_name()[data_type_count++] = nsk_type;
     }
 }
 
@@ -159,8 +156,8 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
         if (create_type!=return_type) {
             Equivalent_Types[create_type].push_back(return_type);
 
-            int type_id = data_name_to_type[return_type];
-            data_name_to_type[create_type] = type_id;
+            int type_id = data_name_to_type()[return_type];
+            data_name_to_type()[create_type] = type_id;
             // data_type_to_name[type_id] = equivalent_type;
         }
     }
@@ -862,7 +859,7 @@ void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool i
 
     if (!handle) {
         std::string err = dlerror();
-        LogError(-1, "Failed to load library"+so_lib_path+":\n\tError:" + err);
+        LogError(-1, "Failed to load library " + so_lib_path + ":\n\tError:" + err);
         std::exit(0);
     }
 
@@ -918,8 +915,8 @@ void LibParser::ImportLibs(std::string so_lib_path, std::string lib_name, bool i
         std::string name = data_info.first;
         if (!in_vec(name, data_tokens)) {
             data_tokens.push_back(name);
-            data_name_to_type[name] = data_type_count; 
-            data_type_to_name[data_type_count++] = name; 
+            data_name_to_type()[name] = data_type_count; 
+            data_type_to_name()[data_type_count++] = name; 
         }
     }
 }

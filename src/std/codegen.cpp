@@ -66,7 +66,7 @@ Value *DT_vec_Create(Parser_Struct parser_struct, Function *TheFunction,
     
     if (auto num_expr = dynamic_cast<IntExprAST*>(Args[0].get())) {
         size = num_expr->Val;
-        const std::string &data_type = data_type_to_name[num_expr->Val];
+        const std::string &data_type = data_type_to_name()[num_expr->Val];
         dt = Data_Tree(data_type);
         ty = get_type_from_data(dt);
     } else
@@ -165,7 +165,7 @@ Value *alloc(Parser_Struct parser_struct, Function *TheFunction,
     std::string type;
     if(auto *str_expr = dynamic_cast<StringExprAST*>(Args[1].get())) {
         type = str_expr->Val;
-        type_id = const_uint16(data_name_to_type[type]);
+        type_id = const_uint16(data_name_to_type()[type]);
     }
     else {
         LogErrorS(parser_struct.line, "alloc requires const string");

@@ -118,8 +118,7 @@ extern "C" float array_clear(Scope_Struct *scope_struct, DT_array *vec) {
 }
 
 
-extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...)
-{ 
+extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...) { 
   int elem_size = 4;
 
   DT_array *vec = newT<DT_array>(scope_struct, "array");
@@ -145,11 +144,13 @@ extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...
     x = va_arg(args, int);
   } while(x!=TERMINATE_VARARG);
   va_end(args);
+  // std::cout << "new vec: " << vec << "\n";
   return vec;
 }
 
 
 extern "C" float array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
+    std::cout << std::dec;
     int *ptr = static_cast<int*>(vec->data);
     int size = vec->virtual_size;
 
@@ -197,21 +198,15 @@ extern "C" DT_array *zeros_int(Scope_Struct *scope_struct, int N) {
 
 
 extern "C" DT_array *randint_array(Scope_Struct *scope_struct, int size, int min_val, int max_val) {
-    // std::cout << "new array " << scope_struct << "|" << size << " " << min_val << " " << max_val << "\n";
     DT_array *vec = newT<DT_array>(scope_struct, "array");
-    vec->New(scope_struct, size,4, scope_struct->thread_id, 2);
+    vec->New(scope_struct, size, 4, scope_struct->thread_id, 2);
 
     std::uniform_int_distribution<int> dist(min_val, max_val);
 
     int *ptr = static_cast<int*>(vec->data);
-    for (int i = 0; i < size; ++i) {
-        int r;
-        {
-            std::lock_guard<std::mutex> lock(MAIN_PRNG_MUTEX);
-            r = dist(MAIN_PRNG);
-        }
-        ptr[i] = r;
-    }
+    for (int i = 0; i < size; ++i)
+        ptr[i] = dist(MAIN_PRNG);
+    
 
     return vec;
 }
@@ -255,14 +250,9 @@ extern "C" DT_array *randfloat_array(Scope_Struct *scope_struct, int size, float
     std::uniform_real_distribution<float> dist(min_val, max_val);
 
     float *ptr = static_cast<float*>(vec->data);
-    for (int i = 0; i < size; ++i) {
-        float r;
-        {
-            std::lock_guard<std::mutex> lock(MAIN_PRNG_MUTEX);
-            r = dist(MAIN_PRNG);
-        }
-        ptr[i] = r;
-    }
+    for (int i = 0; i < size; ++i)
+        ptr[i] = dist(MAIN_PRNG);
+    
 
     return vec;
 }

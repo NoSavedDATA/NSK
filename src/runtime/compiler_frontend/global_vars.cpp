@@ -53,17 +53,27 @@ std::vector<std::string> int_types = {"int", "i64", "i8", "i16", "char"};
 
 std::unordered_map<std::string, uint16_t> data_name_to_size = {{"int", 4}, {"float", 4}, {"bool", 1}, {"any", 8}, {"double", 8}, {"str", 16}, {"str_view", 16}, {"Function", 8}, {"array", 8}};
 std::unordered_map<uint16_t, uint16_t> data_type_to_size; 
+ 
 
-std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"double", 5},
-                                                               {"i8", 6}, {"i16", 7}, {"i64", 8},
-                                                               {"str", 100},
-                                                               {"list", 101},
-                                                               {"tuple", 107}, {"map", 108}, {"channel", 109},
-                                                               {"array", 102}, {"map_node", 103},
-                                                               {"char", 104},  {"charv", 105},
-                                                               {"vec", 106},
-                                                               {"str_view", 110}, {"any", 111}, {"Function", 112}};
-std::unordered_map<uint16_t, std::string> data_type_to_name;
+std::unordered_map<std::string, uint16_t>& data_name_to_type() {
+    static auto* map = new std::unordered_map<std::string, uint16_t>();
+    return *map;
+}
+std::unordered_map<uint16_t, std::string>& data_type_to_name() {
+    static auto* map = new std::unordered_map<uint16_t, std::string>();
+    return *map;
+}
+
+// std::unordered_map<std::string, uint16_t> data_name_to_type = {{"int", 2}, {"float", 3}, {"bool", 4}, {"double", 5},
+//                                                                {"i8", 6}, {"i16", 7}, {"i64", 8},
+//                                                                {"str", 100},
+//                                                                {"list", 101},
+//                                                                {"tuple", 107}, {"map", 108}, {"channel", 109},
+//                                                                {"array", 102}, {"map_node", 103},
+//                                                                {"char", 104},  {"charv", 105},
+//                                                                {"vec", 106},
+//                                                                {"str_view", 110}, {"any", 111}, {"Function", 112}};
+// std::unordered_map<uint16_t, std::string> data_type_to_name;
 
 uint16_t data_type_count=113;
 

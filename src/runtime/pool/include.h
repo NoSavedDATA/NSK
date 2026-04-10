@@ -22,8 +22,8 @@ T *allocate(Scope_Struct *scope_struct, int size, std::string type) {
 
 
 
-    auto it = data_name_to_type.find(type);
-    if (it==data_name_to_type.end())
+    auto it = data_name_to_type().find(type);
+    if (it==data_name_to_type().end())
         LogErrorC(-1, std::string("Type ") + type + " not implemented.");
     uint16_t type_id = it->second;
 
@@ -58,10 +58,9 @@ template<typename T>
 T *newT(Scope_Struct *scope_struct, std::string type) {
     T *ptr;
 
-    if(scope_struct!=nullptr)
-    {
-        auto it = data_name_to_type.find(type);
-        if (it==data_name_to_type.end())
+    if(scope_struct!=nullptr) {
+        auto it = data_name_to_type().find(type);
+        if (it==data_name_to_type().end())
             LogErrorC(-1, std::string("Type ") + type + " not implemented.");
         uint16_t type_id = it->second;
 
@@ -104,7 +103,8 @@ inline void *cache_pop(int size, int tid) {
 }
 
 inline void cache_push(void* ptr, int size, int tid) {
-    int exp = round_up_pow2_exp(size);
-    auto& bucket = memory_cache[tid][exp];
-    bucket.push_back(ptr);
+    free(ptr);
+    // int exp = round_up_pow2_exp(size);
+    // auto& bucket = memory_cache[tid][exp];
+    // bucket.push_back(ptr);
 }
