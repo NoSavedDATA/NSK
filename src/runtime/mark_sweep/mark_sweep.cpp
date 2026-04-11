@@ -172,8 +172,10 @@ extern "C" float GC_print(Scope_Struct *scope_struct) {
     std::cout << "allocated: " << gc->arena->size_allocated << "\n";
     for (int i=0; i<GC_obj_sizes; ++i) {
         std::cout << gc_sizes[i] << ": " << gc->arena->Spans[i].size() << "\n";
-        if (gc->arena->Spans[i].size()>0)
+        if (gc->arena->Spans[i].size()>0) {
+            if (gc->arena->current_span[i])
             std::cout << "\t" << gc->arena->current_span[i]->free_idx << " / " << gc->arena->current_span[i]->N << "\n";
+        }
     }
     std::cout << "\n";
     return 0;

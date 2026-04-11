@@ -69,7 +69,7 @@ struct GC_Span {
     char *cur_free, *end;
     GC_Span *next_span=nullptr;
 
-    int words, type_words, free_idx=0, elem_size, N;
+    int words, type_words, free_idx=0, elem_size, N, gen=0;
 
     // Interpretate type_metadata as int12
     // uint64_t *mark_bits, *alloc_bits, *type_metadata;
@@ -77,7 +77,7 @@ struct GC_Span {
     std::atomic<uint64_t> *mark_bits, *type_metadata;
     
     GC_Span(GC_Arena *, GC_span_traits *, uint64_t);
-    void Sweep(uint64_t mark_bit);
+    int Sweep(int, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit) {
         if(free_idx<N) {
             set_1_atomic(mark_bits, free_idx, gc_mark_bit);
@@ -119,7 +119,7 @@ struct GC_Arena {
     // Get an arena of 64MB, and set pages size to 8 KB
     const int arena_size=GC_arena_size, page=GC_page_size;
     // const int arena_size=65536, page=8192;
-    int size_allocated=0,pages_allocated=0;
+    int size_allocated=0,pages_allocated=0,gen=0;
     void *arena, *metadata;
     GC *gc;
 
@@ -158,9 +158,9 @@ struct GC_Arena {
         topw = node;
     }
 
-    inline void* Allocate(int size_class, uint16_t type_id, uint64_t gc_mark_bit) {
+    inline void* Allocate(int size_class, uint16_t type_id, int tid, uint64_t gc_mark_bit) {
         std::unique_lock<std::mutex> lock(sweep_mtx);
-        gc_mark_bit=0;
+        // gc_mark_bit=0;
 
         GC_span_traits* traits = GC_span_traits_vec[size_class];
         GC_Span* span = current_span[size_class];
@@ -168,17 +168,29 @@ struct GC_Arena {
 
         // FAST PATH
         if (span != nullptr) {
+            // if (span->gen <= gen-2)
+            //     span->Sweep(tid, gc_mark_bit);
             void* ptr = span->Allocate(type_id, gc_mark_bit);
             if (ptr != nullptr)
                 return ptr;
+            while(span->next_span!=nullptr) { // only happens after resets
+                span = span->next_span;
+                // if (span->gen <= gen-2)
+                //     span->Sweep(tid, gc_mark_bit);
+                ptr = span->Allocate(type_id, gc_mark_bit);
+                if (ptr!=nullptr) {
+                    current_span[size_class] = span;
+                    return ptr;
+                }
+            }
         }
 
-        // Try to get unsweeped span
-        // std::cout << "GET UNSWEEPED" << "\n";
+        // // Try to get unsweeped span
         // span = unsweeped[size_class];
         // while(span) {
-        //     span->Sweep(gc_mark_bit);
-        //     // void* ptr = span->Allocate(type_id, gc_mark_bit);
+        //     std::cout << "allocate " << size_class << "\n";
+        //     span->Sweep(tid, gc_mark_bit);
+        //     void* ptr = span->Allocate(type_id, gc_mark_bit);
         //     current_span[size_class] = span;
 
         //     span = span->next_span;
@@ -230,10 +242,10 @@ struct GC {
             return nullptr;
          }
         
-        void *ptr = arena->Allocate(obj_class, type_id, mark_bit);
+        void *ptr = arena->Allocate(obj_class, type_id, tid, mark_bit);
         if(ptr==nullptr) {
             Sweep(scope_struct);
-            ptr = arena->Allocate(obj_class, type_id, mark_bit);
+            ptr = arena->Allocate(obj_class, type_id, tid, mark_bit);
             if (ptr==nullptr) {
                 LogErrorC(-1, "ARENA FULL.");
                 std::exit(0);

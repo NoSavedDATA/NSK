@@ -227,9 +227,9 @@ class AdamW
 
 main
 	#join_gc()
-	foo()
+	#foo()
 	#bar()
-	_quit_()
+	#_quit_()
 
 	$backprop.backs[2] = add_backward
 	$backprop.backs[0] = mma_backward
@@ -258,5 +258,5 @@ main
 		optim.step()
 
 		#sweep()
-		#psweep()
-		GC_print()
+		psweep()
+		#GC_print()

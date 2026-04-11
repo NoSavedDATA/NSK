@@ -21,6 +21,48 @@
 #include "../include.h"
 
 
+int GC_Span::Sweep(int tid, uint64_t mark_bit) {
+    uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
+    int free_slots=0;
+
+    for (int w=0; w<words; ++w) {
+        uint64_t bits = mark_bits[w].load(std::memory_order_acquire);
+        bits = bits^mark_mask; 
+        while (bits) {
+            int idx = (w<<6) + __builtin_ctzll(bits);
+            if(idx>=N)
+                break;
+            if (get_1(alloc_bits, idx)) {
+                uint16_t u_type = get_16_r12(type_metadata, idx);
+                if(u_type!=0) {
+                    if(u_type!=100&&type_info[u_type]==nullptr) { // Not str and not class
+                        std::string obj_type = data_type_to_name()[u_type]; 
+                        void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
+                        // std::cout << "CLEAN " << obj_type << " - " << obj_addr << ", size: " << elem_size << "\n";
+                        clean_up_functions[obj_type](obj_addr, tid);
+                    }
+                }
+                set_1(alloc_bits, idx, 0ULL); 
+            }
+            uint64_t set_mask = 1ULL << (idx&63);
+            bits = bits & ~set_mask;
+        }
+        mark_bits[w].store(mark_mask, std::memory_order_release);
+
+        bits = alloc_bits[w] ^ ~0ULL;
+        while (bits) {
+            int idx = (w<<6) + __builtin_ctzll(bits);
+            free_slots++;
+            if(idx>=N)
+                break;
+            uint64_t set_mask = 1ULL << (idx&63);
+            bits = bits & ~set_mask;
+        }
+    }
+    if (free_slots>=N)
+        free_idx = 0;
+    return free_slots;
+}
 
 bool GC_Arena::mark_worklist_pointers(Scope_Struct *scope_struct, uint64_t mark_bit) {
     uint16_t type16;
@@ -130,9 +172,6 @@ bool GC_Arena::mark_obj(void *node_ptr, uint16_t &type, uint64_t mark_bit) {
 
         long obj_idx = (p - static_cast<char*>(span->span_address)) / span->traits->obj_size;
 
-        // prevent cyclic ref infinite loop
-        bool was_handled = get_1_atomic(span->mark_bits, obj_idx) == mark_bit;
-        if (was_handled) return false;
         
         type = get_16_r12(span->type_metadata, obj_idx);
         set_1_atomic(span->mark_bits, obj_idx, mark_bit);
@@ -180,13 +219,14 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
             char *base = (char*)data;
             for (int i=0; i<size; ++i) {
                 void *elem = __atomic_load_n((void**)(base + i*16), __ATOMIC_ACQUIRE);
+                if(!get_is_marked(elem, mark_bit))
                     worklist_push(elem, type);
                 
             }
         } else {
             for (int i=0; i<size; ++i) {
                 void *elem = __atomic_load_n(&data[i], __ATOMIC_ACQUIRE);
-                // if(!get_is_marked(elem, type))
+                if(!get_is_marked(elem, mark_bit))
                     worklist_push(elem, type);
                 
             }
@@ -375,35 +415,15 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     __atomic_store_n(&marking, true, __ATOMIC_RELEASE);
     std::unique_lock<std::mutex> lock(arena->sweep_mtx, std::defer_lock);
 
+    // mark_bit ^= 1;
+
     lock.lock();
     arena->check_roots_worklist(scope_struct, mark_bit);
     lock.unlock();
     arena->mark_worklist_pointers(scope_struct, mark_bit);
 
-    std::cout << "sweep " << "\n";
+    std::cout << "sweep" << "\n";
     
-    // bool is_first=true;
-    // while (scope_struct->alive) {
-    //     lock.lock();
-    //     arena->check_roots_worklist(scope_struct, mark_bit);
-    //     lock.unlock();
-
-    //     bool empty = arena->mark_worklist_pointers2(scope_struct, mark_bit);
-    //     void *mutatorw = arena->mutatorw.load(std::memory_order_acquire);
-    //     if (empty&&!mutatorw) {
-    //         lock.lock();
-    //         if(scope_struct->alive)
-    //             CleanUp_Unused(scope_struct->thread_id);
-    //         __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
-    //         allocations=0;
-    //         size_occupied=0;
-    //         marks=0;
-
-    //         lock.unlock();
-    //         return;
-    //     } 
-    //     arena->mark_worklist_pointers2(scope_struct, mark_bit);
-    // }
 
     __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
     allocations=0;
@@ -412,107 +432,65 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
 
 
+// void GC::CleanUp_Unused(int tid) {
+//     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
+//         GC_Span *span_ST = nullptr, *cur=arena->current_span[span_group];
+
+//         for (const auto &span : arena->Spans[span_group]) {
+//             span->next_span = span_ST;
+//             span_ST = span;
+//         }
+//         arena->unsweeped[span_group] = span_ST;
+//     }
+//     retire_clean();
+// }
+
+
 void GC::CleanUp_Unused(int tid) {
-    // int get_mask = mark_bit ? 0 : 1;
-    // uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
-    // int all_alloc=0;
+    int get_mask = mark_bit ? 0 : 1;
+    uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
+    int all_alloc=0;
 
     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-        GC_Span *span_ST = nullptr;
+        GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;
+        
+        int span_id=-1;
 
         for (const auto &span : arena->Spans[span_group]) {
-            span->next_span = span_ST;
-            span_ST = span;
+            span_id++;
+
+            int obj_size = span->elem_size;
+            int free_slots = 0; 
+            
+            span->Sweep(tid, mark_bit);
+            
+
+            // std::cout << free_slots << " | " << span->N << " -- " << obj_size << "|" << span_id << "\n";
+            bool is_free = (span->free_idx<span->N||free_slots==span->N);
+            if (is_free) {
+                if(!last_free)
+                    last_free = span;
+                span->next_span = free_span_ST;
+                free_span_ST = span;
+            } else {
+                span->next_span = span_ST;
+                span_ST = span;
+            }
+            if (free_slots>=span->N) {
+                span->cur_free = (char*)span->span_address;
+                span->free_idx=0;
+            }
         }
-        arena->unsweeped[span_group] = span_ST;
+        GC_Span *first_span = span_ST;
+        if (last_free) {
+            last_free->next_span = span_ST;
+            first_span = free_span_ST;
+        }
+        arena->current_span[span_group] = first_span;
     }
     retire_clean();
     mark_bit ^= 1;
 }
-void GC_Span::Sweep(uint64_t mark_bit) {
-    // std::cout << "SWEEP span" << "\n";
-    // std::exit(0);
-}
-
-// void GC::CleanUp_Unused(int tid) {
-//     int get_mask = mark_bit ? 0 : 1;
-//     uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
-//     int all_alloc=0;
-
-//     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-//         GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;
-        
-//         int span_id=-1;
-
-//         for (const auto &span : arena->Spans[span_group]) {
-//             span_id++;
-
-//             int obj_size = span->elem_size;
-//             int free_slots = 0; 
-            
-//             for (int w=0; w<span->words; ++w) {
-
-//                 uint64_t bits = span->mark_bits[w].load(std::memory_order_acquire);
-//                 bits = bits^mark_mask; 
-//                 while (bits) {
-//                     int idx = (w<<6) + __builtin_ctzll(bits);
-//                     if(idx>=span->N)
-//                         break;
-//                     if (get_1(span->alloc_bits, idx)) {
-//                         uint16_t u_type = get_16_r12(span->type_metadata, idx);
-//                         if(u_type!=0) {
-//                             if(u_type!=100&&type_info[u_type]==nullptr) { // Not str and not class
-//                                 std::string obj_type = data_type_to_name()[u_type]; 
-//                                 void *obj_addr = static_cast<char*>(span->span_address) + idx*obj_size;
-//                                 // std::cout << "CLEAN " << obj_type << " - " << obj_addr << ", size: " << obj_size << "\n";
-//                                 clean_up_functions[obj_type](obj_addr, tid);
-//                             }
-//                         }
-//                         set_1(span->alloc_bits, idx, 0ULL); 
-//                     }
-//                     uint64_t set_mask = 1ULL << (idx&63);
-//                     bits = bits & ~set_mask;
-//                 }
-//                 // span->mark_bits[w].store(mark_mask, std::memory_order_release);
-//                 span->mark_bits[w].store(0ULL, std::memory_order_release);
-
-//                 bits = span->alloc_bits[w] ^ ~0ULL;
-//                 while (bits) {
-//                     int idx = (w<<6) + __builtin_ctzll(bits);
-//                     free_slots++;
-//                     all_alloc++;
-//                     if(idx>=span->N)
-//                         break;
-//                     uint64_t set_mask = 1ULL << (idx&63);
-//                     bits = bits & ~set_mask;
-//                 }
-//             }
-
-//             // std::cout << free_slots << " | " << span->N << " -- " << obj_size << "|" << span_id << "\n";
-//             bool is_free = (span->free_idx<span->N||free_slots==span->N);
-//             if (is_free) {
-//                 if(!last_free)
-//                     last_free = span;
-//                 span->next_span = free_span_ST;
-//                 free_span_ST = span;
-//             } else {
-//                 span->next_span = span_ST;
-//                 span_ST = span;
-//             }
-//             if (free_slots>=span->N) {
-//                 span->cur_free = (char*)span->span_address;
-//                 span->free_idx=0;
-//             }
-//         }
-//         GC_Span *first_span = span_ST;
-//         if (last_free) {
-//             last_free->next_span = span_ST;
-//             first_span = free_span_ST;
-//         }
-//         arena->current_span[span_group] = first_span;
-//     }
-//     retire_clean();
-// }
 
 
 
