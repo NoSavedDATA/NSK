@@ -59,6 +59,7 @@ int GC_Span::Sweep(int tid, uint64_t mark_bit) {
             bits = bits & ~set_mask;
         }
     }
+    sweeped=true;
     if (free_slots>=N)
         free_idx = 0;
     return free_slots;
@@ -415,15 +416,38 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     __atomic_store_n(&marking, true, __ATOMIC_RELEASE);
     std::unique_lock<std::mutex> lock(arena->sweep_mtx, std::defer_lock);
 
-    // mark_bit ^= 1;
+    arena->gen += 2;
 
     lock.lock();
     arena->check_roots_worklist(scope_struct, mark_bit);
     lock.unlock();
     arena->mark_worklist_pointers(scope_struct, mark_bit);
 
+    // bool is_first=true;
+    // while (scope_struct->alive) {
+    //     lock.lock();
+    //     arena->check_roots_worklist(scope_struct, mark_bit);
+    //     lock.unlock();
+
+    //     bool empty = arena->mark_worklist_pointers2(scope_struct, mark_bit);
+    //     void *mutatorw = arena->mutatorw.load(std::memory_order_acquire);
+    //     if (empty&&!mutatorw) {
+    //         lock.lock();
+    //         std::cout << "sweep " << "\n";
+    //         if(scope_struct->alive)
+    //             CleanUp_Unused(scope_struct->thread_id);
+    //         __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
+    //         allocations=0;
+    //         size_occupied=0;
+    //         marks=0;
+
+    //         lock.unlock();
+    //         return;
+    //     } 
+    //     arena->mark_worklist_pointers2(scope_struct, mark_bit);
+    // }
+
     std::cout << "sweep" << "\n";
-    
 
     __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
     allocations=0;
@@ -432,30 +456,24 @@ void GC::Sweep(Scope_Struct *scope_struct) {
 
 
 
-// void GC::CleanUp_Unused(int tid) {
-//     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-//         GC_Span *span_ST = nullptr, *cur=arena->current_span[span_group];
-
-//         for (const auto &span : arena->Spans[span_group]) {
-//             span->next_span = span_ST;
-//             span_ST = span;
-//         }
-//         arena->unsweeped[span_group] = span_ST;
-//     }
-//     retire_clean();
-// }
-
-
 void GC::CleanUp_Unused(int tid) {
-    int get_mask = mark_bit ? 0 : 1;
-    uint64_t mark_mask = mark_bit ? ~0ULL : 0ULL;
-    int all_alloc=0;
-
     for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
-        GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;
-        
-        int span_id=-1;
+        // GC_Span *span_ST = nullptr, *cur=arena->current_span[span_group];
+        // for (const auto &span : arena->Spans[span_group]) {
+        //     if (span==cur) continue;
+        //     span->sweeped=false;
+        //     span->next_span = span_ST;
+        //     span_ST = span;
+        // }
+        // if (cur) {
+        //     // cur->sweeped=false;
+        //     cur->Sweep(tid, mark_bit);
+        //     cur->next_span = span_ST;
+        // }
 
+        
+        GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;
+        int span_id=-1;
         for (const auto &span : arena->Spans[span_group]) {
             span_id++;
 
@@ -463,7 +481,6 @@ void GC::CleanUp_Unused(int tid) {
             int free_slots = 0; 
             
             span->Sweep(tid, mark_bit);
-            
 
             // std::cout << free_slots << " | " << span->N << " -- " << obj_size << "|" << span_id << "\n";
             bool is_free = (span->free_idx<span->N||free_slots==span->N);

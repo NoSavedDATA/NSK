@@ -58,7 +58,7 @@ class tensor
 
 	def float_pp getd()
 		if !self.d
-			self.d = zeros_cuda(self.dims_prod)
+			self.d = zeros_cuda_pool(self.dims_prod)
 		if self.is_weight
 			$optim_info.register(self)
 		return self.d
@@ -199,6 +199,7 @@ class SGD
 			sgd_k(param.ptr, param.d, self.lr, param.dims_prod)
 			param.d=nil
 		$optim_info.params.clear()
+		tarena_reset()
 
 class AdamW
 	float lr, beta1, beta2
@@ -223,6 +224,7 @@ class AdamW
 			i=i+1
 			self.ts = self.ts+1
 		$optim_info.params.clear()
+		tarena_reset()
 
 
 main
@@ -240,10 +242,12 @@ main
 
 	tensor w([8,8], "randu"), w2([2,8], "randu")
 	tensor label([2,2], "zeros")
+	w.print()
 
 	tensor x([2,8], "randu")
 	w.as_weight()
 	w2.as_weight()
+
 
 	for i=0, i<5000000
 		print("i: ", i)
@@ -258,5 +262,5 @@ main
 		optim.step()
 
 		#sweep()
-		psweep()
+		#psweep()
 		#GC_print()
