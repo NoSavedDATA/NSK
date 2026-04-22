@@ -8,25 +8,24 @@
 #include <string>
 
 
-#include "../data_types/list.h"
+#include "../data_types/array.h"
 #include "barrier.h"
 
 
 
 
 struct Channel {
-
-    int buffer_size;
+    int buffer_size, head=0, tail=0, size=0;
+    uint16_t type;
     bool terminated=false;
 
-    DT_list *data_list;
-    
+    DT_array *_array;
     
     std::mutex mtx;
-    std::condition_variable cv;
+    std::condition_variable push_cv, pop_cv, cv;
 
     Channel();
-    void New(int);
+    void New(Scope_Struct *, uint16_t, int);
 };
 
 void channel_Clean_Up(void *ptr, int);

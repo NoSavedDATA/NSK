@@ -27,8 +27,8 @@ const int GC_arena_size = 1024 << 20;
 
 const int pages_per_arena = GC_arena_size / GC_page_size;
 
-const int GC_obj_sizes=15;
-const int GC_max_object_size = 16384;
+const int GC_obj_sizes=16;
+const int GC_max_object_size = 32768;
 extern int gc_sizes[GC_obj_sizes];
 
 extern std::array<char *, 100> arena_base_addr;
@@ -81,7 +81,7 @@ struct GC_Span {
     int Sweep(int, uint64_t);
     inline void *Allocate(uint16_t type_id, uint64_t gc_mark_bit, int tid) {
         if(!sweeped)
-            Sweep(tid, (gc_mark_bit) ? 0 : 1);
+            Sweep(tid, gc_mark_bit);
         if(free_idx<N) {
             set_1_atomic(mark_bits, free_idx, gc_mark_bit);
             void *ret_ptr = static_cast<char*>(span_address) + elem_size*free_idx;
@@ -162,6 +162,7 @@ struct GC_Arena {
     }
 
     inline void* Allocate(int size_class, uint16_t type_id, int tid, uint64_t gc_mark_bit) {
+        // gc_mark_bit = gc_mark_bit ? 0ULL : 1ULL; // lazy sweep only
         std::unique_lock<std::mutex> lock(sweep_mtx);
 
         GC_span_traits* traits = GC_span_traits_vec[size_class];
@@ -189,8 +190,8 @@ struct GC_Arena {
             return nullptr;
 
         span = new GC_Span(this, traits, gc_mark_bit);
-        if (prev_span!=nullptr)
-            prev_span->next_span = span;
+        // if (prev_span!=nullptr)
+        //     prev_span->next_span = span;
 
         current_span[size_class] = span;
         Spans[size_class].push_back(span);
@@ -212,6 +213,7 @@ struct GC {
     int allocations=0;
     uint64_t size_occupied=0, mark_bit=1ULL;
     bool marking = false;
+    uint64_t next_clean = 16<<10;
     GC_Arena *arena;
     DT_array_retire *retired_arr=nullptr;
     

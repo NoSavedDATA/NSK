@@ -349,6 +349,16 @@ llvm::Type *get_type_from_data(Data_Tree dt) {
   llvm::Type *llvm_type;
   if (str_toTy.count(type)>0)
       llvm_type = str_toTy[type];
+  else if (type=="tuple") {
+    std::vector<llvm::Type *> tupleTypes;
+    for (auto dt : dt.Nested_Data)
+        tupleTypes.push_back(get_type_from_data(dt));
+    llvm_type = StructType::create(
+        *TheContext,
+        tupleTypes,
+        "ret_type"
+    );
+  }
   else if (type=="charv") {
     int size = std::stoi(dt.Nested_Data[0].Type);
     llvm_type = ArrayType::get(int8Ty, size);
@@ -964,8 +974,10 @@ Value *DataExprAST::codegen(Value *scope_struct) {
 
         if(Init->GetIsMsg()) {
             Value *void_ptr = Constant::getNullValue(int8PtrTy);
-            // initial_value = callret(Type+"_channel_message", {scope_struct, void_ptr, initial_value});
-            initial_value = callret("void_channel_message", {scope_struct, void_ptr, initial_value});
+            if (!in_vec(Type, primary_data_tokens))
+                initial_value = callret("void_channel_message", {scope_struct, void_ptr, initial_value});
+            else
+                initial_value = callret(Type+"_channel_message", {scope_struct, void_ptr, initial_value});
         }
 
 
@@ -1784,54 +1796,46 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
 
-        if (!Val)
-        {
+        if (!Val) {
             seen_var_attr=false;
             return nullptr; 
         }
 
 
 
-        if (LHS->GetIsList())
-        {
+        if (LHS->GetIsList()) {
             VariableListExprAST *VarList = static_cast<VariableListExprAST *>(LHS.get());
 
-            for (int i=0; i<VarList->ExprList.size(); ++i)
-            {
+
+
+            for (int i=0; i<VarList->ExprList.size(); ++i) {
                 Nameable *LHSE = static_cast<Nameable *>(VarList->ExprList[i].get()); 
 
                 std::string Lname = LHSE->Name;
-
                 std::string list_LType = LHSE->GetDataTree().Type;
 
 
-                std::string store_trigger = list_LType + "_StoreTrigger";
-                Value *Val_indexed = callret("assign_wise_list_Idx", {Val, const_int(i)});
 
-                // std::string copy_fn = list_LType + "_Copy";
+
+                std::string store_trigger = list_LType + "_StoreTrigger";
+
+                Value *Val_indexed = Builder->CreateExtractValue(Val, {static_cast<unsigned>(i)});
+
                 // Function *F = TheModule->getFunction(copy_fn);
                 // if (F)
                 //   Val_indexed = callret(copy_fn, {scope_struct, Val_indexed});
 
-
-
                 Function *F = TheModule->getFunction(store_trigger);
-                if (F)
-                {
+                if (F) {
                     Value *old_val = function_values[parser_struct.function_name][Lname]; 
                     call(store_trigger, {scope_struct, old_val, Val_indexed});
                 }
 
-                if (list_LType=="bool")
-                    Val_indexed = callret("to_bool", {scope_struct, Val_indexed});
-                if (list_LType=="int")
-                    Val_indexed = callret("to_int", {scope_struct, Val_indexed});
-                if (list_LType=="float")
-                    Val_indexed = callret("to_float", {scope_struct, Val_indexed});
 
                 function_values[parser_struct.function_name][Lname] = Val_indexed;
 
-                Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, Val);
+                if (!in_vec(list_LType, primary_data_tokens))
+                    Set_Pointer_Stack(scope_struct, parser_struct.function_name, Lname, Val_indexed);
             }
             return const_float(0.0f);
         }
@@ -2105,6 +2109,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     idxTy = floatTy;
                 else if (elem_type=="bool") 
                     idxTy = boolTy;
+                else if (elem_type=="str") 
+                    idxTy = struct_types["DT_str"];
                 else 
                     idxTy = int8PtrTy;
 
@@ -2436,7 +2442,6 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
 
     if (Opcode==';')
         return OperandV;
-    // return ConstantFP::get(Type::getFloatTy(*TheContext), 0);
 
 
     Function *F = getFunction(std::string("unary") + std::to_string(Opcode));
@@ -2452,8 +2457,11 @@ Value *UnaryExprAST::codegen(Value *scope_struct) {
 
 Value *ChannelExprAST::codegen(Value *scope_struct) {
     Function *TheFunction = Builder->GetInsertBlock()->getParent();
+    int buffer_size = stoi(data_type.Nested_Data[1].Type);
 
-    Value *initial_value = callret("channel_Create", {scope_struct, const_int(BufferSize)});
+    Value *initial_value = callret("channel_Create", {scope_struct,
+                                const_int16(data_name_to_type()[data_type.Nested_Data[0].Type]),
+                                const_int(buffer_size)});
 
     function_values[parser_struct.function_name][Name] = initial_value;
     Allocate_On_Pointer_Stack(scope_struct, parser_struct.function_name, Name, Data_Tree("channel"), initial_value);
@@ -2828,9 +2836,12 @@ void SetUniques(Value *scope_struct) {
           if (in_vec(type, compound_tokens)) {
             int attr_idx = ClassAttrs[class_name][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
-            if (create_fn=="array_Create")  {
+            if (create_fn=="array_Create")
                 ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
-            } else {
+            else if (type=="channel") { 
+                ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
+                ArgsDT_Create.push_back(const_int(stoi(dt.Nested_Data[1].Type)));
+            } else { //map
                 Data_Tree *dt_ptr = new Data_Tree(type);
                 dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
                 if(type=="map")
@@ -2898,39 +2909,39 @@ Value *RetExprAST::codegen(Value *scope_struct) {
         Builder->CreateRet(ret);
         return ret;
     }
-    seen_var_attr=true;
 
 
-    if(Vars.size()==1)
-    { 
+    if(Vars.size()==1) { 
         Value *ret = Vars[0]->codegen(scope_struct);
 
         if (returning_type.Type=="int" && return_expected_type.Type=="float")
             ret = Builder->CreateSIToFP(ret, floatTy, "lfp");
 
-        seen_var_attr=false;
         Builder->CreateRet(ret);
 
         return ret;
     }
 
 
-    std::vector<Value *> values = {scope_struct};
+    std::vector<llvm::Type *> retTypes;
     for (int i=0; i<Vars.size(); i++)
-    {
-        Value *value = Vars[i]->codegen(scope_struct); 
-        std::string type = Vars[i]->GetDataTree().Type;
+         retTypes.push_back(get_type_from_data(Vars[i]->GetDataTree()));
+    
+    StructType *retTy = StructType::create(
+        *TheContext,
+        retTypes,
+        "ret_type"
+    );
 
-        values.push_back(global_str(type));
-        values.push_back(value);
-    }
-    values.push_back(global_str("TERMINATE_VARARG"));
+    Value *ret_val = UndefValue::get(retTy);
 
-    seen_var_attr=false;
-    Value *ret = callret("list_New", values);
-    Builder->CreateRet(ret);
+    for (int i=0; i<Vars.size(); i++)
+        ret_val = Builder->CreateInsertValue(ret_val, Vars[i]->codegen(scope_struct),
+                                             {static_cast<unsigned>(i)});
 
-    return ret;
+    Builder->CreateRet(ret_val);
+
+    return ret_val;
 }
 
 
@@ -3042,8 +3053,10 @@ Value *NewVecExprAST::codegen(Value *scope_struct) {
             is_type=false;
     }
 
-
-    std::string Callee = "array_" + data_type.Nested_Data[0].Type + "_NewVec";
+    std::string type = data_type.Nested_Data[0].Type;
+    if(!in_vec(type, primary_data_tokens)&&type!="str")
+        type = "void";
+    std::string Callee = "array_" + type + "_NewVec";
     return callret(Callee, values);
 }
 
@@ -3117,15 +3130,13 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
 
 
 
-    for (unsigned i = 0, e = VarNames.size(); i != e; ++i)
-    {
+    for (unsigned i = 0, e = VarNames.size(); i != e; ++i) {
         const std::string &VarName = VarNames[i].first;
         ExprAST *Init = VarNames[i].second.get();
 
-        if(!isSelf&&!isAttribute)
-        {   
+        if(!isSelf&&!isAttribute) {   
             Value *ptr;
-            if (Init==nullptr) // no attribution
+            if (!Init) // no attribution
                 ptr = callret("allocate_pool", {scope_struct, const_int(ClassSize[ClassName]),
                                         const_int16(data_name_to_type()[ClassName])});
             else
@@ -3152,12 +3163,15 @@ Value *ObjectExprAST::codegen(Value *scope_struct) {
                   Data_Tree dt = data_typeVars[ClassName][attr];
                   std::string type = dt.Type;
                   std::string create_fn = type+"_Create";
-                  if (in_vec(type, compound_tokens)) {
+                  if (in_vec(type, compound_tokens)||type=="channel") {
                     int attr_idx = ClassAttrs[ClassName][attr];
                     std::vector<Value *> ArgsDT_Create = {scope_struct};
-                    if (create_fn=="array_Create")  {
+                    if (create_fn=="array_Create")
                         ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
-                    } else {
+                    else if (type=="channel") { 
+                        ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
+                        ArgsDT_Create.push_back(const_int(stoi(dt.Nested_Data[1].Type)));
+                    } else { //map
                         Data_Tree *dt_ptr = new Data_Tree(type);
                         dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
                         if(type=="map")
@@ -3222,9 +3236,12 @@ Value *NewExprAST::codegen(Value *scope_struct) {
           if (in_vec(type, compound_tokens)) {
             int attr_idx = ClassAttrs[DataName][attr];
             std::vector<Value *> ArgsDT_Create = {scope_struct};
-            if (create_fn=="array_Create")  {
+            if (create_fn=="array_Create")
                 ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
-            } else {
+            else if (type=="channel") { 
+                ArgsDT_Create.push_back(const_int16(data_name_to_type()[dt.Nested_Data[0].Type]));
+                ArgsDT_Create.push_back(const_int(stoi(dt.Nested_Data[1].Type)));
+            } else { //map
                 Data_Tree *dt_ptr = new Data_Tree(type);
                 dt_ptr->Nested_Data.push_back(dt.Nested_Data[0]);
                 if(type=="map")
@@ -3261,9 +3278,9 @@ Function *PrototypeAST::codegen() {
 
 
     std::vector<llvm::Type *> types;
-    for (auto &type : Types) {
+    for (auto &type : Types)
         types.push_back(get_type_from_data(type));
-    }
+
     
     llvm::Type *retTy = get_type_from_data(ReturnType);
 
@@ -3805,6 +3822,8 @@ Value *NameableIdx::codegen(Value *scope_struct) {
                 idxTy = floatTy;
             else if (elem_type=="bool")
                 idxTy = boolTy;
+            else if (elem_type=="str")
+                idxTy = struct_types["DT_str"];
             else
                 idxTy = int8PtrTy; 
 

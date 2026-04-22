@@ -118,7 +118,7 @@ enum Token {
 
 
 struct Tokenizer : TokenizerIF {
-    int LastToken;
+    int LastToken, Line=1;
     bool has_main = false, has_lib_file = false, can_see_space = true;
     std::ifstream lib_file;
     std::string token;

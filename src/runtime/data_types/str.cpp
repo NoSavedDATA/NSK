@@ -1,5 +1,6 @@
 #include <cstdio>
 #include <cstdlib>
+#include <glob.h>
 #include <iomanip>
 #include <iostream>
 #include <map>
@@ -368,4 +369,39 @@ extern "C" char *readline(Scope_Struct *scope_struct) {
     if (!buf) return nullptr;
     std::memcpy(buf, line.c_str(), line.size() + 1);
     return buf;
+}
+
+
+
+extern "C" DT_array *_glob_b_(Scope_Struct *scope_struct, char *pattern) {
+  glob_t glob_result;
+  bool ok=false;
+  if (glob(pattern, GLOB_TILDE, NULL, &glob_result) == 0)
+      ok=true;
+  if (!ok) {
+      std::string path = pattern;
+    LogErrorC(scope_struct->code_line, "Glob failed to find files: " + path);
+  }
+
+  int size = glob_result.gl_pathc, elem_size = 16;
+  DT_array *array = newT<DT_array>(scope_struct, "array");
+  array->New(scope_struct, size, elem_size, scope_struct->thread_id, 100);
+  __atomic_store_n(&array->virtual_size, size, __ATOMIC_RELEASE);
+
+    
+  DT_str *data = static_cast<DT_str*>(array->data);
+
+  for (size_t i = 0; i < size; ++i) {
+    const char *src = glob_result.gl_pathv[i];
+    size_t len = std::strlen(src)+1; //+1 for null terminator
+    char *c_copy = allocate<char>(scope_struct, len, "str");
+    memcpy(c_copy, src, len);
+
+    DT_str str_view = DT_str();
+    str_view.str = c_copy;
+    str_view.size = len;
+    data[i] = str_view;
+  }
+
+  return array;
 }

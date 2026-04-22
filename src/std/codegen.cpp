@@ -151,10 +151,18 @@ Value *c_read(Parser_Struct parser_struct, Function *TheFunction,
     return callret("read", {ArgsV[0], ArgsV[1], ArgsV[2]});
 }
 
-Value *_malloc(Parser_Struct parser_struct, Function *TheFunction,
+Value *c_malloc(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
     return callret("malloc", {ArgsV[0]});
+}
+Value *c_malloc_str(Parser_Struct parser_struct, Function *TheFunction,
+                 std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
+                 Value *scope_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::vector<Value*> &ArgsV) {
+    Value *view_val = UndefValue::get(struct_types["DT_str"]);
+    view_val = Builder->CreateInsertValue(view_val, callret("malloc", {ArgsV[0]}), {0});
+    view_val = Builder->CreateInsertValue(view_val, ArgsV[0], {1});
+    return view_val;
 }
 
 Value *alloc(Parser_Struct parser_struct, Function *TheFunction,

@@ -563,11 +563,12 @@ class NameableExprAST : public ExprAST {
 
 
 class VariableListExprAST : public ExprAST {
-  public:
-    std::vector<std::unique_ptr<Nameable>> ExprList;
-    VariableListExprAST(std::vector<std::unique_ptr<Nameable>> ExprList); 
+    public:
+        std::vector<std::unique_ptr<Nameable>> ExprList;
+        VariableListExprAST(std::vector<std::unique_ptr<Nameable>> ExprList); 
 
-  Value *codegen(Value *scope_struct) override;
+    Value *codegen(Value *scope_struct) override;
+    Data_Tree GetDataTree(bool from_assignment=false) override;
 };
 
 class EmptyStrExprAST : public NameableExprAST {
@@ -770,10 +771,9 @@ class ExitCheckExprAST : public ExprAST {
 
 class ChannelExprAST : public ExprAST {
   Parser_Struct parser_struct;
-  int BufferSize; 
 
   public:
-    ChannelExprAST(Parser_Struct, Data_Tree, std::string, int, bool isSelf=false);
+    ChannelExprAST(Parser_Struct, Data_Tree, std::string, bool isSelf=false);
 
   Value* codegen(Value *scope_struct) override;
 };

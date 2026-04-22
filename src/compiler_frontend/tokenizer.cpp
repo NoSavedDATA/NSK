@@ -216,8 +216,7 @@ std::string IdentifierStr; // Filled in if tok_identifier
 float NumVal;             // Filled in if tok_number
 bool BoolVal;
 
-std::string ReverseToken(int _char)
-{
+std::string ReverseToken(int _char) {
   if (_char==tok_identifier||_char==tok_data||_char==tok_struct)
     return IdentifierStr;
 
@@ -288,7 +287,7 @@ static int get_token(bool block) {
             case '\\': NumVal = '\\'; break;
             case '\'': NumVal = '\''; break;
             default:
-                LogErrorC(LineCounter, "Unknown escape sequence");
+                LogErrorC(tokenizer->Line, "Unknown escape sequence");
         }
     } else {
         NumVal = LastChar;               // normal char
@@ -297,7 +296,7 @@ static int get_token(bool block) {
     LastChar = tokenizer->get();
 
     if (LastChar!='\'')
-        LogErrorC(LineCounter, "Could not find matching '");
+        LogErrorC(tokenizer->Line, "Could not find matching '");
 
     LastChar = tokenizer->get();
     return tok_char;
@@ -351,9 +350,9 @@ static int get_token(bool block) {
     }
 
  
-    if (in_str(IdentifierStr, compound_tokens))
+    if (in_vec(IdentifierStr, compound_tokens))
       return tok_struct;
-    if (in_str(IdentifierStr, data_tokens))
+    if (in_vec(IdentifierStr, data_tokens))
       return tok_data;
     if(string_tokens.count(IdentifierStr)>0)
       return string_tokens[IdentifierStr];
@@ -408,11 +407,9 @@ static int get_token(bool block) {
 
   if (LastChar == '#') {
     // Comment until end of line.
-    do
-    {
+    tokenizer->Line++;
+    do {
       LastChar = tokenizer->get();
-      if (LastChar==10)
-        LineCounter++;
     }
     while (LastChar != EOF && LastChar != '\n' && LastChar != 10 && LastChar != '\r');
 
@@ -436,34 +433,28 @@ static int get_token(bool block) {
       return tok_space;
   }
   
-  if (ThisChar==10 || LastChar==tok_tab)
-  {
+  if (ThisChar==10 || LastChar==tok_tab) {
     int seen_spaces=0;
 
     while(LastChar==10 || LastChar==tok_tab || LastChar==32) {
       if(LastChar==10)
-        LineCounter++;
-      if(ThisChar==10)
-      {
+        tokenizer->Line++;
+      if(ThisChar==10) {
         LastSeenTabs = SeenTabs;
         SeenTabs = 0;
         seen_spaces = 0;
       }
-      if (LastChar==tok_tab) {
+      if (LastChar==tok_tab)
         SeenTabs+=1;
-      }
       if (LastChar==32)
         seen_spaces++;
-      if (seen_spaces==3)
-      {
+      if (seen_spaces==3) {
         seen_spaces=0;
         SeenTabs+=1;
       }
 
       ThisChar = (int)LastChar;
       LastChar = tokenizer->get(); 
-
-      // std::cout << "Line Feed post: " << LastChar  << ".\n";
     }
     if (ThisChar==10&&isalpha(LastChar))
         SeenTabs = 0;

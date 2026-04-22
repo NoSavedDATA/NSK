@@ -38,7 +38,7 @@ Install on /usr/bin/nsk
 ```bash
 wget https://github.com/NoSavedDATA/NSK/releases/download/nsk-bin/install.sh
 chmod +x install.sh
-sudo ./install.sh 
+./install.sh 
 source ~/.bashrc
 ```
 
@@ -61,9 +61,9 @@ source ~/.bashrc
 apt-get install git make lsb-release wget software-properties-common gnupg
 wget https://apt.llvm.org/llvm.sh
 chmod +x llvm.sh
-sudo ./llvm.sh 19 all
+./llvm.sh 19 all
 
-sudo apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-dev
+apt-get install llvm clang zlib1g-dev libzstd-dev libeigen3-dev libopencv-dev
 ```
 - Add commands `nsk` to `PATH`:
 

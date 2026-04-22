@@ -165,7 +165,7 @@ std::unique_ptr<ExprAST> LogErrorNextFloatingBlock(int line, std::string Str) {
 }
 
 void LogWarning(const char *Str) {
-  std::cout << "\nLine: " << LineCounter << "\n   \033[33m Aviso: \033[0m " << Str << "\n\n";
+  std::cout << "\nLine: " << tokenizer->Line << "\n   \033[33m Aviso: \033[0m " << Str << "\n\n";
 }
 
 // Modified LogError function with token parameter

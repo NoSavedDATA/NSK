@@ -8,13 +8,13 @@
 
 static void HandleImport() {
     Parser_Struct parser_struct;
-    parser_struct.line = LineCounter;
+    parser_struct.line = tokenizer->Line;
     ParseImport(parser_struct);
 }
 
 static std::unique_ptr<ExprAST> HandleClass() {
     Parser_Struct parser_struct;
-    parser_struct.line = LineCounter;
+    parser_struct.line = tokenizer->Line;
     return std::move(ParseClass(parser_struct));
 }
 

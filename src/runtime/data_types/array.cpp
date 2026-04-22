@@ -1,3 +1,6 @@
+#include <algorithm>
+#include <random>
+#include <vector>
 #include <unistd.h>
 
 #include "../codegen/random.h"
@@ -24,7 +27,6 @@ void DT_array::New(Scope_Struct *ctx, int size, int elem_size, int tid, uint16_t
     __atomic_store_n(&this->size, size, __ATOMIC_RELEASE);
 
     __atomic_store_n(&this->data, cache_pop(size*elem_size, tid), __ATOMIC_RELEASE);
-    // data = allocate_pool(ctx, size*elem_size, 5);
 }
 
 void DT_array::New(Scope_Struct *ctx, int size, int tid, uint16_t type) {
@@ -39,12 +41,10 @@ void DT_array::New(Scope_Struct *ctx, int size, int tid, uint16_t type) {
     __atomic_store_n(&this->size, size, __ATOMIC_RELEASE);
     
     __atomic_store_n(&this->data, cache_pop(size*elem_size, tid), __ATOMIC_RELEASE);
-    // data = allocate_pool(ctx, size*elem_size, 5);
 }
 
 
-extern "C" DT_array *array_Create(Scope_Struct *scope_struct, uint16_t elem_type)
-{ 
+extern "C" DT_array *array_Create(Scope_Struct *scope_struct, uint16_t elem_type) { 
   int elem_size;
 
   if(data_type_to_size.count(elem_type)>0)
@@ -146,6 +146,36 @@ extern "C" DT_array *array_int_NewVec(Scope_Struct *scope_struct, int first, ...
     }
     x = va_arg(args, int);
   } while(x!=TERMINATE_VARARG);
+  va_end(args);
+  // std::cout << "new vec: " << vec << "\n";
+  return vec;
+}
+
+extern "C" DT_array *array_void_NewVec(Scope_Struct *scope_struct, void *first, ...) { 
+  int elem_size = 8;
+
+  DT_array *vec = newT<DT_array>(scope_struct, "array");
+  vec->New(scope_struct, 8, elem_size, scope_struct->thread_id, 2);
+  __atomic_store_n(&vec->virtual_size, 0, __ATOMIC_RELEASE);
+
+  void **data = (void**)__atomic_load_n(&vec->data, __ATOMIC_ACQUIRE);
+
+  void *x = first;
+  va_list args;
+  va_start(args, x);
+
+  int idx = 0;
+  do {
+    __atomic_store_n(&data[idx], x, __ATOMIC_RELEASE);
+    idx++;
+    int size = __atomic_load_n(&vec->virtual_size, __ATOMIC_ACQUIRE);
+    __atomic_store_n(&vec->virtual_size, size+1, __ATOMIC_RELEASE);
+    if (vec->virtual_size >= vec->size) {
+        array_double_size(scope_struct, vec);
+        void **data = (void**)__atomic_load_n(&vec->data, __ATOMIC_ACQUIRE);
+    }
+    x = va_arg(args, void*);
+  } while(x!=nullptr);
   va_end(args);
   // std::cout << "new vec: " << vec << "\n";
   return vec;
@@ -372,6 +402,7 @@ extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     DT_str *data = static_cast<DT_str*>(arr->data);
     int len = arr->virtual_size;
 
+
     int offset = 0, elem_size=data[0].size;
     memcpy(scope_struct->print_buffer, data[0].str, elem_size);
     offset+=elem_size;
@@ -388,5 +419,24 @@ extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     write(1, scope_struct->print_buffer, offset);
     scope_struct->print_buffer[0] = '\n';
     write(1, scope_struct->print_buffer, 1);
+    return 0;
+}
+
+extern "C" int array_shuffle_str(Scope_Struct *ctx, DT_array *arr) {
+    DT_str *data = static_cast<DT_str*>(arr->data);
+    int len = arr->virtual_size;
+    __atomic_store_n(&arr->data, cache_pop(arr->size*arr->elem_size, ctx->thread_id), __ATOMIC_RELEASE);
+    DT_str *new_data = static_cast<DT_str*>(arr->data);
+
+
+    std::vector<int> indices(len);
+    for (int i = 0; i < len; ++i)
+        indices[i] = i;
+    thread_local std::mt19937 rng(std::random_device{}());
+    std::shuffle(indices.begin(), indices.end(), rng);
+
+    for (int i = 0; i < len; ++i) 
+        new_data[indices[i]] = data[i];
+    
     return 0;
 }

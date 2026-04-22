@@ -231,6 +231,13 @@ NullPtrExprAST::NullPtrExprAST() {
   this->SetType("nullptr");
 } 
 
+Data_Tree VariableListExprAST::GetDataTree(bool from_assignment) {
+
+    Data_Tree data_type = Data_Tree("tuple");
+    for (auto &expr : ExprList)
+        data_type.Nested_Data.push_back(expr->GetDataTree());
+    return data_type;
+}
 
 VariableListExprAST::VariableListExprAST(std::vector<std::unique_ptr<Nameable>> ExprList)
                       : ExprList(std::move(ExprList)) {
@@ -783,6 +790,10 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
       //                                               LType + ", but this data type has no Copy implementation.");
       // }
     }
+    if (this->LHS->GetIsList()) {
+        Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+        return;
+    }
 
     else if(auto *LHSV = dynamic_cast<NameableIdx *>(this->LHS.get())) {
 
@@ -816,6 +827,7 @@ BinaryExprAST::BinaryExprAST(char Op, std::unique_ptr<ExprAST> LHS,
       
     } else
         Check_Is_Compatible_Data_Type(L_dt, R_dt, parser_struct);
+
     return;
   }
 
@@ -959,7 +971,7 @@ Data_Tree IndexExprAST::GetDataTree(bool from_assignment) {
 
 ExitCheckExprAST::ExitCheckExprAST() {}
 
-ChannelExprAST::ChannelExprAST(Parser_Struct parser_struct, Data_Tree data_type, std::string Name, int BufferSize, bool isSelf) : parser_struct(parser_struct), BufferSize(BufferSize) {
+ChannelExprAST::ChannelExprAST(Parser_Struct parser_struct, Data_Tree data_type, std::string Name, bool isSelf) : parser_struct(parser_struct) {
   this->data_type = data_type;
   this->Name = Name;
   this->isSelf = isSelf;
@@ -1378,8 +1390,12 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
   // specify array type
-  if(Callee=="array_print")
-    Callee = Callee + "_" + this->Inner->GetDataTree().Nested_Data[0].Type; 
+  if(in_vec(Callee, {"array_shuffle", "array_print"})) {
+    std::string arrType = this->Inner->GetDataTree().Nested_Data[0].Type;
+    if (!in_vec(arrType, primary_data_tokens)&&arrType!="str")
+        arrType="void";
+    Callee = Callee + "_" + arrType;
+  }
 
 
   if(Callee=="map_has")

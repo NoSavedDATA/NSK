@@ -55,7 +55,8 @@ extern "C" int prebuild() {
     gc_sizes[11] = 2048;
     gc_sizes[12] = 4096;
     gc_sizes[13] = 8192;
-    gc_sizes[14] = GC_max_object_size;
+    gc_sizes[14] = 16384;
+    gc_sizes[15] = GC_max_object_size;
 
 
     for (int i=0, c=0; i<=GC_N; i++) {

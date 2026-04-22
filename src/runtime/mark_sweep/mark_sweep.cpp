@@ -85,7 +85,6 @@ GC::GC(int tid) {
 WorkList::WorkList(GC_Node node) : node(node) {};
 
 void GC_Observer(Scope_Struct *scope_struct) {
-    std::cout << "observer start\n";
 
     GC *gc = scope_struct->gc;
     int sweeps = 0;
@@ -93,7 +92,6 @@ void GC_Observer(Scope_Struct *scope_struct) {
     auto next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
  
     while (scope_struct->alive) {
-        sweeps++;
 
         std::unique_lock<std::mutex> lock(scope_struct->mtx);
 
@@ -111,11 +109,24 @@ void GC_Observer(Scope_Struct *scope_struct) {
 
         if (!scope_struct->alive) break;
 
-        gc->Sweep(scope_struct);
+        // if (true) {
+        if (gc->size_occupied>=gc->next_clean) {
+            sweeps++;
+            gc->Sweep(scope_struct);
+            gc->next_clean = std::min(gc->next_clean*2, 8UL<<20);
+        }
         next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
     }
 
     std::cout << "sweeps " << sweeps << "\n";
+}
+extern "C" float psweep(Scope_Struct *scope_struct) {
+    {
+        std::lock_guard<std::mutex> lock(scope_struct->mtx);
+        scope_struct->force_sweep = true;
+    }
+    scope_struct->cv.notify_one();
+    return 0;
 }
 
 extern "C" float join_gc(Scope_Struct *scope_struct) {
@@ -133,14 +144,6 @@ extern "C" float sweep(Scope_Struct *scope_struct) {
     return 0;
 }
 
-extern "C" float psweep(Scope_Struct *scope_struct) {
-    {
-        std::lock_guard<std::mutex> lock(scope_struct->mtx);
-        scope_struct->force_sweep = true;
-    }
-    scope_struct->cv.notify_one();
-    return 0;
-}
 
 // bool concurrent=false;
 bool concurrent=true;

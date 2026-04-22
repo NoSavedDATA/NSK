@@ -310,45 +310,10 @@ void Generate_LLVM_Functions() {
 
 	FunctionType *channel_CreateTy= FunctionType::get(
 		int8PtrTy,
-		{int8PtrTy, Type::getInt32Ty(*TheContext)},
+		{int8PtrTy, Type::getInt16Ty(*TheContext), Type::getInt32Ty(*TheContext)},
 		false
 	);
 	TheModule->getOrInsertFunction("channel_Create", channel_CreateTy);
-
-	FunctionType *str_channel_messageTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("str_channel_message", str_channel_messageTy);
-
-	FunctionType *channel_str_messageTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("channel_str_message", channel_str_messageTy);
-
-	FunctionType *void_channel_messageTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("void_channel_message", void_channel_messageTy);
-
-	FunctionType *channel_void_messageTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("channel_void_message", channel_void_messageTy);
-
-	FunctionType *str_channel_IdxTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
-		false
-	);
-	TheModule->getOrInsertFunction("str_channel_Idx", str_channel_IdxTy);
 
 	FunctionType *str_channel_terminateTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
@@ -363,41 +328,6 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("str_channel_alive", str_channel_aliveTy);
-
-	FunctionType *float_channel_messageTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("float_channel_message", float_channel_messageTy);
-
-	FunctionType *channel_float_messageTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getFloatTy(*TheContext)},
-		false
-	);
-	TheModule->getOrInsertFunction("channel_float_message", channel_float_messageTy);
-
-	FunctionType *float_channel_IdxTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
-		false
-	);
-	TheModule->getOrInsertFunction("float_channel_Idx", float_channel_IdxTy);
-
-	FunctionType *float_channel_sumTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("float_channel_sum", float_channel_sumTy);
-
-	FunctionType *float_channel_meanTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("float_channel_mean", float_channel_meanTy);
 
 	FunctionType *float_channel_terminateTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
@@ -440,13 +370,6 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("int_channel_sum", int_channel_sumTy);
-
-	FunctionType *int_channel_meanTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("int_channel_mean", int_channel_meanTy);
 
 	FunctionType *int_channel_terminateTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
@@ -1001,6 +924,20 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("readline", readlineTy);
 
+	FunctionType *_glob_b_Ty= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("_glob_b_", _glob_b_Ty);
+
+	FunctionType *psweepTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("psweep", psweepTy);
+
 	FunctionType *join_gcTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
 		{int8PtrTy},
@@ -1014,13 +951,6 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("sweep", sweepTy);
-
-	FunctionType *psweepTy= FunctionType::get(
-		Type::getFloatTy(*TheContext),
-		{int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("psweep", psweepTy);
 
 	FunctionType *scope_struct_Join_GCTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),
@@ -1084,6 +1014,13 @@ void Generate_LLVM_Functions() {
 		true //vararg
 	);
 	TheModule->getOrInsertFunction("array_int_NewVec", array_int_NewVecTy);
+
+	FunctionType *array_void_NewVecTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
+		true //vararg
+	);
+	TheModule->getOrInsertFunction("array_void_NewVec", array_void_NewVecTy);
 
 	FunctionType *array_print_intTy= FunctionType::get(
 		Type::getFloatTy(*TheContext),
@@ -1175,6 +1112,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("array_print_str", array_print_strTy);
+
+	FunctionType *array_shuffle_strTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_shuffle_str", array_shuffle_strTy);
 
 	FunctionType *print_vec_i8Ty= FunctionType::get(
 		Type::getInt32Ty(*TheContext),

@@ -145,13 +145,13 @@ void HandleDefinition() {
 
 void HandleImport() {
     Parser_Struct parser_struct;
-    parser_struct.line = LineCounter;
+    parser_struct.line = tokenizer->Line;
     ParseImport(parser_struct);
 }
 
 void HandleClass() {
     Parser_Struct parser_struct;
-    parser_struct.line = LineCounter;
+    parser_struct.line = tokenizer->Line;
     ParseClass(parser_struct);
 }
 
@@ -248,7 +248,7 @@ void MainLoop() {
             HandleExtern();
             break;
         case tok_constructor:
-            LogErrorNextBlock(LineCounter, "Constructor has no class associated.");
+            LogErrorNextBlock(tokenizer->Line, "Constructor has no class associated.");
             break;
         default:
             // std::cout << "Wait top level" <<  ".\n";
@@ -367,12 +367,6 @@ void build_dicts() {
   Function_Arg_Names["err"] = {"0", "1"};
   Function_Required_Arg_Count["err"] = 1;
 
-  // _malloc
-  functions_return_data_type["_malloc"] = Data_Tree("any");
-  Function_Arg_DataTypes["_malloc"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["_malloc"]["1"] = Data_Tree("int");
-  Function_Arg_Names["_malloc"] = {"0", "1"};
-  Function_Required_Arg_Count["_malloc"] = 1;
 
   
   // i8

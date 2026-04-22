@@ -237,20 +237,9 @@ std::unique_ptr<ExprAST> ParseParenExpr(Parser_Struct parser_struct, std::string
 }
 
 
-std::unique_ptr<ExprAST> ParseChannelExpr(Parser_Struct parser_struct, std::string class_name, Data_Tree inner_data_tree) {
+std::unique_ptr<ExprAST> ParseChannelExpr(Parser_Struct parser_struct, std::string class_name) {
+  Data_Tree data_tree = ParseDataTree("channel", true, parser_struct);
 
-  // LogBlue("Parse channel");
-
-  Data_Tree data_tree = Data_Tree("channel");
-  data_tree.Nested_Data.push_back(inner_data_tree);
-
-  getNextToken(); // eat channel
-
-  int buffer_size = 1;
-  if (CurTok==tok_int) {
-    buffer_size = NumVal;
-    getNextToken();
-  }
   
 
   if(CurTok!=tok_identifier)
@@ -265,8 +254,7 @@ std::unique_ptr<ExprAST> ParseChannelExpr(Parser_Struct parser_struct, std::stri
   data_typeVars[parser_struct.function_name][IdName] = data_tree;
   ChannelDirections[parser_struct.function_name][IdName] = ch_both;
 
-  
-  return std::make_unique<ChannelExprAST>(parser_struct, data_tree, IdName, buffer_size);
+  return std::make_unique<ChannelExprAST>(parser_struct, data_tree, IdName);
 }
 
 
@@ -278,8 +266,6 @@ std::unique_ptr<ExprAST> ParseObjectInstantiationExpr(Parser_Struct parser_struc
 
   getNextToken(); // eat class name
 
-  if (CurTok==tok_channel)
-    return ParseChannelExpr(parser_struct, class_name, Data_Tree(_class));
   
   bool is_self=false;
   bool is_attr=false;
@@ -573,13 +559,11 @@ std::unique_ptr<ExprAST> ParseNameableExpr(Parser_Struct parser_struct, std::uni
   if (CurTok==tok_identifier)
       return LogErrorBreakLine(parser_struct.line, "Could not associate expression to word: " + IdName);
 
-  if (CurTok==',' && can_be_list && depth==1)
-  {
+  if (CurTok==',' && can_be_list && depth==1) {
     std::vector<std::unique_ptr<Nameable>> IdentifierList;
 
     IdentifierList.push_back(std::move(nameable));
-    while(CurTok==',')
-    {
+    while(CurTok==',') {
       getNextToken(); // get comma
       getNextToken(); // get identifier
 
@@ -1042,7 +1026,7 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
  
     std::string data_type = IdentifierStr; 
 
-    if(CurTok!=tok_data||CurTok==tok_struct)
+    if(CurTok!=tok_data&&CurTok!=tok_struct)
         LogError(parser_struct.line, "Prototype expected return type.");
 
     bool is_struct=(CurTok==tok_struct);
@@ -1134,10 +1118,10 @@ std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string c
 
   getNextToken(); // [
 
+  std::string element_type;
   std::vector<std::unique_ptr<ExprAST>> Elements;
   if (CurTok != ']') {
     while (true) {
-      std::string element_type;
 
 
       if (auto element = ParseExpression(parser_struct, class_name, false))
@@ -1162,9 +1146,14 @@ std::unique_ptr<ExprAST> ParseNewList(Parser_Struct parser_struct, std::string c
   }   
   getNextToken(); // ]
 
-    
-  Elements.push_back(std::make_unique<StringExprAST>("int"));
-  Elements.push_back(std::make_unique<IntExprAST>(TERMINATE_VARARG));
+  
+  Elements.push_back(std::make_unique<StringExprAST>(element_type));
+  if (element_type=="int")
+      Elements.push_back(std::make_unique<IntExprAST>(TERMINATE_VARARG));
+  else if (element_type=="str")
+      Elements.push_back(std::make_unique<StringExprAST>("TERMINATE_VARARG"));
+  else
+      Elements.push_back(std::make_unique<NullPtrExprAST>());
 
   return std::make_unique<NewVecExprAST>(std::move(Elements), "array");
 }
@@ -1562,10 +1551,7 @@ std::unique_ptr<ExprAST> ParseDataExpr(Parser_Struct parser_struct, std::string 
 
   std::string data_type = IdentifierStr; 
   Data_Tree data_tree = ParseDataTree(data_type, is_struct, parser_struct);
-  
 
-  if (CurTok==tok_channel)
-    return ParseChannelExpr(parser_struct, class_name, data_tree);
 
 
   std::vector<std::pair<std::string, std::unique_ptr<ExprAST>>> VarNames;
@@ -1799,12 +1785,9 @@ std::unique_ptr<ExprAST> ParseRetExpr(Parser_Struct parser_struct, std::string c
   std::vector<std::unique_ptr<ExprAST>> Vars;
 
   std::unique_ptr<ExprAST> expr;
-  
-
 
   
   while(true) {
-    
     if (CurTok==tok_number)
     {
       expr = std::make_unique<NumberExprAST>(NumVal);
@@ -1893,6 +1876,8 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseRetExpr(parser_struct, class_name);
   case tok_data:
     return ParseDataExpr(parser_struct, class_name);
+  case tok_channel:
+    return ParseChannelExpr(parser_struct, class_name);
   case tok_new:
     return ParseNewExpr(parser_struct, class_name);
   case tok_struct:
@@ -2033,7 +2018,7 @@ std::unique_ptr<ExprAST> ParseBinOpRHS(Parser_Struct parser_struct, int ExprPrec
 ///   ::= unary binoprhs
 ///
 std::unique_ptr<ExprAST> ParseExpression(Parser_Struct parser_struct, std::string class_name, bool can_be_list) {
-  parser_struct.line = LineCounter; 
+  parser_struct.line = tokenizer->Line; 
 
   int pre_tabs = SeenTabs;
   
@@ -2264,7 +2249,7 @@ std::unique_ptr<ExprAST> ParseImport(Parser_Struct parser_struct) {
   getNextToken(); // eat import
 
   if(CurTok!=tok_identifier)
-    return LogError(parser_struct.line, "Expected library name after \"import\". Got token: " + ReverseToken(CurTok) + ".");
+    return LogError(parser_struct.line, "Expected library name after \"import\". Got token: " + std::to_string(CurTok) + " - " + ReverseToken(CurTok) + ".");
 
   bool is_default = false;
   if(IdentifierStr=="default")
@@ -2426,13 +2411,12 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
   
 
   int last_offset=0, last_attr_idx=0;
-  while(CurTok==tok_data||CurTok==tok_identifier||CurTok==tok_struct)
-  { 
+  while(CurTok==tok_data||CurTok==tok_identifier||CurTok==tok_struct||CurTok==tok_channel) { 
     std::string data_type = IdentifierStr;
     bool is_object = Classes.count(data_type)>0;
-    bool is_channel=false;
+    bool is_channel=CurTok==tok_channel;
     
-    Data_Tree data_tree = ParseDataTree(data_type, in_str(data_type, compound_tokens), parser_struct);
+    Data_Tree data_tree = ParseDataTree(data_type, in_vec(data_type, compound_tokens)||data_type=="channel", parser_struct);
 
     if (CurTok=='[') {
         if(data_type!="charv") {
@@ -2446,29 +2430,15 @@ std::unique_ptr<ExprAST> ParseClass(Parser_Struct parser_struct) {
         data_tree.Nested_Data.push_back(std::to_string(size));
     }
     
-    // LogBlue("data type is: " + data_type);
-    
-    if (CurTok==tok_channel) 
-    {
-      is_channel=true;
-
-      data_type = "channel";
-      Data_Tree channel_data_tree = Data_Tree("channel");
-      channel_data_tree.Nested_Data.push_back(data_tree); 
-      data_tree = channel_data_tree;
-
-      getNextToken();
-    }
     
     
-    while(true)
-    {
+    while(true) {
       if (CurTok!=tok_identifier)
         LogError(parser_struct.line, "Class " + Name + " variables definition requires simple non-attribute names.");
       
-      if (is_object) {
+      if (is_object)
         Object_toClass[Name][IdentifierStr] = Data_Tree(data_type);
-      }
+      
 
 
       typeVars[Name][IdentifierStr] = data_type; 
