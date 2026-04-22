@@ -33,11 +33,12 @@ class Dataset
         self.num_workers = num_workers
             
         self.files = glob(path)
-        
+
         self.yield_ptr = 0
+		self.epoch=0
+
         self._len = self.files.size()
         self.shuf()
-		self.epoch=0
 
     def int shuf()
 		self.files.shuffle()
@@ -59,14 +60,18 @@ class Dataset
         return self.yield_ptr
 
     
-    def float getitem_w(i idx, i b, i w)
+    def float getitem_w(i idx)
         var aux = self.files[idx]
 		print("got file ", aux)
 
         #wload_img(self.p_x, aux, w, b)
         #float aa = aux.split_idx("/", -2).to_float()
         #self.p_y[w,b] = aa
-		0
+
+		float_cpu img
+		array<int> dims
+		print("loading")
+		img, dims = load_img(aux)
 
     def float worker()
         print("Start worker")
@@ -79,36 +84,38 @@ class Dataset
 			print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
 
 			for b=0, b<bs
-                self.getitem_w(yield_ptr+b, b, w)
+                self.getitem_w(yield_ptr+b)
                 
             self.load_ch <- w
 
     def tuple<int,int> attr_w()
         int w <- self.load_ch
 		print("Load from ", w)
-        return 0,0
+        return 0, 3
 
 
 
 
 main
-	join_gc()
 	#foo()
 	#bar()
+	#_quit_()
 	$backprop.backs[2] = add_backward
 	$backprop.backs[0] = mma_backward
 	$backprop.loss_backs[1] = mse_backward
 
+
 	array<str> f = glob("/nsd_home/Datasets/mnist/train/*/*.jpg")
 	Dataset ds(4, 3, "/nsd_home/Datasets/mnist/train/*/*.jpg")
 
-	
 
 
 	finish
 		asyncs 3 ds.worker()
 		while true
-			ds.attr_w()
+			int	a, b
+			a, b = ds.attr_w()
+			print("got ", a, ", ", b)
 
 
 	_quit_()

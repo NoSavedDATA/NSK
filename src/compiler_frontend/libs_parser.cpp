@@ -144,8 +144,7 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
 
 
     
-    if (ends_with(Name, "_Create"))
-    {
+    if (ends_with(Name, "_Create")) {
         std::string create_type = Name;
         create_type = remove_suffix(create_type, "_Create");
 
@@ -161,11 +160,6 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
             // data_type_to_name[type_id] = equivalent_type;
         }
     }
-
-
-
-    // std::cout << "\n\nFn name " << Name << ".\n";
-    //
     
 
     for(int i=0; i<ArgTypes.size(); ++i) {
@@ -222,13 +216,8 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
     Data_Tree return_dt;
     if (HasRetOverwrite)
         return_dt = LibDT;
-    else if(ends_with(fn_return_type_str, "_vec"))
-    {
-        return_dt = Data_Tree("vec");
-        return_dt.Nested_Data.push_back(Data_Tree(remove_suffix(fn_return_type_str, "_vec")));
-    } else
+    else
         return_dt = Data_Tree(fn_return_type_str);
-
     functions_return_data_type[Name] = return_dt;
 
     FunctionType *llvm_function = FunctionType::get(
@@ -236,7 +225,6 @@ void LibFunction::Link_to_LLVM(void *func_ptr, void *handle) {
         arg_types,
         IsVarArg
     );
-
     Function* funcDecl = cast<Function>(
         TheModule->getOrInsertFunction(Name, llvm_function).getCallee()
     );

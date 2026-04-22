@@ -1058,9 +1058,15 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
         LogError(parser_struct.line, "Prototype expected ).");
     getNextToken(); // eat )
 
+    if (Function *F = TheModule->getFunction(Name)) {
+        if (F->isDeclaration())
+            F->eraseFromParent();
+        functions_return_data_type[Name] = Return;
+    }
     FunctionProtos[Name] = std::make_unique<PrototypeAST>(Name, Return, "", "",
                                                 std::move(ArgNames),
                                                 std::move(Types));
+
     return std::make_unique<NumberExprAST>(0.0f);
 }
 

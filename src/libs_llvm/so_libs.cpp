@@ -8,6 +8,7 @@
 #include <string>
 #include <vector>
 
+#include "../compiler_frontend/codegen.h"
 #include "../compiler_frontend/modules.h"
 
 
@@ -23,23 +24,23 @@ void Generate_Lib_Functions() {
 
 
 
-    for(auto pair : Lib_Functions_Return) {
+    for(auto pair : functions_return_data_type) {
+        std::string ret = pair.second.Type;
+        if(Lib_Functions_Return.count(pair.first)==0) continue;
 
+        
         llvm::Type *fn_return_type;
+        if (ret=="void")
+             fn_return_type = get_type_from_data(Data_Tree("void_ptr"));
+        else 
+             fn_return_type = get_type_from_data(pair.second);
+
         std::vector<llvm::Type *> arg_types;
 
-        if (pair.second=="int")
-            fn_return_type = intTy;
-        else if (pair.second=="float")
-            fn_return_type = floatTy;
-        else if (pair.second=="bool")
-            fn_return_type = boolTy;
-        else
-            fn_return_type = int8PtrTy;
+
 
         std::vector<std::string> arg_types_str = Lib_Functions_Args[pair.first];
-        for (int i=0; i<arg_types_str.size(); ++i)
-        {
+        for (int i=0; i<arg_types_str.size(); ++i) {
             if (arg_types_str[i]=="int")
                 arg_types.push_back(intTy);
             else if (arg_types_str[i]=="float")

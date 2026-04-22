@@ -36,7 +36,6 @@ void set_user_functions() {
 		"print", "print_void_ptr", "print_void_ptrC", "print_int16", "print_int", "print_int64", "print_uint64", 
 		"map_Create", "map_expand", "map_has_str", "map_has_int", "map_has_float", "print_str", "map_print", "map_keys", "map_values", "map_bad_key_str", "map_bad_key_int", "map_bad_key_float", 
 		"dir_exists", "path_exists", 
-		"str_vec_Create", "LenStrVec", "ShuffleStrVec", "shuffle_str", "IndexStrVec", "str_vec_Idx", "str_vec_CalculateIdx", "str_vec_print", 
 		"charv_print", 
 		"putchard", "printd", 
 		"CreateNotesVector", "Dispose_NotesVector", "Add_To_NotesVector_float", "Add_To_NotesVector_int", "Add_To_NotesVector_str", 
@@ -84,8 +83,6 @@ void set_user_functions() {
 	clean_up_functions["map"] = map_Clean_Up;
 
 	clean_up_functions["channel"] = channel_Clean_Up;
-
-	clean_up_functions["str_vec"] = str_vec_Clean_Up;
 
 	clean_up_functions["array"] = array_Clean_Up;
 

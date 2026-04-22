@@ -368,9 +368,9 @@ llvm::Type *get_type_from_data(Data_Tree dt) {
     int size = std::stoi(dt.Nested_Data[1].Type);
     llvm_type = VectorType::get(inner_dt, size, false);
   }
-  else {
+  else
     llvm_type = int8PtrTy;
-  }
+  
   return llvm_type;
 }
 
@@ -1807,6 +1807,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
             VariableListExprAST *VarList = static_cast<VariableListExprAST *>(LHS.get());
 
 
+            std::cout << "\n";
 
             for (int i=0; i<VarList->ExprList.size(); ++i) {
                 Nameable *LHSE = static_cast<Nameable *>(VarList->ExprList[i].get()); 

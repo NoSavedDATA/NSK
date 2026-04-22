@@ -17,7 +17,6 @@
 #include "nullptr.h"
 #include "str.h"
 #include "str_view.h"
-#include "str_vec.h"
 #include "type_info.h"
 
 

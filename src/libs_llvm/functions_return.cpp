@@ -27,7 +27,6 @@ void set_functions_return_type() {
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
 						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_clear", "float"}, {"array_int_NewVec", "array"}, {"array_void_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_shuffle_str", "int"}, 
-						{"LenStrVec", "int"}, {"ShuffleStrVec", "str_vec"}, {"shuffle_str", "str"}, {"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"str_vec_CalculateIdx", "int"}, {"str_vec_print", "float"}, 
 						{"print_randoms", "float"}, {"randint", "int"}, 
 						{"putchard", "float"}, {"printd", "float"}, 
 						{"min", "float"}, {"max", "float"}, {"logE2f", "float"}, {"roundE", "float"}, {"floorE", "float"}, {"logical_not", "float"}, 
@@ -189,16 +188,6 @@ void set_functions_return_type() {
 	functions_return_data_type["end_timer"] = Data_Tree("float");
 	functions_return_data_type["__idx__"] = Data_Tree("int");
 	functions_return_data_type["__sliced_idx__"] = Data_Tree("int");
-	functions_return_data_type["LenStrVec"] = Data_Tree("int");
-
-	Data_Tree ShuffleStrVec_vec = Data_Tree("vec");
-	ShuffleStrVec_vec.Nested_Data.push_back(Data_Tree("str"));
-	functions_return_data_type["ShuffleStrVec"] = ShuffleStrVec_vec;
-	functions_return_data_type["shuffle_str"] = Data_Tree("str");
-	functions_return_data_type["IndexStrVec"] = Data_Tree("str");
-	functions_return_data_type["str_vec_Idx"] = Data_Tree("str");
-	functions_return_data_type["str_vec_CalculateIdx"] = Data_Tree("int");
-	functions_return_data_type["str_vec_print"] = Data_Tree("float");
 	functions_return_data_type["putchard"] = Data_Tree("float");
 	functions_return_data_type["printd"] = Data_Tree("float");
 
