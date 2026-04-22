@@ -20,29 +20,30 @@ void SpinLock::unlock() {
 std::mutex map_mutex;
 std::unordered_map<std::string, SpinLock *> lockVars;
 
-extern "C" void LockMutex(char* mutex_name)
-{
+extern "C" void LockMutex(char* mutex_name) {
+    SpinLock *lock;
     std::string key(mutex_name);
     {
         std::lock_guard<std::mutex> guard(map_mutex);
         auto it = lockVars.find(key);
-        if (it == lockVars.end())
-        {
+        if (it == lockVars.end()) {
             // allocate SpinLock dynamically
-            SpinLock* new_lock = new SpinLock();
-            lockVars.emplace(std::move(key), new_lock);
+            lock = new SpinLock();
+            lockVars.emplace(std::move(key), lock);
             it = lockVars.find(key);
-        }
-        // else it already exists
-        it->second->lock();
+        } else
+            lock = it->second;
+
     }
+    lock->lock();
 }
 
-extern "C" void UnlockMutex(char* mutex_name)
-{
+extern "C" void UnlockMutex(char* mutex_name) {
     std::string key(mutex_name);
-    std::lock_guard<std::mutex> guard(map_mutex);
-    auto it = lockVars.find(key);
-    if (it != lockVars.end())
-        it->second->unlock();
+    SpinLock *lock;
+    {
+        std::lock_guard<std::mutex> guard(map_mutex);
+        lock = lockVars.find(key)->second;
+    }
+    lock->unlock();
 }

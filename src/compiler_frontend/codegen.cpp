@@ -2807,7 +2807,6 @@ Value *FinishExprAST::codegen(Value *scope_struct) {
 
 
 Value *LockExprAST::codegen(Value *scope_struct){
-
     call("LockMutex", {Builder->CreateGlobalString(Name)});
 
     for (auto &body : Bodies)

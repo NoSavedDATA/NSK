@@ -1753,19 +1753,15 @@ std::unique_ptr<ExprAST> ParseLockExpr(Parser_Struct parser_struct, std::string 
 
 
   std::string Name = "mutex";
-  if (CurTok==tok_str)
-  {
+  if (CurTok==tok_str) {
     Name = IdentifierStr;
     getNextToken(); // eat lock string "" name
   }
 
-
   
   if (lockVars.count(Name) == 0)
-  {
-    
     lockVars[IdentifierStr] = new SpinLock();
-  }
+  
   
   
   std::vector<std::unique_ptr<ExprAST>> Body = ParseIndentedBodies(parser_struct, cur_level_tabs, class_name);

@@ -23,7 +23,7 @@ def float bar()
 
 
 class Dataset
-    int batch_size, yield_ptr, _len, num_workers
+    int batch_size, yield_ptr, _len, num_workers, epoch
     array<str> files
     pinned_tensor p_x, p_y
 	channel<int, 3> load_ch
@@ -37,6 +37,7 @@ class Dataset
         self.yield_ptr = 0
         self._len = self.files.size()
         self.shuf()
+		self.epoch=0
 
     def int shuf()
 		self.files.shuffle()
@@ -47,13 +48,14 @@ class Dataset
 
 
     def int increment_yield_ptr()
-		print("YIELD ", self.batch_size, ", ", self.num_workers)
-        lock "yield"
-            if (self.yield_ptr + self.batch_size*(self.num_workers+2)) > self._len
-                self.yield_ptr = 0
-                self.files.shuffle()
-            else
-                self.yield_ptr = self.yield_ptr + self.batch_size
+		lock "yield"
+			if (self.yield_ptr + self.batch_size*(self.num_workers+2)) > self._len
+				self.yield_ptr = 0
+				self.files.shuffle()
+				self.epoch=self.epoch+1
+				print("RESET")
+			else
+				self.yield_ptr = self.yield_ptr + self.batch_size
         return self.yield_ptr
 
     
@@ -74,7 +76,7 @@ class Dataset
 
         while self.load_ch.alive()
             yield_ptr = self.increment_yield_ptr()
-			print("yield ", yield_ptr, " from ", w)
+			print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
 
 			for b=0, b<bs
                 self.getitem_w(yield_ptr+b, b, w)

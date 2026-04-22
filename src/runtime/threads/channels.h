@@ -15,11 +15,13 @@
 
 
 struct Channel {
-    int buffer_size, head=0, tail=0, size=0;
+    int buffer_size; 
     uint16_t type;
     bool terminated=false;
 
     DT_array *_array;
+    size_t head=0, tail=0, size=0;
+    size_t *seq;
     
     std::mutex mtx;
     std::condition_variable push_cv, pop_cv, cv;
