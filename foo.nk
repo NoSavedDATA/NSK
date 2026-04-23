@@ -25,7 +25,7 @@ def float bar()
 class Dataset
     int batch_size, yield_ptr, _len, num_workers, epoch
     array<str> files
-    pinned_tensor p_x, p_y
+    float_cpu x
 	channel<int, 3> load_ch
 
     ctor(i batch_size, i num_workers, str path)
@@ -39,6 +39,8 @@ class Dataset
 
         self._len = self.files.size()
         self.shuf()
+		
+		self.x = cumalloc_host(num_workers*batch_size*28*28*2)
 
     def int shuf()
 		self.files.shuffle()
@@ -60,18 +62,24 @@ class Dataset
         return self.yield_ptr
 
     
-    def float getitem_w(i idx)
-        var aux = self.files[idx]
+    def float getitem_w(i idx, i b, i w)
+		lock "yield"
+			var aux = self.files[idx]
 		print("got file ", aux)
 
         #wload_img(self.p_x, aux, w, b)
         #float aa = aux.split_idx("/", -2).to_float()
         #self.p_y[w,b] = aa
 
-		float_cpu img
-		array<int> dims
-		print("loading")
-		img, dims = load_img(aux)
+		float_cpu img = self.x offby (w*self.batch_size+b)*28*28
+		img.load_img(aux)
+
+		#array<int> dims
+		#print("loading")
+		#img, dims = load_img(aux)
+		img.print([28,28])
+	
+		
 
     def float worker()
         print("Start worker")
@@ -84,7 +92,7 @@ class Dataset
 			print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
 
 			for b=0, b<bs
-                self.getitem_w(yield_ptr+b)
+                self.getitem_w(yield_ptr+b, b, w)
                 
             self.load_ch <- w
 

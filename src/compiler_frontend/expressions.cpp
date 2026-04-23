@@ -745,7 +745,7 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     type = elements_type_return[Elements];
   else {
       if (Op!='=')
-          LogErrorS(parser_struct.line, "Function " + Operation + " not found.");
+          LogErrorS(parser_struct.line, "Operation function " + Operation + " not found.");
   }
 
   return Data_Tree(type);

@@ -171,22 +171,16 @@ void LogWarning(const char *Str) {
 // Modified LogError function with token parameter
 std::unique_ptr<ExprAST> LogErrorT(int line, int CurTok) {
   Shall_Exit = true;
-  //char buf[100];
-  //snprintf(buf, sizeof(buf), "token %d inesperado.", CurTok);
-  //fprintf(stderr, "\033[31mError: \033[0m%s\n", buf);
   std::cout << "\n\n" << tokenizer->file_name << "\n";
   std::cout << "\nLine: " << line << "\n   \033[31m Error: \033[0mUnexpected token " << ReverseToken(CurTok) << ". Expected an expression.\n\n";
-
   // while (true) {
   //   char c = tokenizer.get();
   //   std::cout << "c is " << c << ".\n";
   //   // tokenizer.get_word() >> tokenizer.token;
   //   // std::cout << "tokenized: " << tokenizer.token << ".\n";
   // }
-  
   while(CurTok!=tok_space && !in_char(CurTok, terminal_tokens))
     getNextToken();
-
   return nullptr;
 }
 

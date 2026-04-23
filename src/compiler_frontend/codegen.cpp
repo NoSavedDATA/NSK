@@ -1816,8 +1816,6 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 std::string list_LType = LHSE->GetDataTree().Type;
 
 
-
-
                 std::string store_trigger = list_LType + "_StoreTrigger";
 
                 Value *Val_indexed = Builder->CreateExtractValue(Val, {static_cast<unsigned>(i)});
@@ -2363,6 +2361,10 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 std::exit(0);
         }
     } 
+    if (llvm_data_ops.count(Operation)>0)
+        return llvm_data_ops[Operation](parser_struct, Builder->GetInsertBlock()->getParent(),
+                                        L_dt, R_dt, LHS, RHS, scope_struct, L, R);
+
     // LogBlue("call " + Operation);
     return callret(Operation, {scope_struct, L, R}); 
 

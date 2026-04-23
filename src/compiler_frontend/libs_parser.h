@@ -39,14 +39,15 @@ struct LLVMFunction {
   std::string Name;
   std::vector<Data_Tree> ArgTypes;
   std::vector<std::string> ArgNames;
-  bool IsDtCreate;
+  int FnType;
 
   Data_Tree ReturnType;
 
-  LLVMFunction(std::string, Data_Tree, std::vector<Data_Tree>, std::vector<std::string>, bool);
+  LLVMFunction(std::string, Data_Tree, std::vector<Data_Tree>, std::vector<std::string>, int);
   void Process(void*);
   void HandleStandard(void*);
   void HandleCreate(void*);
+  void HandleOp(void*);
 };
 
 

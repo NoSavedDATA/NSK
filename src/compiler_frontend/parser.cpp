@@ -1016,6 +1016,25 @@ std::unique_ptr<ExprAST> ParseFinishExpr(Parser_Struct parser_struct, std::strin
 }
 
 
+std::unique_ptr<ExprAST> ParseOpExpr(Parser_Struct parser_struct, std::string class_name) { 
+    getNextToken(); // eat op
+    Data_Tree Return;
+    std::string data_type = IdentifierStr; 
+
+    if(CurTok!=tok_data&&CurTok!=tok_struct)
+        LogError(parser_struct.line, "Op expected return type.");
+    bool is_struct=(CurTok==tok_struct);
+    Return = ParseDataTree(data_type, is_struct, parser_struct);
+
+    if(CurTok!=tok_identifier)
+        LogError(parser_struct.line, "Op expected name.");
+    functions_return_data_type[IdentifierStr] = Return;
+
+    getNextToken(); // eat name
+    
+    return std::make_unique<NumberExprAST>(0.0f);
+}
+
 
 std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string class_name) { 
     getNextToken(); // eat proto
@@ -1822,6 +1841,7 @@ std::unique_ptr<ExprAST> ParseRetExpr(Parser_Struct parser_struct, std::string c
 ///   ::= ifexpr
 ///   ::= forexpr
 std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string class_name, bool can_be_list) {
+  // std::cout << "tok " << CurTok << " | " << ReverseToken(CurTok) << "\n";
   switch (CurTok) {
   default:
     //return std::move(std::make_unique<NumberExprAST>(0.0f));
@@ -1870,8 +1890,10 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseSpawnExpr(parser_struct, class_name);
   case tok_lock:
     return ParseLockExpr(parser_struct, class_name);
-  case tok_proto:
-    return ParseProtoExpr(parser_struct, class_name);
+  // case tok_op:
+  //   return ParseOpExpr(parser_struct, class_name);
+  // case tok_proto:
+  //   return ParseProtoExpr(parser_struct, class_name);
   case tok_main:
     return ParseMainExpr(parser_struct, class_name);
   case tok_ret:

@@ -738,7 +738,7 @@ void LibParser::ParseExtern() {
     // std::cout << "\n\n";
 }
 
-LLVMFunction::LLVMFunction(std::string Name, Data_Tree ReturnType, std::vector<Data_Tree> ArgTypes, std::vector<std::string> ArgNames, bool IsDtCreate) : Name(Name), ReturnType(ReturnType), ArgNames(std::move(ArgNames)), ArgTypes(std::move(ArgTypes)), IsDtCreate(IsDtCreate) {}
+LLVMFunction::LLVMFunction(std::string Name, Data_Tree ReturnType, std::vector<Data_Tree> ArgTypes, std::vector<std::string> ArgNames, int FnType) : Name(Name), ReturnType(ReturnType), ArgNames(std::move(ArgNames)), ArgTypes(std::move(ArgTypes)), FnType(FnType) {}
 
 
 
@@ -755,19 +755,30 @@ void LLVMFunction::HandleStandard(void *func) {
     functions_return_data_type[Name] = ReturnType;
     native_methods.push_back(Name);
 
-
     using CalleeFn = Value*(*)(Parser_Struct, Function *, std::string, Data_Tree, std::vector<Data_Tree>&, Value*, std::vector<std::unique_ptr<ExprAST>>&, std::vector<Value*>&); 
     CalleeFn fn = reinterpret_cast<CalleeFn>(func);
     llvm_callee[Name] = fn;
 
 }
 
-void LLVMFunction::Process(void *func) {
+void LLVMFunction::HandleOp(void *func) {
+    std::cout << "op has ret " << "\n";
+    ReturnType.Print();
 
-    if(IsDtCreate) {
+    using OpFn = Value*(*)(Parser_Struct, Function*, Data_Tree, Data_Tree, std::unique_ptr<ExprAST>&, std::unique_ptr<ExprAST>&, Value*, Value*, Value*);
+    OpFn fn = reinterpret_cast<OpFn>(func);
+    llvm_data_ops[Name] = fn;
+}
+
+void LLVMFunction::Process(void *func) {
+    std::cout << Name << " has fn type " << FnType << "\n";
+
+    if(FnType==2) {
         HandleCreate(func);
         Name = remove_substring(Name, "DT_");
-    } else
+    } else if (FnType==1)
+        HandleOp(func);
+    else
         HandleStandard(func); 
 
     Function_Arg_Names[Name].push_back("0");
@@ -791,7 +802,13 @@ void LibParser::ParseLLVMFunction() {
     token = _getToken(); // eat *
     fn_name = running_string;
 
-    bool is_dt_create=(begins_with(fn_name, "DT_") && ends_with(fn_name, "_Create")); 
+    int llvm_fn_type = 0;
+    if (ends_with(file_name, "ops.cpp")) {
+        std::cout << "AS OPS" << "\n";
+        llvm_fn_type=1;
+    }
+    if (begins_with(fn_name, "DT_") && ends_with(fn_name, "_Create"))
+        llvm_fn_type=2;
 
     CurDefaultArgs=0;
 
@@ -803,6 +820,7 @@ void LibParser::ParseLLVMFunction() {
     token = _getToken(); 
 
 
+    std::cout << "parse " << file_name << " -- " << fn_name << "\n";
 
     std::vector<std::string> arg_names;
 
@@ -812,7 +830,7 @@ void LibParser::ParseLLVMFunction() {
 
     LLVMFunction *lib_fn = new LLVMFunction(fn_name, lib_dt,
                                         std::move(LLVMFunction_Args), std::move(arg_names),
-                                        is_dt_create);
+                                        llvm_fn_type);
     LLVMFunctions[file_name].push_back(lib_fn);
     LLVMFunction_Args.clear();
 }

@@ -123,6 +123,10 @@ void HandleProto() {
   Parser_Struct parser_struct;
   ParseProtoExpr(parser_struct, "");
 }
+void HandleOp() {
+  Parser_Struct parser_struct;
+  ParseOpExpr(parser_struct, "");
+}
 
 void HandleDefinition() {
   
@@ -227,6 +231,9 @@ void MainLoop() {
             break;
         case tok_def:
             HandleDefinition();
+            break;
+        case tok_op:
+            HandleOp();
             break;
         case tok_proto:
             HandleProto();
