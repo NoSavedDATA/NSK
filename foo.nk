@@ -22,11 +22,13 @@ def float bar()
 	return 0
 
 
+
+
 class Dataset
     int batch_size, yield_ptr, _len, num_workers, epoch
     array<str> files
-    float_cpu x
 	channel<int, 3> load_ch
+	tensor_cpu x, y
 
     ctor(i batch_size, i num_workers, str path)
         self.batch_size = batch_size
@@ -39,8 +41,9 @@ class Dataset
 
         self._len = self.files.size()
         self.shuf()
-		
-		self.x = cumalloc_host(num_workers*batch_size*28*28*2)
+
+		self.y = new tensor_cpu([num_workers, batch_size, 1])
+		self.x = new tensor_cpu([num_workers, batch_size, 28*28])
 
     def int shuf()
 		self.files.shuffle()
@@ -61,23 +64,20 @@ class Dataset
 				self.yield_ptr = self.yield_ptr + self.batch_size
         return self.yield_ptr
 
-    
     def float getitem_w(i idx, i b, i w)
 		lock "yield"
 			var aux = self.files[idx]
-		print("got file ", aux)
+
+		#print("got file ", aux)
+		#print("switch is: ", self.w_flipswitch[w])
 
         #wload_img(self.p_x, aux, w, b)
         #float aa = aux.split_idx("/", -2).to_float()
         #self.p_y[w,b] = aa
 
-		float_cpu img = self.x offby (w*self.batch_size+b)*28*28
+		var img = self.x.at(w, b)
 		img.load_img(aux)
 
-		#array<int> dims
-		#print("loading")
-		#img, dims = load_img(aux)
-		img.print([28,28])
 	
 		
 
@@ -88,23 +88,34 @@ class Dataset
 		print("worker ", w)
 
         while self.load_ch.alive()
-            yield_ptr = self.increment_yield_ptr()
-			print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
+			yield_ptr = self.increment_yield_ptr()
+			#print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
 
 			for b=0, b<bs
-                self.getitem_w(yield_ptr+b, b, w)
-                
-            self.load_ch <- w
+				self.getitem_w(yield_ptr+b, b, w)
+				
+			self.load_ch <- w
+			self.x.switch(w)
+			#self.w_flipswitch[w] = (1-self.w_flipswitch[w])
 
-    def tuple<int,int> attr_w()
+
+    def tuple<float_pp,int> attr_w()
+		print("wait next")
         int w <- self.load_ch
-		print("Load from ", w)
-        return 0, 3
+		print("----Load from ", w)
+		
+		#float_cpu img = self.x offby ((self.w_numswitch[w]%2)*self.num_workers*self.batch_size + w*self.batch_size)*28*28
+		#var x = img.cupool(self.batch_size*28*28)
+		#self.w_numswitch[w] = self.w_numswitch[w] + 1
+		var x = self.x.load(w)
+
+        return x, 3
 
 
 
 
 main
+	join_gc()
 	#foo()
 	#bar()
 	#_quit_()
@@ -120,12 +131,14 @@ main
 
 	finish
 		asyncs 3 ds.worker()
-		while true
-			int	a, b
+		for i=0, i<3
+			int b
+			float_pp a
 			a, b = ds.attr_w()
-			print("got ", a, ", ", b)
+			a.cpu(4*28*28).print([4,28,28])
+		ds.terminate_workers()
 
-
+	print("DONE")
 	_quit_()
 	
 

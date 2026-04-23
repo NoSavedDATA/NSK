@@ -1099,6 +1099,20 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("ones_float", ones_floatTy);
 
+	FunctionType *array_sum_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_sum_int", array_sum_intTy);
+
+	FunctionType *array_prod_intTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_prod_int", array_prod_intTy);
+
 	FunctionType *array_Split_ParallelTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},

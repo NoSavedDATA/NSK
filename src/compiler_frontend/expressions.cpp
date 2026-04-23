@@ -1390,7 +1390,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
 
 
   // specify array type
-  if(in_vec(Callee, {"array_shuffle", "array_print"})) {
+  if(in_vec(Callee, {"array_shuffle", "array_print", "array_prod", "array_mean", "array_sum", "array_std"})) {
     std::string arrType = this->Inner->GetDataTree().Nested_Data[0].Type;
     if (!in_vec(arrType, primary_data_tokens)&&arrType!="str")
         arrType="void";
@@ -1421,8 +1421,7 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
     
 
   // vararg
-  if (in_str(Callee, vararg_methods))
-  {
+  if (in_str(Callee, vararg_methods)) {
     if (Callee=="zip") {
       GetDataTree();
       this->Args.push_back(std::make_unique<NullPtrExprAST>());

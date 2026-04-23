@@ -762,8 +762,6 @@ void LLVMFunction::HandleStandard(void *func) {
 }
 
 void LLVMFunction::HandleOp(void *func) {
-    std::cout << "op has ret " << "\n";
-    ReturnType.Print();
 
     using OpFn = Value*(*)(Parser_Struct, Function*, Data_Tree, Data_Tree, std::unique_ptr<ExprAST>&, std::unique_ptr<ExprAST>&, Value*, Value*, Value*);
     OpFn fn = reinterpret_cast<OpFn>(func);
@@ -771,7 +769,6 @@ void LLVMFunction::HandleOp(void *func) {
 }
 
 void LLVMFunction::Process(void *func) {
-    std::cout << Name << " has fn type " << FnType << "\n";
 
     if(FnType==2) {
         HandleCreate(func);
@@ -803,10 +800,8 @@ void LibParser::ParseLLVMFunction() {
     fn_name = running_string;
 
     int llvm_fn_type = 0;
-    if (ends_with(file_name, "ops.cpp")) {
-        std::cout << "AS OPS" << "\n";
+    if (ends_with(file_name, "ops.cpp"))
         llvm_fn_type=1;
-    }
     if (begins_with(fn_name, "DT_") && ends_with(fn_name, "_Create"))
         llvm_fn_type=2;
 
@@ -820,7 +815,6 @@ void LibParser::ParseLLVMFunction() {
     token = _getToken(); 
 
 
-    std::cout << "parse " << file_name << " -- " << fn_name << "\n";
 
     std::vector<std::string> arg_names;
 

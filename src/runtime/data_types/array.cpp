@@ -198,12 +198,12 @@ extern "C" float array_print_int(Scope_Struct *scope_struct, DT_array *vec) {
 extern "C" DT_array *arange_int(Scope_Struct *scope_struct, int begin, int end) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
     vec->New(scope_struct, end-begin, 4, scope_struct->thread_id, 2);
+    __atomic_store_n(&vec->virtual_size, end-begin, __ATOMIC_RELEASE);
 
     int *ptr = static_cast<int*>(vec->data);
     
     int c=0;
-    for(int i=begin; i<end; ++i)
-    {
+    for(int i=begin; i<end; ++i) {
         ptr[c] = i;
         c++;
     }
@@ -215,12 +215,12 @@ extern "C" DT_array *arange_int(Scope_Struct *scope_struct, int begin, int end) 
 extern "C" DT_array *zeros_int(Scope_Struct *scope_struct, int N) {
     DT_array *vec = newT<DT_array>(scope_struct, "array");
     vec->New(scope_struct, N, 4, scope_struct->thread_id, 2);
+    __atomic_store_n(&vec->virtual_size, N, __ATOMIC_RELEASE);
 
     int *ptr = static_cast<int*>(vec->data);
     
     int c=0;
-    for(int i=0; i<N; ++i)
-    {
+    for(int i=0; i<N; ++i) {
         ptr[c] = 0;
         c++;
     }
@@ -351,6 +351,25 @@ extern "C" DT_array *ones_float(Scope_Struct *scope_struct, int N) {
     return vec; 
 }
 
+extern "C" int array_sum_int(Scope_Struct *scope_struct, DT_array *arr) {
+    int *data = static_cast<int*>(arr->data);
+    int len = arr->virtual_size;
+
+    int sum=0;
+    for (int i = 0; i < len; ++i)
+        sum += data[i];
+
+    return sum;
+}
+extern "C" int array_prod_int(Scope_Struct *scope_struct, DT_array *arr) {
+    int *data = static_cast<int*>(arr->data);
+    int len = arr->virtual_size;
+
+    int prod=1;
+    for (int i = 0; i < len; ++i)
+        prod *= data[i];
+    return prod;
+}
 
 
 

@@ -792,6 +792,28 @@ void set_functions_args_type() {
 		Function_Arg_Names["ones_float"].push_back("0");
 		Function_Arg_Names["ones_float"].push_back("1");
 		
+		Function_Arg_Types["array_sum_int"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_sum_int"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_sum_int"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_sum_int_1 = Data_Tree("array");
+		array_sum_int_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_sum_int"]["1"] = array_sum_int_1;
+		
+		Function_Arg_Names["array_sum_int"].push_back("0");
+		Function_Arg_Names["array_sum_int"].push_back("1");
+		
+		Function_Arg_Types["array_prod_int"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_prod_int"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_prod_int"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_prod_int_1 = Data_Tree("array");
+		array_prod_int_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_prod_int"]["1"] = array_prod_int_1;
+		
+		Function_Arg_Names["array_prod_int"].push_back("0");
+		Function_Arg_Names["array_prod_int"].push_back("1");
+		
 		Function_Arg_Types["array_Split_Parallel"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_Split_Parallel"]["1"] = "array";
 		

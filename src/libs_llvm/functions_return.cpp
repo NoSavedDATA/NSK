@@ -26,7 +26,7 @@ void set_functions_return_type() {
 						{"read_float", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
-						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_clear", "float"}, {"array_int_NewVec", "array"}, {"array_void_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_shuffle_str", "int"}, 
+						{"array_Create", "array"}, {"array_size", "int"}, {"array_bad_idx", "int"}, {"array_clear", "float"}, {"array_int_NewVec", "array"}, {"array_void_NewVec", "array"}, {"array_print_int", "float"}, {"arange_int", "array"}, {"zeros_int", "array"}, {"randint_array", "array"}, {"ones_int", "array"}, {"array_int_add", "array"}, {"randfloat_array", "array"}, {"array_print_float", "int"}, {"arange_float", "array"}, {"zeros_float", "array"}, {"ones_float", "array"}, {"array_sum_int", "int"}, {"array_prod_int", "int"}, {"array_Split_Parallel", "array"}, {"array_print_str", "int"}, {"array_shuffle_str", "int"}, 
 						{"print_randoms", "float"}, {"randint", "int"}, 
 						{"putchard", "float"}, {"printd", "float"}, 
 						{"min", "float"}, {"max", "float"}, {"logE2f", "float"}, {"roundE", "float"}, {"floorE", "float"}, {"logical_not", "float"}, 
@@ -110,6 +110,8 @@ void set_functions_return_type() {
 	functions_return_data_type["arange_float"] = Data_Tree("array");
 	functions_return_data_type["zeros_float"] = Data_Tree("array");
 	functions_return_data_type["ones_float"] = Data_Tree("array");
+	functions_return_data_type["array_sum_int"] = Data_Tree("int");
+	functions_return_data_type["array_prod_int"] = Data_Tree("int");
 	functions_return_data_type["array_Split_Parallel"] = Data_Tree("array");
 	functions_return_data_type["array_print_str"] = Data_Tree("int");
 	functions_return_data_type["array_shuffle_str"] = Data_Tree("int");

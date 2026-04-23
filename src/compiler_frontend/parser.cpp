@@ -1061,8 +1061,9 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
         LogError(parser_struct.line, "Prototype expected (.");
     getNextToken(); // eat (
     
-    if(CurTok!=tok_data&&CurTok!=')')
+    if(CurTok!=tok_data&&CurTok!=tok_struct&&CurTok!=')')
         LogError(parser_struct.line, "Prototype expected either a data type or ).");
+
     int arg_id = 1;
     while (CurTok==tok_data||CurTok==tok_struct) {
         is_struct=(CurTok==tok_struct);
