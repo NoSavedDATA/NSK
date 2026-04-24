@@ -848,11 +848,11 @@ void set_functions_args_type() {
 		Function_Arg_Names["array_shuffle_str"].push_back("1");
 	
 		
-		Function_Arg_Types["tid"]["0"] = "Scope_Struct";
+		Function_Arg_Types["get_tid"]["0"] = "Scope_Struct";
 		
-		Function_Arg_DataTypes["tid"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["get_tid"]["0"] = Data_Tree("Scope_Struct");
 		
-		Function_Arg_Names["tid"].push_back("0");
+		Function_Arg_Names["get_tid"].push_back("0");
 	
 		
 		Function_Arg_Types["__slee_p_"]["0"] = "Scope_Struct";
@@ -1430,6 +1430,15 @@ void set_functions_args_type() {
 		Function_Arg_Names["str_eq"].push_back("2");
 		Function_Arg_Names["str_eq"].push_back("3");
 		Function_Arg_Names["str_eq"].push_back("4");
+		
+		Function_Arg_Types["str_float"]["0"] = "Scope_Struct";
+		Function_Arg_Types["str_float"]["1"] = "str";
+		
+		Function_Arg_DataTypes["str_float"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["str_float"]["1"] = Data_Tree("str");
+		
+		Function_Arg_Names["str_float"].push_back("0");
+		Function_Arg_Names["str_float"].push_back("1");
 		
 		Function_Arg_Types["str_int_add"]["0"] = "Scope_Struct";
 		Function_Arg_Types["str_int_add"]["1"] = "str";

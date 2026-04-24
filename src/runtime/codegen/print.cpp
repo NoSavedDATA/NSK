@@ -22,6 +22,10 @@ extern "C" void print_int(int x) {
     // if(x!=0)
     std::cout << "GOT INT: " << x << ".\n";
 }
+extern "C" void print_float(float x) {
+    // if(x!=0)
+    std::cout << "GOT FLOAT: " << x << ".\n";
+}
 
 extern "C" void print_int64(int64_t x) {
     std::cout << "GOT INT 64: " << x << ".\n";

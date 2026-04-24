@@ -768,15 +768,30 @@ void LLVMFunction::HandleOp(void *func) {
     llvm_data_ops[Name] = fn;
 }
 
-void LLVMFunction::Process(void *func) {
+void LLVMFunction::HandleStoreIdx(void *func) {
+    using StoreIdxFn = Value*(*)(Parser_Struct, Function*, Data_Tree, Data_Tree, std::unique_ptr<ExprAST>&, std::unique_ptr<ExprAST>&, Value*, Value*, Value*, Value*);
+    StoreIdxFn fn = reinterpret_cast<StoreIdxFn>(func);
+    llvm_store_idx[remove_substring(Name,"_Store_Idx")] = fn;
+}
 
-    if(FnType==2) {
-        HandleCreate(func);
-        Name = remove_substring(Name, "DT_");
-    } else if (FnType==1)
-        HandleOp(func);
-    else
-        HandleStandard(func); 
+void LLVMFunction::Process(void *func) {
+    switch (FnType) {
+        case (0):
+            HandleStandard(func); 
+            break;
+        case (1):
+            HandleOp(func);
+            break;
+        case (2):
+            HandleCreate(func);
+            Name = remove_substring(Name, "DT_");
+            break;
+        case (3):
+            HandleStoreIdx(func); 
+            break;
+        default:
+            break;
+    }
 
     Function_Arg_Names[Name].push_back("0");
     Function_Arg_DataTypes[Name]["0"] = Data_Tree("Scope_Struct");
@@ -804,6 +819,12 @@ void LibParser::ParseLLVMFunction() {
         llvm_fn_type=1;
     if (begins_with(fn_name, "DT_") && ends_with(fn_name, "_Create"))
         llvm_fn_type=2;
+    if (ends_with(file_name, "idx.cpp")) {
+        if (ends_with(fn_name,"Store_Idx"))
+            llvm_fn_type=3;
+        else
+            llvm_fn_type=4;
+    }
 
     CurDefaultArgs=0;
 

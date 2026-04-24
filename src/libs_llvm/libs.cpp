@@ -66,6 +66,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("print_int", print_intTy);
 
+	FunctionType *print_floatTy= FunctionType::get(
+		Type::getVoidTy(*TheContext),
+		{Type::getFloatTy(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("print_float", print_floatTy);
+
 	FunctionType *print_int64Ty= FunctionType::get(
 		Type::getVoidTy(*TheContext),
 		{Type::getInt64Ty(*TheContext)},
@@ -213,12 +220,12 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("emerge_float", emerge_floatTy);
 
-	FunctionType *tidTy= FunctionType::get(
+	FunctionType *get_tidTy= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
 		{int8PtrTy},
 		false
 	);
-	TheModule->getOrInsertFunction("tid", tidTy);
+	TheModule->getOrInsertFunction("get_tid", get_tidTy);
 
 
 
@@ -818,6 +825,13 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("str_eq", str_eqTy);
+
+	FunctionType *str_floatTy= FunctionType::get(
+		Type::getFloatTy(*TheContext),
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("str_float", str_floatTy);
 
 	FunctionType *str_int_addTy= FunctionType::get(
 		int8PtrTy,

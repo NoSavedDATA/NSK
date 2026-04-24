@@ -48,6 +48,7 @@ struct LLVMFunction {
   void HandleStandard(void*);
   void HandleCreate(void*);
   void HandleOp(void*);
+  void HandleStoreIdx(void*);
 };
 
 

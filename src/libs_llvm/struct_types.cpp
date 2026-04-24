@@ -20,6 +20,14 @@ std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*,
                                                        Value*,
                                                        Value*, Value*)>> llvm_data_ops;
 
+std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, 
+                                                       Data_Tree, Data_Tree,
+                                                       std::unique_ptr<ExprAST>&,
+                                                       std::unique_ptr<ExprAST>&,
+                                                       Value*, Value*,
+                                                       Value*, Value*)>> llvm_store_idx;
+
+
 void Generate_Struct_Types() {
     // Get llvm types
     llvm::Type *int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();

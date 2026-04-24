@@ -1,3 +1,4 @@
+#include <charconv>
 #include <cstdio>
 #include <cstdlib>
 #include <glob.h>
@@ -39,6 +40,56 @@ extern "C" bool str_eq(Scope_Struct *scope_struct, char *a, char *b, int l_size,
 }
 
 
+extern "C" float str_float(Scope_Struct *scope_struct, DT_str str) {
+    char* p = str.str;
+    char* end = str.str + str.size;
+
+    bool neg = false;
+    if (p < end && (*p == '-' || *p == '+')) {
+        neg = (*p == '-');
+        ++p;
+    }
+
+    float value = 0.0f;
+
+    // integer part
+    while (p < end && *p >= '0' && *p <= '9') {
+        value = value * 10.0f + (*p - '0');
+        ++p;
+    }
+
+    // fractional part
+    if (p < end && *p == '.') {
+        ++p;
+        float frac = 1.0f;
+        while (p < end && *p >= '0' && *p <= '9') {
+            frac *= 0.1f;
+            value += (*p - '0') * frac;
+            ++p;
+        }
+    }
+
+    // exponent
+    if (p < end && (*p == 'e' || *p == 'E')) {
+        ++p;
+        bool exp_neg = false;
+        if (p < end && (*p == '-' || *p == '+')) {
+            exp_neg = (*p == '-');
+            ++p;
+        }
+
+        int exp = 0;
+        while (p < end && *p >= '0' && *p <= '9') {
+            exp = exp * 10 + (*p - '0');
+            ++p;
+        }
+
+        float scale = std::pow(10.0f, exp_neg ? -exp : exp);
+        value *= scale;
+    }
+
+    return neg ? -value : value;
+}
 
 
 

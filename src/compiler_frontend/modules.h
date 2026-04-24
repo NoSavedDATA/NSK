@@ -56,6 +56,13 @@ extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Funct
                                                        Value*,
                                                        Value*, Value*)>> llvm_data_ops;
 
+extern std::unordered_map<std::string, std::function<Value*(Parser_Struct, Function*, 
+                                                       Data_Tree, Data_Tree,
+                                                       std::unique_ptr<ExprAST>&,
+                                                       std::unique_ptr<ExprAST>&,
+                                                       Value*, Value*,
+                                                       Value*, Value*)>> llvm_store_idx;
+
 
 
 

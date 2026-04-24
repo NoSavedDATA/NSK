@@ -355,8 +355,7 @@ std::unique_ptr<IndexExprAST> ParseIdx(Parser_Struct parser_struct, std::string 
 
   bool has_sliced_vec=false;
 
-  if (CurTok==':') // [:-1]
-  {
+  if (CurTok==':') { // [:-1]
     getNextToken();
     has_sliced_vec=true;
 
@@ -369,8 +368,7 @@ std::unique_ptr<IndexExprAST> ParseIdx(Parser_Struct parser_struct, std::string 
 
     idx.push_back(ParseExpression(parser_struct, class_name, false));
 
-    if (CurTok==':')
-    {
+    if (CurTok==':') {
       getNextToken();
       has_sliced_vec=true;
 
@@ -381,15 +379,11 @@ std::unique_ptr<IndexExprAST> ParseIdx(Parser_Struct parser_struct, std::string 
     }
   }
 
-
-
-  while(CurTok==',')
-  {
+  while(CurTok==',') {
     getNextToken(); // eat ,
     idx.push_back(ParseExpression(parser_struct, class_name, false));
 
-    if (CurTok==':')
-    {
+    if (CurTok==':') {
       getNextToken();
       second_idx.push_back(ParseExpression(parser_struct, class_name, false));
       has_sliced_vec=true;
@@ -397,9 +391,6 @@ std::unique_ptr<IndexExprAST> ParseIdx(Parser_Struct parser_struct, std::string 
   }
   idx.push_back(std::make_unique<IntExprAST>(TERMINATE_VARARG));
   second_idx.push_back(std::make_unique<IntExprAST>(TERMINATE_VARARG));
-
-
-  
 
 
   return std::make_unique<IndexExprAST>(std::move(idx), std::move(second_idx), has_sliced_vec);
@@ -520,18 +511,18 @@ std::unique_ptr<ExprAST> ParseIdxExpr(Parser_Struct parser_struct, std::unique_p
 
 std::unique_ptr<ExprAST> ParseCallExpr(Parser_Struct parser_struct, std::unique_ptr<Nameable> inner, std::string class_name, int depth) {
 
-
   auto Args = Parse_Arguments(parser_struct, class_name);
   if (!Args)
     return nullptr;
 
   std::unique_ptr<NameableCall> call_expr = std::make_unique<NameableCall>(parser_struct, std::move(inner), std::move(*Args));
 
-  if (CurTok=='.')
-  {
+  if (CurTok=='.') {
     getNextToken();
     return ParseNameableExpr(parser_struct, std::move(call_expr), class_name, false, depth);
   }
+  if (CurTok=='[')
+    return ParseIdxExpr(parser_struct, std::move(call_expr), class_name, depth);
 
   std::unique_ptr<ExprAST> expr_ptr(static_cast<ExprAST*>(call_expr.release()));
   return std::move(expr_ptr);

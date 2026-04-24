@@ -47,7 +47,7 @@ extern "C" float emerge_float(char *fn_name, char *var_name) {
 
 int last_thread_id=1;
 
-extern "C" int tid(Scope_Struct *scope_struct) {
+extern "C" int get_tid(Scope_Struct *scope_struct) {
     int thread_id = scope_struct->thread_id-1;
     // long id = syscall(SYS_gettid);
     // std::cout << "tid: " << id << "\n";

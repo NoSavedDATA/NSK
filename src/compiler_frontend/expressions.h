@@ -379,11 +379,11 @@ class LibImportExprAST : public ExprAST {
 
 /// UnaryExprAST - Expression class for a unary operator.
 class UnaryExprAST : public ExprAST {
-  int Opcode;
   Parser_Struct parser_struct;
-  std::unique_ptr<ExprAST> Operand;
 
 public:
+  int Opcode;
+  std::unique_ptr<ExprAST> Operand;
   UnaryExprAST(int Opcode, std::unique_ptr<ExprAST> Operand, Parser_Struct);
 
   Value *codegen(Value *scope_struct) override;

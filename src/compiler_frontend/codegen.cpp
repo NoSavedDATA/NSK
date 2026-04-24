@@ -196,12 +196,19 @@ Value *IndexExprAST::codegen(Value *scope_struct) {
 }
 
 
-Value *Idx_Calc_Codegen(std::string type, Value *vec, std::unique_ptr<IndexExprAST> &idxs, Value *scope_struct)
-{
-  if (!idxs->IsSlice)
-  {
-    if (!TheModule->getFunction(type+"_CalculateIdx"))
-        return idxs->Idxs[0]->codegen(scope_struct); 
+Value *Idx_Calc_Codegen(std::string type, Value *vec, std::unique_ptr<IndexExprAST> &idxs, Value *scope_struct) {
+  if (!idxs->IsSlice && !TheModule->getFunction(type+"_CalculateIdx")) {
+    if (type=="array") {
+       if (auto *stmt = dynamic_cast<UnaryExprAST*>(idxs->Idxs[0].get())) {
+            if (stmt->Opcode=='-') {
+                Value *idx = stmt->Operand->codegen(scope_struct);  
+                Value *arr_size = Builder->CreateLoad(intTy,
+                                            Builder->CreateStructGEP(struct_types["array"], vec, 0));
+                return Builder->CreateSub(arr_size, idx);
+            }
+       }
+    }
+    return idxs->Idxs[0]->codegen(scope_struct); 
   }
   std::vector<Value *> idxs_values;
 
@@ -1867,8 +1874,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     type = nested_type + "_" + type;
             }
 
-            if(type=="map")
-            {
+            if(type=="map") {
                 Data_Tree map_dt = dt;
                 std::string key_type = map_dt.Nested_Data[0].Type;
                 std::string value_type = map_dt.Nested_Data[1].Type;
@@ -2116,7 +2122,10 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
                 Value *element = Builder->CreateGEP(idxTy, vec, idx);
                 Builder->CreateStore(Val, element);
-            } else
+            } else if (llvm_store_idx.count(type)>0)
+                llvm_store_idx[type](parser_struct, Builder->GetInsertBlock()->getParent(),
+                                                L_dt, R_dt, LHS, RHS, scope_struct, vec_ptr, idx, Val);
+            else
                 call(type+"_Store_Idx", {vec_ptr, idx, Val, scope_struct});
 
             return const_float(0);
@@ -3588,6 +3597,12 @@ Value *Nameable::codegen(Value *scope_struct) {
             return get_scope_obj(scope_struct);
         if (function_values[parser_struct.function_name].count(Name)>0)
             return function_values[parser_struct.function_name][Name];
+        if (Name=="tid") {
+            Value *tid_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 1);
+            Value *tid = Builder->CreateSub(Builder->CreateLoad(intTy, tid_gep), const_int(1));
+            function_values[parser_struct.function_name]["tid"] = tid;
+            return tid;
+        }
         return getFunctionCheck(Name);
     }
 

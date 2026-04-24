@@ -22,8 +22,6 @@ def float bar()
 	return 0
 
 
-
-
 class Dataset
     int batch_size, yield_ptr, _len, num_workers, epoch
     array<str> files
@@ -42,8 +40,8 @@ class Dataset
         self._len = self.files.size()
         self.shuf()
 
-		self.y = new tensor_cpu([num_workers, batch_size, 1])
 		self.x = new tensor_cpu([num_workers, batch_size, 28*28])
+		self.y = new tensor_cpu([num_workers, batch_size, 1])
 
     def int shuf()
 		self.files.shuffle()
@@ -55,61 +53,52 @@ class Dataset
 
     def int increment_yield_ptr()
 		lock "yield"
-			if (self.yield_ptr + self.batch_size*(self.num_workers+2)) > self._len
+			if (self.yield_ptr + self.batch_size*(self.num_workers+2)) <= self._len
+				int ret = self.yield_ptr
+				self.yield_ptr = self.yield_ptr + self.batch_size
+			else
 				self.yield_ptr = 0
 				self.files.shuffle()
 				self.epoch=self.epoch+1
-				print("RESET")
-			else
-				self.yield_ptr = self.yield_ptr + self.batch_size
         return self.yield_ptr
 
-    def float getitem_w(i idx, i b, i w)
+    def float getitem_w(i idx, i b)
 		lock "yield"
 			var aux = self.files[idx]
 
-		#print("got file ", aux)
-		#print("switch is: ", self.w_flipswitch[w])
-
-        #wload_img(self.p_x, aux, w, b)
-        #float aa = aux.split_idx("/", -2).to_float()
-        #self.p_y[w,b] = aa
-
-		var img = self.x.at(w, b)
+		var img = self.x.at(b)
 		img.load_img(aux)
 
+		var y = self.y.at(b)
+		y[0] = aux.split('/')[-2].float()
 	
-		
 
     def float worker()
         print("Start worker")
 
-        int yield_ptr, bs=self.batch_size, w=tid()
-		print("worker ", w)
+        int yield_ptr, bs=self.batch_size
+		print("worker ", tid)
 
         while self.load_ch.alive()
 			yield_ptr = self.increment_yield_ptr()
 			#print("yield ", yield_ptr, " / ", self.epoch, " from ", w)
 
 			for b=0, b<bs
-				self.getitem_w(yield_ptr+b, b, w)
+				self.getitem_w(yield_ptr+b, b)
 				
-			self.load_ch <- w
-			self.x.switch(w)
-			#self.w_flipswitch[w] = (1-self.w_flipswitch[w])
+			self.load_ch <- tid
+			self.x.switch()
+			self.y.switch()
 
 
-    def tuple<float_pp,int> attr_w()
+    def tuple<float_pp,float_pp> attr_w()
 		print("wait next")
         int w <- self.load_ch
-		print("----Load from ", w)
 		
-		#float_cpu img = self.x offby ((self.w_numswitch[w]%2)*self.num_workers*self.batch_size + w*self.batch_size)*28*28
-		#var x = img.cupool(self.batch_size*28*28)
-		#self.w_numswitch[w] = self.w_numswitch[w] + 1
 		var x = self.x.load(w)
+		var y = self.y.load(w)
 
-        return x, 3
+        return x, y
 
 
 
@@ -126,19 +115,19 @@ main
 
 	array<str> f = glob("/nsd_home/Datasets/mnist/train/*/*.jpg")
 	Dataset ds(4, 3, "/nsd_home/Datasets/mnist/train/*/*.jpg")
-
-
-
 	finish
 		asyncs 3 ds.worker()
-		for i=0, i<3
-			int b
-			float_pp a
+		for i=0, i<1000
+			float_pp a, b
 			a, b = ds.attr_w()
-			a.cpu(4*28*28).print([4,28,28])
+			#a.print([4,28,28])
+			#b.print([4])
+			#a.cpu(4*28*28).print([4,28,28])
+			#b.cpu(4).print([4])
+			tarena_reset()
 		ds.terminate_workers()
 
-	print("DONE")
+	#print("DONE")
 	_quit_()
 	
 
@@ -168,4 +157,4 @@ main
 
 		#sweep()
 		#psweep()
-		GC_print()
+		#GC_print()

@@ -184,56 +184,6 @@ extern "C" float GC_print(Scope_Struct *scope_struct) {
     return 0;
 }
 
-// //---------------------------------------------------------//
-
-
-
-
-
-void protect_pool_addr(Scope_Struct *scope_struct, void *addr) {
-    // int tid = scope_struct->thread_id;
-    // char *p = static_cast<char*>(addr);
-
-    // char *arena_addr = arena_base_addr[tid];
-
-    // int arena_id=-1;
-    // bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
-    // if (!in_bounds) {
-    //     std::cout << "protect_pool_addr()\n------>Address " << addr << " address does not reside in any memory pool.\n";
-    //     std::exit(0);
-    // }
-    // long arena_offset = p - arena_addr;
-    // int page  =  (arena_offset / GC_page_size) % pages_per_arena;
-
-    // GC_Span *span = scope_struct->gc->arena->page_to_span[page];
-
-    // long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
-    // set_16_L2(span->type_metadata, obj_idx, 1u);
-}
-
-bool unprotect_pool_addr(Scope_Struct *scope_struct, void *addr) {
-    // int tid = scope_struct->thread_id;
-    // char *p = static_cast<char*>(addr);
-
-    // char *arena_addr = arena_base_addr[tid];
-
-    // int arena_id=-1;
-    // bool in_bounds = (p>=arena_addr&&p<arena_addr+GC_arena_size);
-
-    // if (!in_bounds) {
-    //     std::cout << "unprotect_pool_addr()\n--------Address " << addr << " address does not reside in any memory pool.";
-    //     return false;
-    // }
-    // long arena_offset = p - arena_addr;
-    // int page  =  (arena_offset / GC_page_size) % pages_per_arena;
-
-    // GC_Span *span = scope_struct->gc->arena->page_to_span[page];
-
-    // long obj_idx = (static_cast<char*>(addr) - static_cast<char*>(span->span_address)) / span->traits->obj_size;
-    // set_16_L2(span->type_metadata, obj_idx, 0u);
-    return true;
-}
-
 
 
 

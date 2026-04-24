@@ -30,10 +30,6 @@ extern "C" void print_stack(Scope_Struct *scope_struct, void *stack) {
 
 
 
-void check_exit() {
-    if (Shall_Exit)
-        std::exit(0);
-}
 
 Scope_Struct::Scope_Struct() {
 }
@@ -96,7 +92,6 @@ extern "C" Scope_Struct *scope_struct_CreateFirst() {
     return scope_struct;
 }
 extern "C" Scope_Struct *scope_struct_Create() {
-    // check_exit();
     Scope_Struct *scope_struct = new Scope_Struct();
     // std::cout << "Create scope " << scope_struct << ".\n";
     return scope_struct;
@@ -229,7 +224,6 @@ extern "C" void scope_struct_Delete(Scope_Struct *scope_struct) {
     GC *gc = scope_struct->gc;
 
     // std::cout << "***sweep " << "\n";
-    // std::exit(0);
 
     gc->Sweep(scope_struct);
 

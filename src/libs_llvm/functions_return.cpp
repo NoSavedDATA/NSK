@@ -31,14 +31,14 @@ void set_functions_return_type() {
 						{"putchard", "float"}, {"printd", "float"}, 
 						{"min", "float"}, {"max", "float"}, {"logE2f", "float"}, {"roundE", "float"}, {"floorE", "float"}, {"logical_not", "float"}, 
 						{"object_Load_float", "float"}, {"object_Load_int", "int"}, {"object_Load_on_Offset_float", "float"}, {"object_Load_on_Offset_int", "int"}, 
-						{"emerge_int", "int"}, {"emerge_float", "float"}, {"tid", "int"}, 
+						{"emerge_int", "int"}, {"emerge_float", "float"}, {"get_tid", "int"}, 
 						{"_quit_", "float"}, {"fexists_C", "bool"}, 
 						{"print", "float"}, {"print_void_ptrC", "float"}, 
 						{"GetEmptyChar", "str"}, {"CopyString", "str"}, {"ConcatStr", "str"}, {"ConcatStrFreeLeft", "str"}, {"ConcatFloatToStr", "str"}, {"ConcatNumToStrFree", "str"}, 
 						{"read_int", "int"}, {"int_to_str", "str"}, {"i64_to_str_buffer", "int"}, {"int_to_str_buffer", "int"}, {"int_print_bits", "int"}, 
 						{"scope_struct_spec", "float"}, {"scope_struct_CreateFirst", ""}, {"scope_struct_Create", ""}, {"scope_struct_Overwrite", ""}, {"get_scope_thread_id", "int"}, {"scope_struct_Reset_Threads", "float"}, {"scope_struct_Increment_Thread", "float"}, {"scope_struct_print", "float"}, 
 						{"psweep", "float"}, {"join_gc", "float"}, {"sweep", "float"}, {"GC_print", "float"}, 
-						{"str_Copy", "str"}, {"str_eq", "bool"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, {"_glob_b_", "array"}, 
+						{"str_Copy", "str"}, {"str_eq", "bool"}, {"str_float", "float"}, {"str_int_add", "str"}, {"str_float_add", "str"}, {"int_str_add", "str"}, {"float_str_add", "str"}, {"str_bool_add", "str"}, {"bool_str_add", "str"}, {"PrintStr", "float"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"can_convert_to_float", "bool"}, {"str_to_float", "float"}, {"str_str_different", "bool"}, {"str_str_equal", "bool"}, {"readline", "str"}, {"_glob_b_", "array"}, 
 						{"str_channel_alive", "int"}, {"float_channel_terminate", "float"}, {"float_channel_alive", "int"}, {"int_channel_message", "int"}, {"channel_int_message", "float"}, {"int_channel_Idx", "int"}, {"int_channel_sum", "int"}, {"int_channel_terminate", "float"}, {"int_channel_alive", "bool"}, 
 						{"dir_exists", "float"}, {"path_exists", "float"}, 
 						{"prebuild", "int"}, 
@@ -119,6 +119,7 @@ void set_functions_return_type() {
 	functions_return_data_type["prebuild"] = Data_Tree("int");
 	functions_return_data_type["str_Copy"] = Data_Tree("str");
 	functions_return_data_type["str_eq"] = Data_Tree("bool");
+	functions_return_data_type["str_float"] = Data_Tree("float");
 	functions_return_data_type["str_int_add"] = Data_Tree("str");
 	functions_return_data_type["str_float_add"] = Data_Tree("str");
 	functions_return_data_type["int_str_add"] = Data_Tree("str");
@@ -150,7 +151,7 @@ void set_functions_return_type() {
 	functions_return_data_type["ConcatNumToStrFree"] = Data_Tree("str");
 	functions_return_data_type["emerge_int"] = Data_Tree("int");
 	functions_return_data_type["emerge_float"] = Data_Tree("float");
-	functions_return_data_type["tid"] = Data_Tree("int");
+	functions_return_data_type["get_tid"] = Data_Tree("int");
 	functions_return_data_type["print_vec_i8"] = Data_Tree("int");
 	functions_return_data_type["print_vec_i16"] = Data_Tree("int");
 	functions_return_data_type["print_vec_int"] = Data_Tree("int");

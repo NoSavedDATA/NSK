@@ -161,7 +161,7 @@ extern "C" int int_channel_message(Scope_Struct *scope_struct, void *ptr, Channe
     int *data = (int*)arr->data;
     
     int backoff_us = 1;
-    while(true) {
+    while(!ch->terminated) {
         size_t pos = __atomic_load_n(&ch->head, __ATOMIC_RELAXED) ;
         int ring_pos = pos % ch->buffer_size;
 
@@ -193,7 +193,7 @@ extern "C" float channel_int_message(Scope_Struct *scope_struct, Channel *ch, in
     int *data = (int*)arr->data;
     
     int backoff_us = 1;
-    while(true) {
+    while(!ch->terminated) {
         size_t pos = __atomic_load_n(&ch->tail, __ATOMIC_RELAXED) ;
         int ring_pos = pos % ch->buffer_size;
 
