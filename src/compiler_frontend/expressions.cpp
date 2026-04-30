@@ -1054,6 +1054,9 @@ PrototypeAST::PrototypeAST(const std::string &Name, Data_Tree ReturnType, const 
     Function_Arg_Names[Name] = std::move(arg_names);
     Function_Required_Arg_Count[Name] = arg_count-1; // Desconsider scope_struct
     native_fn.push_back(Name);
+
+    if (ends_with(Name, "_prebuild"))
+        prebuild_functions.push_back(Name);
     // std::cout << "proto " << Name << " has " << arg_count-1 << " args\n";
 }
 

@@ -13,12 +13,12 @@
 
 void set_user_functions() {
 
-    user_cpp_functions = {"Linear", "tensor_view", "tensor_clip", "tensor_argmax", "tensor_tmax", "tensor_onehot", "tensor_shape", "tensor_permute", "tensor_cpu", "printtt",
-        "tensor_sum", "tensor_prod", "tensor_mean", "mean_tensor", "tensor_tmin", "tensor_argmin", "tensor_topk", "tensor_repeat_interleave",
-        "tensor_save_img", "tensor_gpu", "tensor_gpuw", "tensor_save_as_int", "tensor_save_as_bin", "tensor_gather", "str_split_idx", "str_to_float", "list_print",
+
+    user_cpp_functions = {"printtt",
+        "tensor_repeat_interleave",
 		"__idx__", "__sliced_idx__", 
 		"psweep", "join_gc", "sweep", "scope_struct_Join_GC", "scope_struct_Alloc_GC", "GC_print", 
-		"channel_Create", "str_channel_terminate", "str_channel_alive", "float_channel_terminate", "float_channel_alive", "int_channel_message", "channel_int_message", "int_channel_Idx", "int_channel_sum", "int_channel_terminate", "int_channel_alive", 
+		"channel_Create", "str_channel_terminate", "str_channel_alive", "float_channel_terminate", "float_channel_alive", "int_channel_message", "channel_int_message", "int_channel_sum", "int_channel_terminate", "int_channel_alive", 
 		"min", "max", "logE2f", "roundE", "floorE", "logical_not", 
 		"LockMutex", "UnlockMutex", 
 		"print_vec_i8", "print_vec_i16", "print_vec_int", "print_vec_i64", "print_vec_float", 
@@ -26,7 +26,7 @@ void set_user_functions() {
 		"read_int", "int_to_str", "i64_to_str_buffer", "int_to_str_buffer", "int_print_bits", 
 		"nullptr_get", "is_null", 
 		"array_Create", "array_size", "array_bad_idx", "array_double_size", "array_clear", "array_int_NewVec", "array_void_NewVec", "array_print_int", "arange_int", "zeros_int", "randint_array", "ones_int", "array_int_add", "randfloat_array", "array_print_float", "arange_float", "zeros_float", "ones_float", "array_sum_int", "array_prod_int", "array_Split_Parallel", "array_print_str", "array_shuffle_str", 
-		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "scope_struct_Overwrite", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_print", "scope_struct_Sweep", "scope_struct_Delete", 
+		"print_stack1", "print_stack", "scope_struct_spec", "set_scope_line", "scope_struct_CreateFirst", "scope_struct_Create", "set_scope_thread_id", "get_scope_thread_id", "scope_struct_Reset_Threads", "scope_struct_Increment_Thread", "scope_struct_Print", "scope_struct_Save_for_Async", "scope_struct_Load_for_Async", "scope_struct_Store_Asyncs_Count", "scope_struct_Get_Async_Scope", "scope_struct_print", "scope_struct_Sweep", "scope_struct_Delete", 
 		"_quit_", "fexists_C", 
 		"offset_object_ptr", "object_Attr_float", "object_Attr_int", "object_Load_float", "object_Load_int", "object_Load_slot", "tie_object_to_object", "object_Attr_on_Offset_float", "object_Attr_on_Offset_int", "object_Attr_on_Offset", "object_Load_on_Offset_float", "object_Load_on_Offset_int", "object_Load_on_Offset", "object_ptr_Load_on_Offset", "object_ptr_Attribute_object", 
 		"allocate_void", "allocate_pool", 

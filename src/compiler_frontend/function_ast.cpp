@@ -716,11 +716,8 @@ Function *FunctionAST::codegen() {
   if(function_name=="__anon_expr") {
     scope_struct = callret("scope_struct_CreateFirst", {}); 
     call("scope_struct_Alloc_GC", {scope_struct});
-    // stack_top_value = const_int(0);
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
   }
-  // else
-  //   scope_struct = callret("scope_struct_Create", {});
   
   
 
@@ -757,7 +754,6 @@ Function *FunctionAST::codegen() {
     scope_struct = callret("scope_struct_CreateFirst", {}); 
     call("prebuild", {});
     call("scope_struct_Alloc_GC", {scope_struct});
-    // stack_top_value = const_int(0);
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
   }
 

@@ -44,9 +44,7 @@ void Scope_Struct::Set_Thread_Id(int thread_id) {
 void Scope_Struct::Set_Has_Grad(int has_grad) {
     this->has_grad = has_grad;
 }
-void Scope_Struct::Copy(Scope_Struct *scope_to_copy)
-{
-    // std::cout << "copy scope" << ".\n";
+void Scope_Struct::Copy(Scope_Struct *scope_to_copy) {
     object_ptr = scope_to_copy->object_ptr;
 
     thread_id = scope_to_copy->thread_id;
@@ -57,8 +55,7 @@ void Scope_Struct::Copy(Scope_Struct *scope_to_copy)
     
     previous_scope = scope_to_copy;
     inner_most = scope_to_copy->inner_most;
-    
-    gc = inner_most->gc;
+    // gc = inner_most->gc;
 }
 
 
@@ -97,10 +94,6 @@ extern "C" Scope_Struct *scope_struct_Create() {
     return scope_struct;
 }
 
-extern "C" Scope_Struct *scope_struct_Overwrite(Scope_Struct *scope_struct, Scope_Struct *scope_to_copy) {
-    scope_struct->Copy(scope_to_copy);
-    return scope_struct;
-}
 
 
 
@@ -161,9 +154,6 @@ extern "C" void scope_struct_Print(Scope_Struct *scope_struct) {
 
 
 extern "C" void scope_struct_Save_for_Async(Scope_Struct *scope_struct, char *fn_name) {
-    // Scope_Struct *scope_struct_copy = new Scope_Struct();
-    // scope_struct_copy->Copy(scope_struct);
-    // NamedScopeStructs[fn_name] = scope_struct_copy;
     NamedScopeStructs[fn_name] = scope_struct;
 }
 
@@ -173,8 +163,7 @@ extern "C" void *scope_struct_Load_for_Async(char *fn_name) {
     Scope_Struct *scope_struct_copy = new Scope_Struct();
     scope_struct_copy->Copy(scope_struct);
     scope_struct_copy->inner_most = scope_struct_copy;
-    // std::cout << "Threaded scope is: " << scope_struct << "/" << scope_struct_copy << ".\n";
-    
+
     return scope_struct_copy;
 }
 

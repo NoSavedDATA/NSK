@@ -97,10 +97,10 @@ extern "C" int prebuild() {
     name_to_type["str_view"] = 109;
     name_to_type["Funtcion"] = 110;
     name_to_type["any"] = 111;
+    name_to_type["charp"] = 112;
 
         
-    for (const auto& [name, type] : name_to_type)
-    {
+    for (const auto& [name, type] : name_to_type) {
         // If duplicates exist (like type 6), keep first or last depending on policy
         type_to_name[type] = name;
         data_type_to_size[type] = data_name_to_size[name];

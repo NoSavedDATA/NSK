@@ -364,13 +364,6 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("channel_int_message", channel_int_messageTy);
 
-	FunctionType *int_channel_IdxTy= FunctionType::get(
-		Type::getInt32Ty(*TheContext),
-		{int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
-		false
-	);
-	TheModule->getOrInsertFunction("int_channel_Idx", int_channel_IdxTy);
-
 	FunctionType *int_channel_sumTy= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
 		{int8PtrTy, int8PtrTy},
@@ -1357,13 +1350,6 @@ void Generate_LLVM_Functions() {
 		false
 	);
 	TheModule->getOrInsertFunction("scope_struct_Create", scope_struct_CreateTy);
-
-	FunctionType *scope_struct_OverwriteTy= FunctionType::get(
-		int8PtrTy,
-		{int8PtrTy, int8PtrTy},
-		false
-	);
-	TheModule->getOrInsertFunction("scope_struct_Overwrite", scope_struct_OverwriteTy);
 
 	FunctionType *set_scope_thread_idTy= FunctionType::get(
 		Type::getVoidTy(*TheContext),

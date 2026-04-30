@@ -94,6 +94,7 @@ extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec) {
         std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
         scope_struct->gc->retire_arr(data, old_size, tid);
     }
+
     __atomic_store_n(&vec->data, new_data, __ATOMIC_RELEASE);
     int size = __atomic_load_n(&vec->size, __ATOMIC_ACQUIRE);
     __atomic_store_n(&vec->size, size*4, __ATOMIC_RELEASE);
@@ -444,18 +445,24 @@ extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
 extern "C" int array_shuffle_str(Scope_Struct *ctx, DT_array *arr) {
     DT_str *data = static_cast<DT_str*>(arr->data);
     int len = arr->virtual_size;
-    __atomic_store_n(&arr->data, cache_pop(arr->size*arr->elem_size, ctx->thread_id), __ATOMIC_RELEASE);
-    DT_str *new_data = static_cast<DT_str*>(arr->data);
+    DT_str *new_data = (DT_str*)cache_pop(arr->size*arr->elem_size, ctx->thread_id);
 
-
+    std::cout << "arr " << arr << "\n";
+    std::cout << "data " << data << "\n";
+    std::cout << "GOT LEN " << len << "\n";
+    
     std::vector<int> indices(len);
     for (int i = 0; i < len; ++i)
         indices[i] = i;
     thread_local std::mt19937 rng(std::random_device{}());
     std::shuffle(indices.begin(), indices.end(), rng);
 
-    for (int i = 0; i < len; ++i) 
+    for (int i = 0; i < len; ++i) {
+        // __atomic_store_n(&arr->data, cache_pop(arr->size*arr->elem_size, ctx->thread_id), __ATOMIC_RELEASE);
         new_data[indices[i]] = data[i];
+    }
     
+    __atomic_store_n(&arr->data, (void*)new_data, __ATOMIC_RELEASE);
+
     return 0;
 }

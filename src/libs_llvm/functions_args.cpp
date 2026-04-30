@@ -157,15 +157,6 @@ void set_functions_args_type() {
 		
 		
 		
-		Function_Arg_Types["scope_struct_Overwrite"]["0"] = "Scope_Struct";
-		Function_Arg_Types["scope_struct_Overwrite"]["1"] = "Scope_Struct";
-		
-		Function_Arg_DataTypes["scope_struct_Overwrite"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["scope_struct_Overwrite"]["1"] = Data_Tree("Scope_Struct");
-		
-		Function_Arg_Names["scope_struct_Overwrite"].push_back("0");
-		Function_Arg_Names["scope_struct_Overwrite"].push_back("1");
-		
 		Function_Arg_Types["set_scope_thread_id"]["0"] = "Scope_Struct";
 		Function_Arg_Types["set_scope_thread_id"]["1"] = "int";
 		
@@ -383,18 +374,6 @@ void set_functions_args_type() {
 		Function_Arg_Names["channel_int_message"].push_back("0");
 		Function_Arg_Names["channel_int_message"].push_back("1");
 		Function_Arg_Names["channel_int_message"].push_back("2");
-		
-		Function_Arg_Types["int_channel_Idx"]["0"] = "Scope_Struct";
-		Function_Arg_Types["int_channel_Idx"]["1"] = "Channel";
-		Function_Arg_Types["int_channel_Idx"]["2"] = "int";
-		
-		Function_Arg_DataTypes["int_channel_Idx"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["int_channel_Idx"]["1"] = Data_Tree("Channel");
-		Function_Arg_DataTypes["int_channel_Idx"]["2"] = Data_Tree("int");
-		
-		Function_Arg_Names["int_channel_Idx"].push_back("0");
-		Function_Arg_Names["int_channel_Idx"].push_back("1");
-		Function_Arg_Names["int_channel_Idx"].push_back("2");
 		
 		Function_Arg_Types["int_channel_sum"]["0"] = "Scope_Struct";
 		Function_Arg_Types["int_channel_sum"]["1"] = "Channel";

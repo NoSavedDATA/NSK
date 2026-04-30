@@ -66,7 +66,8 @@ inline void recognize_data_type(std::string type) {
 
 LibFunction::LibFunction(std::string ReturnType, bool IsPointer, std::string Name, std::vector<std::string> ArgTypes, std::vector<std::string> ArgNames, std::vector<int> ArgIsPointer, bool IsVarArg, bool HasRetOverwrite, std::string LibType, Data_Tree LibDT, int DefaultArgsCount)
     : ReturnType(ReturnType), IsPointer(IsPointer), Name(Name), ArgTypes(ArgTypes), ArgNames(ArgNames), ArgIsPointer(ArgIsPointer), IsVarArg(IsVarArg),
-      HasRetOverwrite(HasRetOverwrite), LibType(LibType), LibDT(LibDT), DefaultArgsCount(DefaultArgsCount) {}
+      HasRetOverwrite(HasRetOverwrite), LibType(LibType), LibDT(LibDT), DefaultArgsCount(DefaultArgsCount) {
+}
 
 void LibFunction::Print() {
     std::cout << "extern \"C\" " << ReturnType << " ";

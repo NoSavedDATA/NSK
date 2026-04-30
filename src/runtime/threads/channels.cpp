@@ -9,12 +9,13 @@
 
 
 
-Channel::Channel() {
-}
+Channel::Channel() {}
 
 void Channel::New(Scope_Struct *scope_struct, uint16_t type, int buffer_size) {
+    // std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
     this->buffer_size = buffer_size;
     this->type = type;
+    int tid = scope_struct->thread_id;
 
     int elem_size;
     if(data_type_to_size.count(type)>0)
@@ -22,15 +23,14 @@ void Channel::New(Scope_Struct *scope_struct, uint16_t type, int buffer_size) {
     else
       elem_size = 8;
 
-    _array = newT<DT_array>(scope_struct, "array");
-    _array->New(scope_struct, buffer_size, elem_size, scope_struct->thread_id, type);
-    __atomic_store_n(&_array->virtual_size, buffer_size, __ATOMIC_RELEASE);
+    __atomic_store_n(&data, cache_pop(elem_size*buffer_size, scope_struct->thread_id), __ATOMIC_RELEASE);
+
 
     seq = (size_t*)malloc(buffer_size*sizeof(size_t));
     for (int i=0;i<buffer_size;i++)
         seq[i] = i;
 
-    // data_list = new DT_list();
+    __atomic_store_n(&init, true, __ATOMIC_RELEASE);
 }
 
 
@@ -157,8 +157,7 @@ extern "C" int float_channel_alive(Scope_Struct *scope_struct, Channel *ch) {
 
 // int x <- ch
 extern "C" int int_channel_message(Scope_Struct *scope_struct, void *ptr, Channel *ch) {    
-    DT_array *arr = ch->_array;
-    int *data = (int*)arr->data;
+    int *data = (int*)ch->data;
     
     int backoff_us = 1;
     while(!ch->terminated) {
@@ -167,7 +166,6 @@ extern "C" int int_channel_message(Scope_Struct *scope_struct, void *ptr, Channe
 
         size_t seq = __atomic_load_n(&ch->seq[ring_pos], __ATOMIC_ACQUIRE);
 
-        // std::cout << "consumer: seq " << seq << ", pos , " << pos << ", ring pos " << ring_pos  << "\n";
         intptr_t diff = (intptr_t)seq - (intptr_t)(pos+1);
         if (diff==0) {
             if (__atomic_compare_exchange_n(
@@ -176,9 +174,9 @@ extern "C" int int_channel_message(Scope_Struct *scope_struct, void *ptr, Channe
                             __ATOMIC_RELAXED,
                             __ATOMIC_RELAXED
                         )) {
+
                 int x = __atomic_load_n(&data[ring_pos], __ATOMIC_RELAXED); 
                 __atomic_store_n(&ch->seq[ring_pos], pos + ch->buffer_size, __ATOMIC_RELEASE);
-                // std::cout << " x " << x << "\n";
                 return x;
             }
         } 
@@ -189,8 +187,7 @@ extern "C" int int_channel_message(Scope_Struct *scope_struct, void *ptr, Channe
 
 // ch <- msg
 extern "C" float channel_int_message(Scope_Struct *scope_struct, Channel *ch, int x) {
-    DT_array *arr = ch->_array;
-    int *data = (int*)arr->data;
+    int *data = (int*)ch->data;
     
     int backoff_us = 1;
     while(!ch->terminated) {
@@ -218,33 +215,32 @@ extern "C" float channel_int_message(Scope_Struct *scope_struct, Channel *ch, in
     return 0;
 }
 
-extern "C" int int_channel_Idx(Scope_Struct *scope_struct, Channel *ch, int idx) {
-    std::unique_lock<std::mutex> lock(ch->mtx);
-    DT_array *arr = ch->_array;
+// extern "C" int int_channel_Idx(Scope_Struct *scope_struct, Channel *ch, int idx) {
+//     std::unique_lock<std::mutex> lock(ch->mtx);
+//     DT_array *arr = ch->_array;
 
-    ch->cv.wait(lock, [&]{ return ch->terminated || ch->size > 0; } );    
-    if(ch->terminated)
-        return -1;
+//     ch->cv.wait(lock, [&]{ return ch->terminated || ch->size > 0; } );    
+//     if(ch->terminated)
+//         return -1;
 
-    int *data = (int*)arr->data;
-    int res = data[idx];
-    std::cout << "todo  int_channel_Idx check size" << "\n";
-    // ch->size--;
+//     int *data = (int*)arr->data;
+//     int res = data[idx];
+//     std::cout << "todo  int_channel_Idx check size" << "\n";
+//     // ch->size--;
 
-    ch->cv.notify_all();
+//     ch->cv.notify_all();
 
-    return res;
-}
+//     return res;
+// }
 
 extern "C" int int_channel_sum(Scope_Struct *scope_struct, Channel *ch) {
     std::unique_lock<std::mutex> lock(ch->mtx);
-    DT_array *arr = ch->_array;
 
     ch->cv.wait(lock, [&]{ return ch->terminated || ch->size <= ch->buffer_size; } );
     if(ch->terminated)
         return -1;
 
-    int *data = (int*)arr->data;
+    int *data = (int*)ch->data;
 
     int sum=0;
     for(int i=0; i<ch->buffer_size; ++i)

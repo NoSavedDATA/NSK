@@ -437,21 +437,24 @@ extern "C" DT_array *_glob_b_(Scope_Struct *scope_struct, char *pattern) {
   int size = glob_result.gl_pathc, elem_size = 16;
   DT_array *array = newT<DT_array>(scope_struct, "array");
   array->New(scope_struct, size, elem_size, scope_struct->thread_id, 100);
-  __atomic_store_n(&array->virtual_size, size, __ATOMIC_RELEASE);
 
     
   DT_str *data = static_cast<DT_str*>(array->data);
+  // std::cout << "glob has arr " << array << "\n";
+  // std::cout << "glob has data " << data << "\n";
 
   for (size_t i = 0; i < size; ++i) {
     const char *src = glob_result.gl_pathv[i];
     size_t len = std::strlen(src)+1; //+1 for null terminator
-    char *c_copy = allocate<char>(scope_struct, len, "str");
+    char *c_copy = allocate<char>(scope_struct, len, "charp");
+    // char *c_copy = (char*)malloc(len);
     memcpy(c_copy, src, len);
 
     DT_str str_view = DT_str();
     str_view.str = c_copy;
     str_view.size = len;
     data[i] = str_view;
+    // __atomic_store_n(&data[i], str_view, __ATOMIC_RELEASE);
   }
 
   return array;

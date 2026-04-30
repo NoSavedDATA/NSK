@@ -30,6 +30,7 @@ std::map<std::string, std::map<std::string, Value *>> function_values;
 std::map<std::string, std::map<Value *, Value *>> function_vecs;
 std::map<std::string, std::map<Value *, Value *>> function_vecs_size;
 std::map<std::string, std::map<std::string, Value *>> function_pointers;
+std::vector<std::string> prebuild_functions;
 std::unordered_map<std::string, llvm::Type*> str_toTy;
 std::unordered_map<std::string, Function *> async_fn;
 std::string current_codegen_function;
@@ -309,9 +310,9 @@ Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
 
     Value *alloc_size = Builder->CreateAdd(size, const_int(1));
 
-    Value *type_id = const_uint16(data_name_to_type()["str"]);
-    Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size, type_id});
-    
+    Value *str_copy = callret("allocate_pool", {scope_struct, alloc_size,
+                                const_uint16(data_name_to_type()["charp"])});
+    // Value *str_copy = callret("malloc", {alloc_size});
     call("memcpy", {str_copy, str, size});
 
     // add \0
@@ -320,6 +321,7 @@ Value *CopyStrVal(Value *scope_struct, Value *DT_str_Val) {
 
     return str_copy;
 }
+
 
 Value *CharExprAST::codegen(Value *scope_struct) {
   if (not ShallCodegen)
@@ -1891,7 +1893,7 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
 
                 Value *nullPtr = ConstantPointerNull::get(
-                        cast<PointerType>(int8PtrTy)
+                            cast<PointerType>(int8PtrTy)
                         );
 
                 // Create the node to be stored
@@ -1917,9 +1919,9 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                     Value *float_ptr = callret("malloc", {const_int(4)});
                     Builder->CreateStore(Val, float_ptr);
                     Builder->CreateStore(float_ptr, new_node_value_gep);
-                } else if (value_type=="str") {
+                } else if (value_type=="str")
                     Builder->CreateStore(CopyStrVal(scope_struct, Val), new_node_value_gep);
-                } else
+                else
                     Builder->CreateStore(Val, new_node_value_gep);
 
                 Value *new_node_next_gep = Builder->CreateStructGEP(st_node, new_node_ptr, 2);
@@ -2618,8 +2620,7 @@ Function *codegenAsyncFunction(std::vector<std::unique_ptr<ExprAST>> asyncBody, 
     call("scope_struct_Delete", {scope_struct_typed});
 
 
-    if (V)
-    { 
+    if (V) { 
         Builder->CreateRet(Constant::getNullValue(int8PtrTy));  
 
 
@@ -2864,6 +2865,10 @@ void SetUniques(Value *scope_struct) {
             Builder->CreateStore(compound, compound_gep);
           }
         }
+        Value *previous_obj = get_scope_obj(scope_struct);
+        set_scope_obj(scope_struct, ptr);
+        call(class_name+"___init__", {scope_struct});
+        set_scope_obj(scope_struct, previous_obj);
         Global_Uniques_Idx[class_name] = idx++;
     }
 
@@ -2877,6 +2882,10 @@ Value *MainExprAST::codegen(Value *scope_struct) {
     std::string functionName = TheFunction->getName().str();
 
     SetUniques(scope_struct);
+    for (auto &prebuild_fn : prebuild_functions)
+        call(prebuild_fn, {scope_struct});
+
+
     for (const auto &body : Bodies) {
         body->codegen(scope_struct);
         if (!body)
@@ -3621,8 +3630,8 @@ Value *Nameable::codegen(Value *scope_struct) {
 
     obj_ptr = Builder->CreateStructGEP(st, obj_ptr, attr_idx);
 
-    // if (Name=="dims"){
-    //     p2t("dims");
+    // if (Name=="ptr"){
+    //     p2t("ptr");
     //     call("print_void_ptr", {obj_ptr});
     // }
 
@@ -3716,9 +3725,7 @@ Value *NameableIdx::codegen(Value *scope_struct) {
         BasicBlock *GetKeyBB = BasicBlock::Create(*TheContext, "map.get_key.bb", TheFunction);
         BasicBlock *LoadValBB = BasicBlock::Create(*TheContext, "map.get_val.bb", TheFunction);
 
-
          
-
 
         Value *query_hash;
         if (key_type=="str") {

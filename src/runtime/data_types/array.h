@@ -13,12 +13,9 @@ class DT_array {
     public:
 		int virtual_size, size, elem_size;
 		void *data=nullptr;
-        DT_array_retire *retired=nullptr;
-        uint16_t type;
+        uint16_t type=0;
 
     DT_array();
-    void retire(int, int);
-    void retire_clean();
     void New(Scope_Struct*,int, int, int, uint16_t);
     void New(Scope_Struct*,int, int, uint16_t);
 };

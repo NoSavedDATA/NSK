@@ -108,12 +108,15 @@ void GC_Observer(Scope_Struct *scope_struct) {
         lock.unlock();
 
         if (!scope_struct->alive) break;
+    
 
+        int size = gc->size_occupied;
         // if (true) {
         if (gc->size_occupied>=gc->next_clean) {
             sweeps++;
             gc->Sweep(scope_struct);
             gc->next_clean = std::min(gc->next_clean*2, 8UL<<20);
+            // gc->next_clean = std::min(size*2, 8<<20);
         }
         next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
     }

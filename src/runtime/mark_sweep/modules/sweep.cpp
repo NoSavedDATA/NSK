@@ -33,20 +33,26 @@ int GC_Span::Sweep(int tid, uint64_t mark_bit) {
             int idx = (w<<6) + __builtin_ctzll(bits);
             if(idx>=N)
                 break;
-            if (get_1(alloc_bits, idx)) {
-                uint16_t u_type = get_16_r12(type_metadata, idx);
-                if(u_type!=0) {
-                    if(u_type!=100&&type_info[u_type]==nullptr) { // Not str and not class
-                        std::string obj_type = data_type_to_name()[u_type]; 
-                        void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
-                        // std::cout << "CLEAN " << obj_type << " - " << obj_addr << ", size: " << elem_size << "\n";
-                        clean_up_functions[obj_type](obj_addr, tid);
-                    }
-                }
-                set_1(alloc_bits, idx, 0ULL); 
-            }
             uint64_t set_mask = 1ULL << (idx&63);
             bits = bits & ~set_mask;
+            if (get_1(alloc_bits, idx)) {
+                uint16_t u_type = get_16_r12(type_metadata, idx);
+                void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
+
+                // if (u_type==102) continue;
+                // if (u_type==104) continue;
+                // if (u_type==108) continue;
+                set_1(alloc_bits, idx, 0ULL); 
+                // if (u_type==100||u_type==112)
+                // std::cout << "set0 to " << data_type_to_name()[u_type] << "|" << u_type << ", size: " << elem_size << ", addr: " << obj_addr << "\n";
+
+                if(u_type==0||u_type==100||u_type==112||type_info[u_type]!=nullptr)
+                    continue;
+
+                std::string obj_type = data_type_to_name()[u_type]; 
+                // std::cout << "CLEAN " << obj_type << "|" << u_type << " - " << obj_addr << ", size: " << elem_size << "\n";
+                clean_up_functions[obj_type](obj_addr, tid);
+            }
         }
         mark_bits[w].store(mark_mask, std::memory_order_release); // eager sweep
 
@@ -136,7 +142,13 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
     uint16_t type16;
     if (root_type==108) {
         Channel *ch = (Channel*)ptr;
-        gc_list(ch->_array, 102, mark_bit);
+        // std::cout << "gc_list of " << root_type << " -- " << data_type_to_name()[root_type] << " -- "  << ptr << "\n";
+        // std::cout << "its array is " << ch->data << "\n";
+        if (ch->type>100) {
+            std::cout << "todo: non primary channel (gc_list - mark phase)" << "\n";
+            std::exit(0);
+        }
+        // bool init = __atomic_load_n(&ch->init, __ATOMIC_RELEASE);
         return;
     }
     // if (root_type==uint16_t{6}) { // list
@@ -163,12 +175,14 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
         int size = __atomic_load_n(&array->virtual_size, __ATOMIC_ACQUIRE);
         int ssize = __atomic_load_n(&array->size, __ATOMIC_ACQUIRE);
         uint16_t type = __atomic_load_n(&array->type, __ATOMIC_ACQUIRE);
+        // std::cout << "arr type: " << type << "\n";
+        // std::cout << "arr ptr: " << datap << "\n";
         if (!data)
             return;
         if(type<100) // is primary
             return;
 
-        if (type==100) {
+        if (type==100) { // DT_str
             char *base = (char*)data;
             for (int i=0; i<size; ++i) {
                 void *elem = __atomic_load_n((void**)(base + i*16), __ATOMIC_ACQUIRE);
@@ -176,7 +190,7 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
                     worklist_push(elem, type);
                 
             }
-        } else {
+        } else { // general pointer
             for (int i=0; i<size; ++i) {
                 void *elem = __atomic_load_n(&data[i], __ATOMIC_ACQUIRE);
                 if(!get_is_marked(elem, mark_bit))
@@ -185,7 +199,7 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
             }
         }
     }
-    if (root_type==uint16_t{108}) { // map 
+    if (root_type==uint16_t{104}) { // map 
         DT_map *map = static_cast<DT_map*>(ptr);
         uint16_t ktype = data_name_to_type()[map->key_type];
         uint16_t vtype = data_name_to_type()[map->val_type];
@@ -379,6 +393,7 @@ void GC_Arena::check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bi
 
 // sweep
 void GC::Sweep(Scope_Struct *scope_struct) {
+    std::cout << "start sweep" << "\n";
     int tid = scope_struct->thread_id;
     __atomic_store_n(&marking, true, __ATOMIC_RELEASE);
     std::unique_lock<std::mutex> lock(arena->sweep_mtx, std::defer_lock);
@@ -411,7 +426,6 @@ void GC::CleanUp_Unused(int tid) {
         // }
         // if (cur)
         //     cur->next_span = span_ST;
-        
 
         
         GC_Span *span_ST = nullptr, *free_span_ST = nullptr, *last_free = nullptr;

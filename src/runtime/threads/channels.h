@@ -17,9 +17,9 @@
 struct Channel {
     int buffer_size; 
     uint16_t type;
-    bool terminated=false;
+    bool terminated=false, init=false;
 
-    DT_array *_array;
+    void *data=nullptr;
     size_t head=0, tail=0, size=0;
     size_t *seq;
     
