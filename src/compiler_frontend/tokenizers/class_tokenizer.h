@@ -27,4 +27,9 @@ enum TokenizerClassTokens {
     class_tok_space = 10,
     class_tok_identifier = -4,
     class_tok_import = -5,
+    class_tok_type = -6,
+    class_tok_int = -7,
+    class_tok_float = -8,
+    class_tok_def = -9,
+    class_tok_ctor = -10,
 };

@@ -469,34 +469,29 @@ static int get_token(bool block) {
   int otherChar = LastChar;
 
 
-  if(ThisChar=='<' && LastChar=='-')
-  {
+  if(ThisChar=='<' && LastChar=='-') {
     LastChar = tokenizer->get();
     return tok_arrow;
   }
 
-  if (ThisChar=='=' && otherChar=='=')
-  {
+  if (ThisChar=='=' && otherChar=='=') {
     LastChar = tokenizer->get();
     return tok_equal;
   }
-  if (ThisChar=='!' && otherChar=='=')
-  {
+  if (ThisChar=='!' && otherChar=='=') {
     LastChar = tokenizer->get();
     return tok_diff;
   }
-  if (ThisChar=='>' && otherChar=='=')
-  {
+  if (ThisChar=='>' && otherChar=='=') {
     LastChar = tokenizer->get();
     return tok_higher_eq;
   }
-  if (ThisChar=='<' && otherChar=='=')
-  {
+  if (ThisChar=='<' && otherChar=='=') {
     LastChar = tokenizer->get();
     return tok_minor_eq;
   }
 
-  if((ThisChar=='/')&&(otherChar == '/')){
+  if((ThisChar=='/')&&(otherChar == '/')) {
     LastChar = tokenizer->get();
     return tok_int_div;
   }

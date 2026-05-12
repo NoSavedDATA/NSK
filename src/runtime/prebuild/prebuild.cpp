@@ -205,7 +205,7 @@ extern "C" int prebuild() {
             {tok_xor, "xor"}, {tok_offby, "offby"}};
 
     for (auto pair : op_map)
-    op_map_names.push_back(pair.second);
+        op_map_names.push_back(pair.second);
 
 
 

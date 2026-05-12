@@ -40,10 +40,19 @@ TokenizerClass::TokenizerClass(std::string file) : TokenizerIF(file) {
 int TokenizerClass::getToken() {
   // LastChar = ' ';
 
-
   // Skip any whitespace and backspace.  
-  while (LastChar==32 || LastChar==9 || LastChar==13)
+  int seenspaces=0;
+  while (LastChar==32 || LastChar==9 || LastChar==13) {
+    if(LastChar==9)
+        SeenTabs++;
+    if (LastChar==32)
+        seenspaces++;
+    if (seenspaces==3) {
+        seenspaces=0; 
+        SeenTabs++;
+    }
     LastChar = get();
+  }
 
 
   if(LastChar=='.') {
@@ -82,8 +91,35 @@ int TokenizerClass::getToken() {
         return class_tok_class;
     if (IdentifierStr=="import")
         return class_tok_import;
+    if (IdentifierStr=="ctor")
+        return class_tok_ctor;
+    if (IdentifierStr=="def")
+        return class_tok_def;
     return class_tok_identifier;
   }
+
+
+  if (isdigit(LastChar)) { // Number: [-.]+[0-9.]+
+    bool is_float=false;
+    
+    std::string NumStr;
+    if (LastChar == '-') { // Check for optional minus sign
+      NumStr += LastChar;
+      LastChar = get();
+    }
+    do {
+      if(LastChar=='.')
+        is_float=true;
+
+      NumStr += LastChar;
+      LastChar = get();
+    } while (isdigit(LastChar) || LastChar == '.');
+
+    NumVal = strtod(NumStr.c_str(), nullptr);
+
+    return (is_float) ? class_tok_float : class_tok_int;
+  }
+
   
 
   // Check for end of file.  Don't eat the EOF.
@@ -96,6 +132,7 @@ int TokenizerClass::getToken() {
 
   if (ThisChar==10) {
       LastChar = get();
+      SeenTabs=0;
       return class_tok_space;
   }
   LastChar = get();

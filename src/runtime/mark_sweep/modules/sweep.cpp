@@ -40,10 +40,7 @@ int GC_Span::Sweep(int tid, uint64_t mark_bit) {
                 void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
 
                 // if (u_type==102) continue;
-                // if (u_type==104) continue;
-                // if (u_type==108) continue;
                 set_1(alloc_bits, idx, 0ULL); 
-                // if (u_type==100||u_type==112)
                 // std::cout << "set0 to " << data_type_to_name()[u_type] << "|" << u_type << ", size: " << elem_size << ", addr: " << obj_addr << "\n";
 
                 if(u_type==0||u_type==100||u_type==112||type_info[u_type]!=nullptr)
@@ -393,7 +390,6 @@ void GC_Arena::check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bi
 
 // sweep
 void GC::Sweep(Scope_Struct *scope_struct) {
-    std::cout << "start sweep" << "\n";
     int tid = scope_struct->thread_id;
     __atomic_store_n(&marking, true, __ATOMIC_RELEASE);
     std::unique_lock<std::mutex> lock(arena->sweep_mtx, std::defer_lock);
@@ -406,7 +402,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     arena->mark_worklist_pointers(scope_struct, mark_bit);
 
 
-    std::cout << "sweep" << "\n";
+    // std::cout << "sweep" << "\n";
 
     __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
     allocations=0;

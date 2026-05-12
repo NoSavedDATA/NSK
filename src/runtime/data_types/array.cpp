@@ -447,9 +447,9 @@ extern "C" int array_shuffle_str(Scope_Struct *ctx, DT_array *arr) {
     int len = arr->virtual_size;
     DT_str *new_data = (DT_str*)cache_pop(arr->size*arr->elem_size, ctx->thread_id);
 
-    std::cout << "arr " << arr << "\n";
-    std::cout << "data " << data << "\n";
-    std::cout << "GOT LEN " << len << "\n";
+    // std::cout << "arr " << arr << "\n";
+    // std::cout << "data " << data << "\n";
+    // std::cout << "GOT LEN " << len << "\n";
     
     std::vector<int> indices(len);
     for (int i = 0; i < len; ++i)

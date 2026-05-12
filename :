@@ -47,106 +47,38 @@ static void ParseImport(std::unique_ptr<TokenizerClass> &class_tokenizer) {
     }
 }
 
-static Data_Tree ParseDataTree(std::unique_ptr<TokenizerClass> &class_tokenizer, int &tok) {
+static Data_Tree ParseDataTree(std::unique_ptr<TokenizerClass> &class_tokenizer) {
     std::string type = class_tokenizer->IdentifierStr;
     Data_Tree ty = Data_Tree(type);
-    tok = class_tokenizer->getToken();
-
+    int tok = class_tokenizer->getToken();
     if (tok=='[') {
         tok = class_tokenizer->getToken();
         int num = class_tokenizer->NumVal;
         ty.Nested_Data.push_back(Data_Tree(std::to_string(num)));
-        while (tok==',') {
-            tok = class_tokenizer->getToken();
-            ty.Nested_Data.push_back(Data_Tree(std::to_string(class_tokenizer->NumVal)));
-        }
         tok = class_tokenizer->getToken();
     }
 
     if (tok=='<') {
+        std::cout << "is compost" << "\n";
         tok = class_tokenizer->getToken();
-        ty.Nested_Data.push_back(ParseDataTree(class_tokenizer, tok));
-
+        ty.Nested_Data.push_back(ParseDataTree(class_tokenizer));
         while (tok==',') {
+            std::cout << "DT CHAIN" << "\n";
             tok = class_tokenizer->getToken();
-            ty.Nested_Data.push_back(ParseDataTree(class_tokenizer, tok));
+            ty.Nested_Data.push_back(ParseDataTree(class_tokenizer));
         }
         class_tokenizer->getToken(); // eat >
     }
-    // std::cout << "\n\ntype:" << "\n";
-    // ty.Print();
-
+    std::cout << "\n\ntype:" << "\n";
+    ty.Print();
     return ty;
 }
 
-static void ParseDef(std::unique_ptr<TokenizerClass> &class_tokenizer, std::string class_name) {
-    if (class_tokenizer->SeenTabs==0)
-        return;
-
-    int tok = class_tokenizer->getToken(); // eat def
-    Data_Tree type;
-    type = ParseDataTree(class_tokenizer, tok); // eat dt
-    
-    std::string fn_name = class_name + "_" + class_tokenizer->IdentifierStr;
-    functions_return_data_type[fn_name] = type;
-
-    tok = class_tokenizer->getToken(); // eat name
-
-    // std::cout << "fn " << fn_name << "\n";
-    // std::cout << "ret" << "\n";
-    // type.Print();
-    // std::cout << "\n";
-    
-
-    Function_Arg_Names[fn_name].push_back("scope_struct");
-    Function_Arg_DataTypes[fn_name]["scope_struct"] = Data_Tree("Scope_Struct");
-
-    tok = class_tokenizer->getToken(); // eat (
-    while (true) {
-        if (tok==')')
-            break;
-
-        std::string type = class_tokenizer->IdentifierStr;
-
-        Data_Tree ty;
-        if (in_vec(type, {"t", "s", "i", "f", "b"})) {
-            if (type=="t")
-                ty = Data_Tree("tensor");
-            else if (type=="i")
-                ty = Data_Tree("int");
-            else if (type=="b")
-                ty = Data_Tree("bool");
-            else if (type=="f")
-                ty = Data_Tree("float");
-            else if (type=="s")
-                ty = Data_Tree("str");
-            tok = class_tokenizer->getToken(); 
-        }
-        else
-            ty = ParseDataTree(class_tokenizer, tok);
-
-
-        std::string var_name = class_tokenizer->IdentifierStr;
-        tok = class_tokenizer->getToken(); 
-
-        
-        Function_Arg_Names[fn_name].push_back(var_name);
-        Function_Arg_DataTypes[fn_name][var_name] = ty;
-
-        
-        if (tok==',')
-            tok = class_tokenizer->getToken(); 
-
-    }
-
-}
-
-
-static std::string ParseClass(std::unique_ptr<TokenizerClass> &class_tokenizer) {
+static void ParseClass(std::unique_ptr<TokenizerClass> &class_tokenizer) {
     int tok = class_tokenizer->getToken();
     std::string _class = class_tokenizer->IdentifierStr;
     Classes[_class] = 1;
-    // std::cout << "\n\n--" << _class << "\n";
+    std::cout << "\n\n--" << _class << "\n";
     
     tok = class_tokenizer->getToken();
     while (tok==10)
@@ -154,17 +86,17 @@ static std::string ParseClass(std::unique_ptr<TokenizerClass> &class_tokenizer) 
 
     while(tok==class_tok_identifier) {
         Data_Tree type;
-        type = ParseDataTree(class_tokenizer, tok);
+        type = ParseDataTree(class_tokenizer);
             
         std::string var_name = class_tokenizer->IdentifierStr;
         data_typeVars[_class][var_name] = type;
 
-        // std::cout << " " << var_name << ",";
+        std::cout << " " << var_name << ",";
         tok = class_tokenizer->getToken();
         while (tok==',') {
             tok = class_tokenizer->getToken();
             var_name = class_tokenizer->IdentifierStr;
-            // std::cout << " " << var_name << ",";
+            std::cout << " " << var_name << ",";
             data_typeVars[_class][var_name] = type;
             tok = class_tokenizer->getToken();
         }
@@ -172,16 +104,14 @@ static std::string ParseClass(std::unique_ptr<TokenizerClass> &class_tokenizer) 
         while (tok==10)
             tok = class_tokenizer->getToken();
     }
-    
-    return _class;
-}
 
+
+}
 
 void ParseClasses(std::string fname) {
     std::unique_ptr<TokenizerClass> class_tokenizer;
     class_tokenizer = std::make_unique<TokenizerClass>(fname);
     
-    std::string last_class="";
     int tok = 0;
     while (tok!=class_tok_eof) {
         tok = class_tokenizer->getToken();
@@ -190,11 +120,7 @@ void ParseClasses(std::string fname) {
                 ParseImport(class_tokenizer);
                 break;
             case(class_tok_class):
-                last_class = ParseClass(class_tokenizer);
-                break;
-            case(class_tok_def):
-                ParseDef(class_tokenizer, last_class);
-                // last_class = ParseClass(class_tokenizer);
+                ParseClass(class_tokenizer);
                 break;
             default:
                 break;
