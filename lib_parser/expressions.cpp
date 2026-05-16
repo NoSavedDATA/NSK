@@ -34,7 +34,6 @@ ExternFunctionExpr::ExternFunctionExpr(const std::string &ReturnType, const std:
 
 PlaceholderExpr::PlaceholderExpr() {};
 Lib_Info *PlaceholderExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) {
-    // std::cout << "Deal with placeholder" << ".\n";
     return lib_info;
 }
 
@@ -42,23 +41,18 @@ Lib_Info *PlaceholderExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) 
 CppFunctionExpr::CppFunctionExpr(const std::string & FunctionName) : FunctionName(FunctionName) {};
 
 Lib_Info *CppFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) {
-    // Build std::maps<> for _backward and _Clean_Up functions
+    // Build std::maps<> for _Clean_Up functions
 
     std::string dict_key="";
 
-    if(ends_with(FunctionName, "_Clean_Up"))
-    {
+    if(ends_with(FunctionName, "_Clean_Up")) {
         dict_key=FunctionName; 
         size_t pos = dict_key.rfind("_Clean_Up");
         if (pos != std::string::npos) {
             dict_key.replace(pos, 9, "");
         }
         lib_info->clean_up_functions = lib_info->clean_up_functions + "\tclean_up_functions[\"" + dict_key + "\"] = " + FunctionName+";\n";
-    } else if (ends_with(FunctionName, "_backward"))
-        lib_info->backward_functions = lib_info->backward_functions + "\tbackward_functions[\"" + FunctionName + "\"] = " + FunctionName+";\n";
-    else {
-
-    }
+    } 
 
     return lib_info;
 }
@@ -121,28 +115,17 @@ Lib_Info *Generate_Function_Dict(Lib_Info *lib_info, std::string in_return_type,
 Lib_Info *PlaceholderExpr::Generate_Args_Dict(Lib_Info *lib_info) {}
 Lib_Info *CppFunctionExpr::Generate_Args_Dict(Lib_Info *lib_info) {}
 
+std::unordered_map<std::string,std::string> arg_subs = {{"uint64_t", "i64"}, {"int64_t", "i64"},
+                                                        {"uint16_t", "i16"}, {"int16_t", "i16"},
+                                                        {"uint8_t", "i8"}, {"int8_t", "i8"}};
+
 Lib_Info *ExternFunctionExpr::Generate_Args_Dict(Lib_Info *lib_info) {
-
-    // Handle Arg Types
-    // if (ends_with(FunctionName, "_Create")||ends_with(FunctionName, "_Load")||ends_with(FunctionName, "_Copy")\
-    //     ||ends_with(FunctionName, "_New")||ends_with(FunctionName, "_CopyArg")||ends_with(FunctionName, "_Idx")\
-    //     ||ends_with(FunctionName, "_Idx_num")||ends_with(FunctionName, "_Slice")||ends_with(FunctionName, "_Split_Parallel")\
-    //     ||ends_with(FunctionName, "_Split_Strided_Parallel")||ends_with(FunctionName, "_CalculateSliceIdx")\
-    //     ||ends_with(FunctionName, "_CalculateIdx")||ends_with(FunctionName, "_Store_Idx")||begins_with(FunctionName, "scope_struct")\
-    //     ||contains_str(FunctionName, "Attr_on_Offset")||contains_str(FunctionName, "Load_on_Offset")||begins_with(FunctionName, "set_scope")\
-    //     ||begins_with(FunctionName, "get_scope")||FunctionName=="FirstArgOnDemand"||begins_with(FunctionName, "MarkToSweep"))
-    //     return lib_info;
-
-
     std::string arg_names_line = "\n\t";
     std::string arg_types_line = "\n\t";
     std::string arg_data_types_line = "\n\t";
 
-
-    if (ArgTypes.size()>0)
-    {
-        for(int i=0; i<ArgTypes.size(); ++i)
-        {
+    if (ArgTypes.size()>0) {
+        for(int i=0; i<ArgTypes.size(); ++i) {
             
             std::string arg_type = ArgTypes[i];
             removeSpacesAndAsterisks(arg_type);
@@ -158,6 +141,8 @@ Lib_Info *ExternFunctionExpr::Generate_Args_Dict(Lib_Info *lib_info) {
                 arg_type = "str_vec";
             if (arg_type=="char")
                 arg_type = "str";
+            if (arg_subs.count(arg_type))
+                arg_type = arg_subs[arg_type];
             if (begins_with(arg_type, "DT_"))
                 arg_type = remove_substring(arg_type, "DT_");
             
@@ -202,30 +187,20 @@ Lib_Info *ExternFunctionExpr::Generate_Args_Dict(Lib_Info *lib_info) {
 }
 
 
-  // floatPtrTy = Type::getFloatTy(*TheContext)->getPointerTo();
-  // int8PtrTy = Type::getInt8Ty(*TheContext)->getPointerTo();
-  // int8Ty = Type::getInt8Ty(*TheContext);
-  // intTy = Type::getInt32Ty(*TheContext);
-  // int64Ty = Type::getInt64Ty(*TheContext);
-  // floatTy = Type::getFloatTy(*TheContext);
-  // boolTy = Type::getInt1Ty(*TheContext);
-  // voidTy = Type::getVoidTy(*TheContext);
 
 std::unordered_map<std::string, std::string> str_to_type = \
     {{"float", "Type::getFloatTy(*TheContext)"}, {"int", "Type::getInt32Ty(*TheContext)"},
      {"uint64_t", "Type::getInt64Ty(*TheContext)"}, {"int64_t", "Type::getInt64Ty(*TheContext)"},
      {"bool", "Type::getInt1Ty(*TheContext)"}, {"void", "Type::getVoidTy(*TheContext)"},
-     {"int16_t", "Type::getInt16Ty(*TheContext)"}, {"uint16_t", "Type::getInt16Ty(*TheContext)"}}; 
+     {"DT_str", "struct_types[\"DT_str\"]"}, {"DT_str*", "struct_types[\"DT_str\"]->getPointerTo()"},
+     {"int16_t", "Type::getInt16Ty(*TheContext)"}, {"uint16_t", "Type::getInt16Ty(*TheContext)"}};
+
 
 Lib_Info *ExternFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_info) {
-    
-
     // std::cout << "generate function dict for " << FunctionName << ".\n";
     lib_info = Generate_Function_Dict(lib_info, ReturnType, FunctionName); 
 
-    if (!(FunctionName=="pthread_create_aux"||FunctionName=="pthread_join_aux"))
-    {
-
+    if (!(FunctionName=="pthread_create_aux"||FunctionName=="pthread_join_aux")) {
 
 
         std::string fTy = FunctionName+"Ty";
@@ -239,10 +214,8 @@ Lib_Info *ExternFunctionExpr::Generate_LLVM(std::string fname, Lib_Info *lib_inf
 
         std::string line3 = "\t\t{";
 
-        if (ArgTypes.size()>0)
-        {
-            for(int i=0; i<ArgTypes.size(); ++i)
-            {
+        if (ArgTypes.size()>0) {
+            for(int i=0; i<ArgTypes.size(); ++i) {
                 std::string llvm_return_type="int8PtrTy";
                 if (str_to_type.count(ArgTypes[i])>0)
                     llvm_return_type = str_to_type[ArgTypes[i]];

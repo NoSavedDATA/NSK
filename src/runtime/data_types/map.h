@@ -5,6 +5,16 @@
 #include <cstring>
 #include <string>
 
+inline uint32_t str_hash(const char* str, std::size_t len) {
+    uint32_t hash = 2166136261u;
+
+    for (std::size_t i = 0; i < len; ++i) {
+        hash ^= static_cast<uint8_t>(str[i]);
+        hash *= 16777619u;
+    }
+
+    return hash;
+}
 inline unsigned int str_hash(const char *str) {
     unsigned int hash = 2166136261u; // FNV-1a offset basis
 
@@ -36,6 +46,12 @@ struct DT_map_node {
     DT_map_node *next=nullptr;
 
     DT_map_node(int, int);
+};
+struct DT_node_retire {
+    DT_node_retire *next;
+    DT_map_node *data;
+    int tid;
+    DT_node_retire(DT_map_node *data, int);
 };
 
 struct DT_map {

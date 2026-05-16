@@ -39,7 +39,10 @@ int GC_Span::Sweep(int tid, uint64_t mark_bit) {
                 uint16_t u_type = get_16_r12(type_metadata, idx);
                 void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
 
-                // if (u_type==102) continue;
+                // if (u_type==104) continue;
+                // if (u_type==103) continue;
+                // if (elem_size==16)
+                //     std::cout << "" << u_type << " | " << data_type_to_name()[u_type] << "\n";
                 set_1(alloc_bits, idx, 0ULL); 
                 // std::cout << "set0 to " << data_type_to_name()[u_type] << "|" << u_type << ", size: " << elem_size << ", addr: " << obj_addr << "\n";
 
@@ -197,23 +200,32 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
         }
     }
     if (root_type==uint16_t{104}) { // map 
+        // std::cout << "GOT MAP" << "\n";
         DT_map *map = static_cast<DT_map*>(ptr);
         uint16_t ktype = data_name_to_type()[map->key_type];
         uint16_t vtype = data_name_to_type()[map->val_type];
-        bool mark_key = ktype>=100; //not primary
-        bool mark_val = vtype>=100;
+        bool mark_key = ktype>100; //not primary
+        bool mark_val = vtype>100;
 
         for (int i=0; i<map->capacity; ++i) {
-            DT_map_node *node = map->nodes[i];
+            DT_map_node *node = __atomic_load_n(&map->nodes[i],__ATOMIC_ACQUIRE);
             while (node!=nullptr) {
                 mark_obj(node, type16, mark_bit);
-                if (mark_key)
+                if (mark_key) {
                     mark_obj(node->key, type16, mark_bit);
+                    if (ktype==102) {
+                        std::cout << "MARK ARRAY" << "\n";
+                        DT_array *arr = (DT_array*)node->key;
+                        std::cout << "arr vsize " << arr->virtual_size << "\n";
+                        gc_list(node->key, ktype, mark_bit);
+                    }
+                }
                 if(mark_val)
                     worklist_push(node->value, vtype);
-                node = node->next;
+                node = __atomic_load_n(&node->next,__ATOMIC_ACQUIRE);
             }
         }
+        // std::exit(0);
     }
 }
 
@@ -400,10 +412,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     arena->check_roots_worklist(scope_struct, mark_bit);
     lock.unlock();
     arena->mark_worklist_pointers(scope_struct, mark_bit);
-
-
     // std::cout << "sweep" << "\n";
-
     __atomic_store_n(&marking, false, __ATOMIC_RELEASE);
     allocations=0;
     size_occupied=0;
@@ -446,7 +455,7 @@ void GC::CleanUp_Unused(int tid) {
                 span_ST = span;
             }
             if (free_slots>=span->N) {
-                span->cur_free = (char*)span->span_address;
+                // span->cur_free = (char*)span->span_address;
                 span->free_idx=0;
             }
         }
@@ -458,7 +467,7 @@ void GC::CleanUp_Unused(int tid) {
         arena->current_span[span_group] = first_span;
     }
     mark_bit ^= 1;
-    retire_clean();
+    // retire_clean(); // trigger even with no sweep in observer fn
 }
 
 
@@ -469,14 +478,38 @@ void GC::retire_arr(void *data, int size, int tid) {
     CAS_push(x, retired_arr);
 }
 
+void GC::retire_node(DT_map_node *data, int tid) {
+    DT_node_retire *x = new DT_node_retire(data, tid);
+    CAS_push(x, retired_nodes);
+}
+
 void GC::retire_clean() {
     // stw
-    while (retired_arr) {
-        // std::cout << "retire " << retired_arr->data << "\n";
-        cache_push(retired_arr->data, retired_arr->size, retired_arr->tid);
-        // free(retired_arr->data);
-        DT_array_retire *old = retired_arr;
-        retired_arr = retired_arr->next;
+
+    DT_array_retire *vec_list =
+        __atomic_exchange_n(&retired_arr,
+                            nullptr,
+                            __ATOMIC_ACQUIRE);
+    while (vec_list) {
+        cache_push(vec_list->data, vec_list->size, vec_list->tid);
+        // free(vec_list->data);
+        DT_array_retire *old = vec_list;
+        vec_list = vec_list->next;
+        delete old;
+    }
+
+    DT_node_retire *nodes_list =
+        __atomic_exchange_n(&retired_nodes,
+                            nullptr,
+                            __ATOMIC_ACQUIRE);
+    while (nodes_list) {
+        if(!check_is_in_bounds((char*)arena->arena, (char*)nodes_list->data->key))
+            free(nodes_list->data->key);
+        free(nodes_list->data->value);
+        free(nodes_list->data);
+        DT_node_retire *old = nodes_list;
+        nodes_list = nodes_list->next;
         delete old;
     }
 }
+

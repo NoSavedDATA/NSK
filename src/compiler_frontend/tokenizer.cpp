@@ -47,10 +47,13 @@ std::map<int, std::string> token_to_string = {
   // primary
   { tok_identifier, "tok identifier" },
   { tok_number, "tok number" },
+  { tok_hexa, "tok hexa (0x)" },
   { tok_str, "tok str `` ''" },
   { tok_char, "tok char `` ''" },
   { tok_var, "var" },
   { tok_int, "int number" },
+  { tok_lutlo, "lut_lo" },
+  { tok_luthi, "lut_hi" },
 
   { tok_new, "tok new" },
 
@@ -148,6 +151,8 @@ std::map<int, std::string> token_to_string = {
   { 123, "{" },
   { 125, "}" },
 
+  { tok_lshift, "<<" },
+  { tok_rshift, ">>" },
   { tok_equal, "==" },
   { tok_diff, "!=" },
   { tok_int_div, "//" },
@@ -207,6 +212,7 @@ std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self
 											 {"as", tok_as}, {"spawn", tok_spawn}, {"channel", tok_channel},
                                              {"main", tok_main},
                                              {"nil", tok_nil},
+                                             {"lut_lo", tok_lutlo}, {"lut_hi", tok_luthi},
                                              {"any", tok_any},
                                              {"proto", tok_proto}, {"operation", tok_op},
                                              {"and", tok_and},
@@ -216,6 +222,7 @@ std::map<std::string, char> string_tokens = {{"var", tok_var}, {"self", tok_self
 
 std::string IdentifierStr; // Filled in if tok_identifier
 float NumVal;             // Filled in if tok_number
+int HexaVal;
 bool BoolVal;
 
 std::string ReverseToken(int _char) {
@@ -386,6 +393,7 @@ static int get_token(bool block) {
   
   if (isdigit(LastChar)) { // Number: [-.]+[0-9.]+
     bool is_float=false;
+    bool is_hexa=false;
     
     std::string NumStr;
     if (LastChar == '-') { // Check for optional minus sign
@@ -394,17 +402,22 @@ static int get_token(bool block) {
     }
     do {
       if(LastChar=='.')
-      {
-        
         is_float=true;
-      }
+      if(LastChar=='x')
+        is_hexa=true;
+
       NumStr += LastChar;
       LastChar = tokenizer->get();
-    } while (isdigit(LastChar) || LastChar == '.');
+    } while (isdigit(LastChar) || LastChar == '.' || LastChar=='x' || (is_hexa&&isalpha(LastChar)));
 
-    NumVal = strtod(NumStr.c_str(), nullptr);
-
-    return (is_float) ? tok_number : tok_int;
+    if (is_hexa)
+        HexaVal = strtoull(NumStr.c_str(), nullptr, 16);
+    else
+        NumVal = strtod(NumStr.c_str(), nullptr);
+    
+    if (is_float) return tok_number;
+    if (is_hexa) return tok_hexa;
+    return tok_int;
   }
 
   if (LastChar == '#') {
@@ -472,6 +485,15 @@ static int get_token(bool block) {
   if(ThisChar=='<' && LastChar=='-') {
     LastChar = tokenizer->get();
     return tok_arrow;
+  }
+
+  if(ThisChar=='<' && LastChar=='|') {
+    LastChar = tokenizer->get();
+    return tok_lshift;
+  }
+  if(ThisChar=='>' && LastChar=='|') {
+    LastChar = tokenizer->get();
+    return tok_rshift;
   }
 
   if (ThisChar=='=' && otherChar=='=') {

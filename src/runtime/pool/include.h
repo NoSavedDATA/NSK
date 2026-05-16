@@ -63,6 +63,10 @@ T *newT(Scope_Struct *scope_struct, std::string type) {
         if (it==data_name_to_type().end())
             LogErrorC(-1, std::string("Type ") + type + " not implemented.");
         uint16_t type_id = it->second;
+        // if (type_id==104) {
+        //     std::cout << "GOT MAP" << "\n";
+        //     std::exit(0);
+        // }
 
         void *v_ptr = scope_struct->Allocate(sizeof(T), type_id);
         ptr = new (v_ptr) T();

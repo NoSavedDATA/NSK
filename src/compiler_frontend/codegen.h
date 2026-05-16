@@ -48,6 +48,10 @@ AllocaInst *CreateEntryBlockAlloca(Function *TheFunction,
 
 Value *load_alloca(std::string name, std::string type, std::string from_function);
 
+void StoreVal(Function *TheFunction, std::string fn_name, std::string name, Value *val, Data_Tree dt);
+Value *LoadVal(std::string fn_name, std::string name, Data_Tree dt);
+
+
 
 Type *get_type_from_str(std::string type);
 llvm::Type *get_type_from_data(Data_Tree);

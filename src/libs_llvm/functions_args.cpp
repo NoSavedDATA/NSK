@@ -220,6 +220,15 @@ void set_functions_args_type() {
 		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("1");
 		Function_Arg_Names["scope_struct_Get_Async_Scope"].push_back("2");
 		
+		Function_Arg_Types["ctx_print_buffer"]["0"] = "Scope_Struct";
+		Function_Arg_Types["ctx_print_buffer"]["1"] = "int";
+		
+		Function_Arg_DataTypes["ctx_print_buffer"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["ctx_print_buffer"]["1"] = Data_Tree("int");
+		
+		Function_Arg_Names["ctx_print_buffer"].push_back("0");
+		Function_Arg_Names["ctx_print_buffer"].push_back("1");
+		
 		Function_Arg_Types["scope_struct_print"]["0"] = "Scope_Struct";
 		
 		Function_Arg_DataTypes["scope_struct_print"]["0"] = Data_Tree("Scope_Struct");
@@ -412,6 +421,18 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_Create"].push_back("0");
 		Function_Arg_Names["map_Create"].push_back("1");
 		
+		Function_Arg_Types["map_node_reclaim"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_node_reclaim"]["1"] = "map";
+		Function_Arg_Types["map_node_reclaim"]["2"] = "map_node";
+		
+		Function_Arg_DataTypes["map_node_reclaim"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_node_reclaim"]["1"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_node_reclaim"]["2"] = Data_Tree("map_node");
+		
+		Function_Arg_Names["map_node_reclaim"].push_back("0");
+		Function_Arg_Names["map_node_reclaim"].push_back("1");
+		Function_Arg_Names["map_node_reclaim"].push_back("2");
+		
 		Function_Arg_Types["map_expand"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_expand"]["1"] = "map";
 		
@@ -445,6 +466,18 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_has_int"].push_back("1");
 		Function_Arg_Names["map_has_int"].push_back("2");
 		
+		Function_Arg_Types["map_has_i64"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_has_i64"]["1"] = "map";
+		Function_Arg_Types["map_has_i64"]["2"] = "i64";
+		
+		Function_Arg_DataTypes["map_has_i64"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_has_i64"]["1"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_has_i64"]["2"] = Data_Tree("i64");
+		
+		Function_Arg_Names["map_has_i64"].push_back("0");
+		Function_Arg_Names["map_has_i64"].push_back("1");
+		Function_Arg_Names["map_has_i64"].push_back("2");
+		
 		Function_Arg_Types["map_has_float"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_has_float"]["1"] = "map";
 		Function_Arg_Types["map_has_float"]["2"] = "float";
@@ -456,6 +489,18 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_has_float"].push_back("0");
 		Function_Arg_Names["map_has_float"].push_back("1");
 		Function_Arg_Names["map_has_float"].push_back("2");
+		
+		Function_Arg_Types["map_has_char"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_has_char"]["1"] = "map";
+		Function_Arg_Types["map_has_char"]["2"] = "int";
+		
+		Function_Arg_DataTypes["map_has_char"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_has_char"]["1"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_has_char"]["2"] = Data_Tree("int");
+		
+		Function_Arg_Names["map_has_char"].push_back("0");
+		Function_Arg_Names["map_has_char"].push_back("1");
+		Function_Arg_Names["map_has_char"].push_back("2");
 		
 		Function_Arg_Types["map_print"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_print"]["1"] = "map";
@@ -484,6 +529,15 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_values"].push_back("0");
 		Function_Arg_Names["map_values"].push_back("1");
 		
+		Function_Arg_Types["map_size"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_size"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_size"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_size"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_size"].push_back("0");
+		Function_Arg_Names["map_size"].push_back("1");
+		
 		Function_Arg_Types["map_bad_key_str"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_bad_key_str"]["1"] = "str";
 		
@@ -502,6 +556,26 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_bad_key_int"].push_back("0");
 		Function_Arg_Names["map_bad_key_int"].push_back("1");
 		
+		Function_Arg_Types["map_bad_key_i64"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_bad_key_i64"]["1"] = "i64";
+		
+		Function_Arg_DataTypes["map_bad_key_i64"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_bad_key_i64"]["1"] = Data_Tree("i64");
+		
+		Function_Arg_Names["map_bad_key_i64"].push_back("0");
+		Function_Arg_Names["map_bad_key_i64"].push_back("1");
+		
+		Function_Arg_Types["map_bad_key_array"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_bad_key_array"]["1"] = "array";
+		
+		Function_Arg_DataTypes["map_bad_key_array"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree map_bad_key_array_1 = Data_Tree("array");
+		map_bad_key_array_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["map_bad_key_array"]["1"] = map_bad_key_array_1;
+		
+		Function_Arg_Names["map_bad_key_array"].push_back("0");
+		Function_Arg_Names["map_bad_key_array"].push_back("1");
+		
 		Function_Arg_Types["map_bad_key_float"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_bad_key_float"]["1"] = "float";
 		
@@ -510,6 +584,15 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["map_bad_key_float"].push_back("0");
 		Function_Arg_Names["map_bad_key_float"].push_back("1");
+		
+		Function_Arg_Types["map_clear"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_clear"]["1"] = "map";
+		
+		Function_Arg_DataTypes["map_clear"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_clear"]["1"] = Data_Tree("map");
+		
+		Function_Arg_Names["map_clear"].push_back("0");
+		Function_Arg_Names["map_clear"].push_back("1");
 	
 		
 		Function_Arg_Types["bool_to_str_buffer"]["0"] = "Scope_Struct";
@@ -825,6 +908,33 @@ void set_functions_args_type() {
 		
 		Function_Arg_Names["array_shuffle_str"].push_back("0");
 		Function_Arg_Names["array_shuffle_str"].push_back("1");
+		
+		Function_Arg_Types["hash_array_int"]["0"] = "Scope_Struct";
+		Function_Arg_Types["hash_array_int"]["1"] = "array";
+		
+		Function_Arg_DataTypes["hash_array_int"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree hash_array_int_1 = Data_Tree("array");
+		hash_array_int_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["hash_array_int"]["1"] = hash_array_int_1;
+		
+		Function_Arg_Names["hash_array_int"].push_back("0");
+		Function_Arg_Names["hash_array_int"].push_back("1");
+		
+		Function_Arg_Types["array_eq_int"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_eq_int"]["1"] = "array";
+		Function_Arg_Types["array_eq_int"]["2"] = "array";
+		
+		Function_Arg_DataTypes["array_eq_int"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_eq_int_1 = Data_Tree("array");
+		array_eq_int_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_eq_int"]["1"] = array_eq_int_1;
+		Data_Tree array_eq_int_2 = Data_Tree("array");
+		array_eq_int_2.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_eq_int"]["2"] = array_eq_int_2;
+		
+		Function_Arg_Names["array_eq_int"].push_back("0");
+		Function_Arg_Names["array_eq_int"].push_back("1");
+		Function_Arg_Names["array_eq_int"].push_back("2");
 	
 		
 		Function_Arg_Types["get_tid"]["0"] = "Scope_Struct";
@@ -1059,11 +1169,11 @@ void set_functions_args_type() {
 		Function_Arg_Names["int_to_str"].push_back("1");
 		
 		Function_Arg_Types["i64_to_str_buffer"]["0"] = "Scope_Struct";
-		Function_Arg_Types["i64_to_str_buffer"]["1"] = "int64_t";
+		Function_Arg_Types["i64_to_str_buffer"]["1"] = "i64";
 		Function_Arg_Types["i64_to_str_buffer"]["2"] = "str";
 		
 		Function_Arg_DataTypes["i64_to_str_buffer"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["i64_to_str_buffer"]["1"] = Data_Tree("int64_t");
+		Function_Arg_DataTypes["i64_to_str_buffer"]["1"] = Data_Tree("i64");
 		Function_Arg_DataTypes["i64_to_str_buffer"]["2"] = Data_Tree("str");
 		
 		Function_Arg_Names["i64_to_str_buffer"].push_back("0");

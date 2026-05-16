@@ -45,12 +45,17 @@ enum Token {
     tok_identifier = -4,
     tok_number = -5,
     tok_int = -13,
+    tok_hexa = -80,
     tok_str = -40, // ""
     tok_char = -69, // ""
     tok_bool = -58,
     tok_any = -72,
     tok_nil = -73,
 
+
+    // consts
+    tok_lutlo = -81,
+    tok_luthi = -82,
 
     // bools
     tok_and = -59,
@@ -91,6 +96,8 @@ enum Token {
     tok_mod = -29,
     tok_arrow = -57,
     tok_offby = -70,
+    tok_lshift = -75,
+    tok_rshift = -76,
 
 
     tok_space = -14,
@@ -153,6 +160,7 @@ extern std::vector<char> terminal_tokens;
 
 extern std::string IdentifierStr; // Filled in if tok_identifier
 extern float NumVal;             // Filled in if tok_number
+extern int HexaVal;
 extern bool BoolVal;
 
 

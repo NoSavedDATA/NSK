@@ -16,6 +16,7 @@ DT_array::DT_array() {}
 
 
 void DT_array::New(Scope_Struct *ctx, int size, int elem_size, int tid, uint16_t type) {
+    // std::cout << "New of size " << size << "\n";
     std::unique_lock<std::mutex> lock(ctx->gc->arena->sweep_mtx);
     __atomic_store_n(&this->virtual_size, size, __ATOMIC_RELEASE);
     __atomic_store_n(&this->elem_size, elem_size, __ATOMIC_RELEASE);
@@ -422,7 +423,6 @@ extern "C" int array_print_str(Scope_Struct *scope_struct, DT_array *arr) {
     DT_str *data = static_cast<DT_str*>(arr->data);
     int len = arr->virtual_size;
 
-
     int offset = 0, elem_size=data[0].size;
     memcpy(scope_struct->print_buffer, data[0].str, elem_size);
     offset+=elem_size;
@@ -465,4 +465,33 @@ extern "C" int array_shuffle_str(Scope_Struct *ctx, DT_array *arr) {
     __atomic_store_n(&arr->data, (void*)new_data, __ATOMIC_RELEASE);
 
     return 0;
+}
+
+
+
+
+
+extern "C" int hash_array_int(Scope_Struct *ctx, DT_array *arr) {
+    int h = 2166136261u; // FNV offset
+    int *data = (int*)arr->data;
+    int size = arr->virtual_size;
+
+    for (int i=0; i<size; ++i) {
+        h ^= data[i];
+        h *= 16777619u;
+    }
+
+    return h;
+}
+
+extern "C" bool array_eq_int(Scope_Struct *ctx, DT_array *arr_x, DT_array *arr_y) {
+    if (arr_x->virtual_size != arr_y->virtual_size)
+        return false;
+
+    return memcmp(
+        arr_x->data,
+        arr_y->data,
+        arr_x->virtual_size * sizeof(int)
+    ) == 0;
+    // return true;
 }

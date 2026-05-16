@@ -717,6 +717,9 @@ Function *FunctionAST::codegen() {
     scope_struct = callret("scope_struct_CreateFirst", {}); 
     call("scope_struct_Alloc_GC", {scope_struct});
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
+    // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
+    // Builder->CreateStore(const_int(0), alloca);
+    // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
   }
   
   
@@ -736,15 +739,19 @@ Function *FunctionAST::codegen() {
     // std::cout << "FUNCTION " << current_codegen_function << " ARG IS: " << arg_name  << "\n";
 
     // Default args
-    if (arg_name == "scope_struct")
-    {
+    if (arg_name == "scope_struct") {
         StructType *st = struct_types["scope_struct"];
         scope_struct = &Arg;
         Value *stack_top_value_gep = Builder->CreateStructGEP(st, scope_struct, 3); 
-        // stack_top_value = Builder->CreateLoad(intTy, stack_top_value_gep);
         function_values[current_codegen_function]["QQ_stack_top"] = Builder->CreateLoad(intTy, stack_top_value_gep);
-    } else
+        // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
+        // Builder->CreateStore(Builder->CreateLoad(intTy, stack_top_value_gep), alloca);
+        // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
+    } else {
         function_values[current_codegen_function][arg_name] = &Arg;
+        StoreVal(TheFunction, current_codegen_function, arg_name, &Arg,
+                    data_typeVars[current_codegen_function][arg_name]);
+    }
    
   }
   
@@ -755,6 +762,9 @@ Function *FunctionAST::codegen() {
     call("prebuild", {});
     call("scope_struct_Alloc_GC", {scope_struct});
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
+    // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
+    // Builder->CreateStore(const_int(0), alloca);
+    // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
   }
 
   for (auto &body : Body)
@@ -769,7 +779,7 @@ Function *FunctionAST::codegen() {
 
     // Validate the generated code, checking for consistency.
     verifyFunction(*TheFunction);
-    // TheModule->print(llvm::errs(), nullptr);
+    TheModule->print(llvm::errs(), nullptr);
 
     return TheFunction;
   } 

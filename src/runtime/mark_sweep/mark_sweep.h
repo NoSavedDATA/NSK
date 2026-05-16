@@ -13,6 +13,7 @@
 #include "../compiler_frontend/logging_v.h"
 #include "../clean_up/clean_up.h"
 #include "../data_types/array.h"
+#include "../data_types/map.h"
 #include "../data_types/list.h"
 #include "../mangler/scope_struct.h"
 #include "../pool/pool.h"
@@ -22,10 +23,10 @@ const int word_bits=64;
 
 const int GC_page_size=8192;
 
-const int sweep_after_alloc = 32 << 20;
-const int GC_arena_size = 1024 << 20;
+constexpr size_t sweep_after_alloc = 32 << 20;
+constexpr size_t GC_arena_size = 1024 << 20;
 
-const int pages_per_arena = GC_arena_size / GC_page_size;
+constexpr size_t pages_per_arena = GC_arena_size / GC_page_size;
 
 const int GC_obj_sizes=16;
 const int GC_max_object_size = 32768;
@@ -66,11 +67,11 @@ struct GC_Span {
     GC_span_traits *traits;
     GC_Arena *arena;
     void *span_address;
-    char *cur_free, *end;
+    // char *cur_free, *end;
     GC_Span *next_span=nullptr;
     bool sweeped=true;
 
-    int words, type_words, free_idx=0, elem_size, N, gen=0;
+    int words, type_words, free_idx=0, elem_size, N, gen=0, arena_offset;
 
     // Interpretate type_metadata as int12
     // uint64_t *mark_bits, *alloc_bits, *type_metadata;
@@ -120,9 +121,9 @@ struct WorkList {
 
 struct GC_Arena {
     // Get an arena of 64MB, and set pages size to 8 KB
-    const int arena_size=GC_arena_size, page=GC_page_size;
+    const int page=GC_page_size;
     // const int arena_size=65536, page=8192;
-    int size_allocated=0,pages_allocated=0,gen=0;
+    int arena_size=GC_arena_size, size_allocated=0,pages_allocated=0,gen=0;
     void *arena, *metadata;
     GC *gc;
 
@@ -136,7 +137,7 @@ struct GC_Arena {
     WorkList *topw=nullptr;
     std::atomic<WorkList*> mutatorw{nullptr};
 
-    GC_Arena(int);
+    GC_Arena(int, int);
 
     inline void mutator_push(void *ptr, uint16_t type_id) {
         WorkList *old_head, *node = new WorkList(GC_Node(ptr, type_id));
@@ -209,6 +210,7 @@ struct GC_Arena {
     void Work(Scope_Struct *);
 };
 
+
 struct GC {
     int allocations=0;
     uint64_t size_occupied=0, mark_bit=1ULL;
@@ -216,8 +218,22 @@ struct GC {
     uint64_t next_clean = 16<<10;
     GC_Arena *arena;
     DT_array_retire *retired_arr=nullptr;
+    DT_node_retire *retired_nodes=nullptr;
     
     GC(int);
+    void DoubleSize(Scope_Struct*);
+    inline void Print() {
+        std::cout << "Arena addr: " << arena->arena << "\n";
+        std::cout << "allocated: " << arena->size_allocated << "\n";
+        for (int i=0; i<GC_obj_sizes; ++i) {
+            std::cout << gc_sizes[i] << ": " << arena->Spans[i].size() << "\n";
+            if (arena->Spans[i].size()>0) {
+                if (arena->current_span[i])
+                std::cout << "\t" << arena->current_span[i]->free_idx << " / " << arena->current_span[i]->N << "\n";
+            }
+        }
+        std::cout << "\n";
+    }
     inline void *Allocate(Scope_Struct *scope_struct, int size, uint16_t type_id, int tid) {
 
         int obj_class = GC_size_to_c[(size+7)/8];
@@ -233,13 +249,17 @@ struct GC {
             ptr = arena->Allocate(obj_class, type_id, tid, mark_bit);
             if (ptr==nullptr) {
                 LogErrorC(-1, "ARENA FULL.");
+                Print();
                 std::exit(0);
+                DoubleSize(scope_struct);
+                return arena->Allocate(obj_class, type_id, tid, mark_bit);
             }
         }
         return ptr;
     }
 
 
+    void retire_node(DT_map_node *data, int tid);
     void retire_arr(void *, int, int);
     void retire_clean();
     void Sweep(Scope_Struct *);

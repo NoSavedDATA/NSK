@@ -38,16 +38,16 @@ Value *fexists(Parser_Struct parser_struct, Function *TheFunction,
 Value *print(Parser_Struct, Function *,
                  std::string, Data_Tree, std::vector<Data_Tree>&,
                  Value *, std::vector<std::unique_ptr<ExprAST>> &, std::vector<Value*>&);
-Value *parse_i8(Parser_Struct parser_struct, Function *TheFunction,
+Value *i8(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
-Value *parse_i16(Parser_Struct parser_struct, Function *TheFunction,
+Value *i16(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
 Value *parse_int(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
-Value *parse_i64(Parser_Struct parser_struct, Function *TheFunction,
+Value *i64(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV);
 Value *c_open(Parser_Struct parser_struct, Function *TheFunction,

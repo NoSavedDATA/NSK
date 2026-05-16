@@ -389,11 +389,11 @@ void build_dicts() {
   Function_Arg_Names["i16"] = {"0", "1"};
   Function_Required_Arg_Count["i16"] = 1;
   // int
-  functions_return_data_type["int"] = Data_Tree("int");
-  Function_Arg_DataTypes["int"]["0"] = Data_Tree("Scope_Struct");
-  Function_Arg_DataTypes["int"]["1"] = Data_Tree("any");
-  Function_Arg_Names["int"] = {"0", "1"};
-  Function_Required_Arg_Count["int"] = 1;
+  functions_return_data_type["parse_int"] = Data_Tree("int");
+  Function_Arg_DataTypes["parse_int"]["0"] = Data_Tree("Scope_Struct");
+  Function_Arg_DataTypes["parse_int"]["1"] = Data_Tree("any");
+  Function_Arg_Names["parse_int"] = {"0", "1"};
+  Function_Required_Arg_Count["parse_int"] = 1;
   // i64
   functions_return_data_type["i64"] = Data_Tree("i64");
   Function_Arg_DataTypes["i64"]["0"] = Data_Tree("Scope_Struct");
@@ -418,6 +418,9 @@ void build_dicts() {
 
   // // simd_load
   function_return_overwrite["simd_load"] = simd_load_ret;
+
+  // vec_shuffle
+  function_return_overwrite["vec_shuffle"] = vec_shuffle_ret;
 
   // vec_make
   function_return_overwrite["vec_make"] = vec_make_ret;

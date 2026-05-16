@@ -1,5 +1,6 @@
 #include <chrono>
 #include <cmath>
+#include <cstring>
 #include <iostream>
 #include <limits>
 #include <map>
@@ -33,11 +34,12 @@ GC_span_traits::GC_span_traits(int obj_size) : obj_size(obj_size) {
 GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) : arena(arena), traits(traits) {
     // Get Span address
     span_address = static_cast<char*>(arena->arena) + arena->size_allocated;
+    arena_offset = arena->size_allocated;
     char *span_address_c = static_cast<char*>(span_address);
     arena->size_allocated += traits->size;
 
-    cur_free = span_address_c;
-    end = span_address_c + arena->size_allocated;
+    // cur_free = span_address_c;
+    // end = span_address_c + arena->size_allocated;
 
     elem_size = traits->obj_size;
     N = traits->N;
@@ -71,8 +73,8 @@ GC_Span::GC_Span(GC_Arena *arena, GC_span_traits *traits, uint64_t gc_mark_bit) 
        type_metadata[i].store(0ULL, std::memory_order_release); 
 }
 
-GC_Arena::GC_Arena(int tid) {
-    arena = aligned_alloc(8192, arena_size);
+GC_Arena::GC_Arena(int tid, int size=GC_arena_size) {
+    arena = aligned_alloc(8192, size);
     // arena = aligned_alloc(64u, arena_size);
     arena_base_addr[tid] = static_cast<char*>(arena);
 }
@@ -118,11 +120,12 @@ void GC_Observer(Scope_Struct *scope_struct) {
             gc->next_clean = std::min(gc->next_clean*2, 8UL<<20);
             // gc->next_clean = std::min(size*2, 8<<20);
         }
+        gc->retire_clean();
         next = std::chrono::steady_clock::now() + std::chrono::microseconds(5000);
     }
-
     std::cout << "sweeps " << sweeps << "\n";
 }
+
 extern "C" float psweep(Scope_Struct *scope_struct) {
     {
         std::lock_guard<std::mutex> lock(scope_struct->mtx);
@@ -171,19 +174,11 @@ extern "C" void scope_struct_Alloc_GC(Scope_Struct *scope_struct) {
 
 
 extern "C" float GC_print(Scope_Struct *scope_struct) {
+    std::cout << "print gc" << "\n";
     GC *gc = scope_struct->gc;
-    std::cout << scope_struct << " has gc " << gc << "\n";
-    std::cout << "\n";
-    std::cout << "Arena addr: " << gc->arena->arena << "\n";
-    std::cout << "allocated: " << gc->arena->size_allocated << "\n";
-    for (int i=0; i<GC_obj_sizes; ++i) {
-        std::cout << gc_sizes[i] << ": " << gc->arena->Spans[i].size() << "\n";
-        if (gc->arena->Spans[i].size()>0) {
-            if (gc->arena->current_span[i])
-            std::cout << "\t" << gc->arena->current_span[i]->free_idx << " / " << gc->arena->current_span[i]->N << "\n";
-        }
-    }
-    std::cout << "\n";
+    std::cout << scope_struct;
+    std::cout << " has gc " << gc << "\n";
+    gc->Print();
     return 0;
 }
 
@@ -199,4 +194,23 @@ GC_Node::GC_Node() {}
 
 
 
+void GC::DoubleSize(Scope_Struct *ctx) {
+    std::unique_lock<std::mutex> lock(arena->sweep_mtx);
+    std::cout << "DOUBLE ARENA SIZE" << "\n";
+
+    int prev_size = arena->arena_size;
+    arena->arena_size*=2;
+    void *new_arena = aligned_alloc(8192, arena->arena_size);
+
+    memcpy(new_arena, arena->arena, prev_size);
+
+    for (int span_group=0; span_group<GC_obj_sizes; span_group++) {
+        for (const auto &span : arena->Spans[span_group]) {
+            GC_span_traits *traits = span->traits;
+            span->span_address = (char*)new_arena + span->arena_offset;
+        }  
+    }
+    // free(arena->arena);
+    arena->arena = new_arena;
+}
 

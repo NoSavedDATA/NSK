@@ -158,6 +158,18 @@ class NullPtrExprAST : public ExprAST {
 
 
  
+class LutLoExprAST : public ExprAST {
+  public:
+    LutLoExprAST(); 
+  Value *codegen(Value *scope_struct) override;
+  Data_Tree GetDataTree(bool from_assignment=false) override;
+}; 
+class LutHiExprAST : public ExprAST {
+  public:
+    LutHiExprAST(); 
+  Value *codegen(Value *scope_struct) override;
+  Data_Tree GetDataTree(bool from_assignment=false) override;
+}; 
   
 
 /// VarExprAST - Expression class for var/in
@@ -703,7 +715,8 @@ class IfExprAST : public ExprAST {
               std::vector<std::unique_ptr<ExprAST>> Else);
 
   Value *codegen(Value *scope_struct) override;
-  Value *codegen_from_loop(Value *, BasicBlock *, BasicBlock *);
+  Value *codegen_from_loop(Value *, BasicBlock *, BasicBlock *,
+                std::map<std::string, Value*> &break_values_snapshot, std::vector<BasicBlock *> &BreakBB);
 };
 
 

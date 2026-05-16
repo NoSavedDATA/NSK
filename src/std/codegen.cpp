@@ -82,7 +82,7 @@ Value *DT_vec_Create(Parser_Struct parser_struct, Function *TheFunction,
 }
 
 
-Value *parse_i8(Parser_Struct parser_struct, Function *TheFunction,
+Value *i8(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     const std::string &type = Args[0]->GetDataTree().Type;
@@ -90,11 +90,11 @@ Value *parse_i8(Parser_Struct parser_struct, Function *TheFunction,
         LogError(parser_struct.line, "Cannot cast " + type + " to i8.");
     return Builder->CreateIntCast(ArgsV[0], int8Ty, true); // true for signed extend
 }
-Value *parse_i16(Parser_Struct parser_struct, Function *TheFunction,
+Value *i16(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     const std::string &type = Args[0]->GetDataTree().Type;
-    if(!in_vec(type, {"int", "i8", "i64"}))
+    if(!in_vec(type, {"int", "i8", "i64", "char"}))
         LogError(parser_struct.line, "Cannot cast " + type + " to i16.");
     return Builder->CreateIntCast(ArgsV[0], int16Ty, true); // true for signed extend
 }
@@ -102,11 +102,11 @@ Value *parse_int(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     const std::string &type = Args[0]->GetDataTree().Type;
-    if(!in_vec(type, {"i8", "i16", "i64"}))
+    if(!in_vec(type, {"i8", "i16", "i64", "char"}))
         LogError(parser_struct.line, "Cannot cast " + type + " to int.");
     return Builder->CreateIntCast(ArgsV[0], intTy, true); // true for signed extend
 }
-Value *parse_i64(Parser_Struct parser_struct, Function *TheFunction,
+Value *i64(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     const std::string &type = Args[0]->GetDataTree().Type;
@@ -305,12 +305,12 @@ Value *print(Parser_Struct parser_struct, Function *TheFunction,
     offset = Builder->CreateAdd(offset, const_int(1));
 
     Value *buf_ptr = Builder->CreateInBoundsGEP( // &print_buffer[0]
-            bufferTy,
+            int8Ty,
             print_buffer,
-            { const_int(0), const_int(0) }
+            { const_int(0) }
             );
-
     call("write", {const_int(1), buf_ptr, offset});
+    // call("ctx_print_buffer", {scope_struct, offset});
 
     return const_float(0);
 }

@@ -210,6 +210,20 @@ NumberExprAST::NumberExprAST(float Val) : Val(Val) {
 IntExprAST::IntExprAST(int Val) : Val(Val) {
   this->SetType("int");
 } 
+LutLoExprAST::LutLoExprAST() {} 
+LutHiExprAST::LutHiExprAST() {} 
+Data_Tree LutLoExprAST::GetDataTree(bool from_assignment) {
+    Data_Tree dt = Data_Tree("vec");
+    dt.Nested_Data.push_back(Data_Tree("i8"));
+    dt.Nested_Data.push_back(Data_Tree("32"));
+    return dt;
+} 
+Data_Tree LutHiExprAST::GetDataTree(bool from_assignment) {
+    Data_Tree dt = Data_Tree("vec");
+    dt.Nested_Data.push_back(Data_Tree("i8"));
+    dt.Nested_Data.push_back(Data_Tree("32"));
+    return dt;
+} 
 
 BoolExprAST::BoolExprAST(bool Val) : Val(Val) {
   this->SetType("bool");
@@ -735,6 +749,10 @@ Data_Tree BinaryExprAST::GetDataTree(bool from_assignment) {
     type = "float";
   else if (Elements=="vec_vec")
       return L_dt;
+  else if (Elements=="vec_int")
+      return L_dt;
+  else if (Elements=="int_vec")
+      return R_dt;
   else if (ops_type_return.count(Operation)>0)
     return Data_Tree(ops_type_return[Operation]);
   else if (functions_return_data_type.count(Operation)) {
@@ -1118,7 +1136,7 @@ Data_Tree NameableIdx::GetDataTree(bool from_assignment) {
   Data_Tree inner_dt = Inner->GetDataTree();
   const std::string &compound_type = inner_dt.Type;
 
-  if (compound_type=="charv")
+  if (in_vec(compound_type, {"charv","str"}))
       return Data_Tree("char");
  
   if(Idx_Fn_Return.count(compound_type+"_Idx")) {
@@ -1232,7 +1250,12 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
 
   if(Callee=="map_keys") {
     Data_Tree return_dt = Data_Tree("array");
-    return_dt.Nested_Data.push_back(Inner->GetDataTree().Nested_Data[0].Type);
+    return_dt.Nested_Data.push_back(Inner->GetDataTree().Nested_Data[0]);
+    ret = return_dt;
+  }
+  if(Callee=="map_values") {
+    Data_Tree return_dt = Data_Tree("array");
+    return_dt.Nested_Data.push_back(Inner->GetDataTree().Nested_Data[1]);
     ret = return_dt;
   }
     
@@ -1271,6 +1294,8 @@ Data_Tree Nameable::GetDataTree(bool from_assignment) {
   if(Depth==1) {
     if(Name=="self")
         data_type = Data_Tree(parser_struct.class_name);
+    else if(in_vec(Name, primary_data_tokens))
+        data_type = Data_Tree(Name);
     else if(data_typeVars[parser_struct.function_name].find(Name)!=data_typeVars[parser_struct.function_name].end())
         data_type = data_typeVars[parser_struct.function_name][Name];
     else if(functions_return_data_type.count(Name)>0||function_return_overwrite.count(Name)>0) {
@@ -1392,9 +1417,10 @@ NameableCall::NameableCall(Parser_Struct parser_struct, std::unique_ptr<Nameable
     } 
   }
 
-  Data_Tree fdt = this->Inner->GetDataTree();
-  is_first_citizen = fdt.Type=="Function";
-
+  if (!in_vec(Callee, {"i8", "i64", "i16"})) {
+      Data_Tree fdt = this->Inner->GetDataTree();
+      is_first_citizen = fdt.Type=="Function";
+  }
 
   // specify array type
   if(in_vec(Callee, {"array_shuffle", "array_print", "array_prod", "array_mean", "array_sum", "array_std"})) {

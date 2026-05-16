@@ -23,7 +23,8 @@
 #endif
 
 
-
+DT_str::DT_str() {}
+DT_str::DT_str(char *str, int size) : str(str), size(size) {}
 
   
 

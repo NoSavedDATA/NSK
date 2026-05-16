@@ -128,7 +128,7 @@ Data_Tree Parse_Data_Type(std::string root_type, Parser_Struct parser_struct) {
     }
 
     if(CurTok!=tok_data&&CurTok!=tok_struct&&Classes.count(dt)==0) {
-      LogErrorBreakLine(parser_struct.line, root_type + " requires a data type.");
+      LogErrorBreakLine(parser_struct.line, root_type + " requires a data type, got: " + ReverseToken(CurTok));
       return data_type;
     }
 
@@ -143,9 +143,8 @@ Data_Tree Parse_Data_Type(std::string root_type, Parser_Struct parser_struct) {
     if(CurTok==',')
       getNextToken();
   }
+
   getNextToken(); // eat >
-  
-  
 
 
   return data_type;
@@ -176,6 +175,23 @@ std::unique_ptr<ExprAST> ParseNumberExpr(Parser_Struct parser_struct) {
 
 std::unique_ptr<ExprAST> ParseIntExpr(Parser_Struct parser_struct) {
   auto Result = std::make_unique<IntExprAST>((int)NumVal);
+  getNextToken(); // consume the number
+  return std::move(Result);
+}
+
+std::unique_ptr<ExprAST> ParseHexaExpr(Parser_Struct parser_struct) {
+  auto Result = std::make_unique<IntExprAST>((int)HexaVal);
+  getNextToken(); // consume the number
+  return std::move(Result);
+}
+
+std::unique_ptr<ExprAST> ParseLutLoExpr(Parser_Struct parser_struct) {
+  auto Result = std::make_unique<LutLoExprAST>();
+  getNextToken(); // consume the number
+  return std::move(Result);
+}
+std::unique_ptr<ExprAST> ParseLutHiExpr(Parser_Struct parser_struct) {
+  auto Result = std::make_unique<LutHiExprAST>();
   getNextToken(); // consume the number
   return std::move(Result);
 }
@@ -1031,6 +1047,8 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
     getNextToken(); // eat proto
     Data_Tree Return;
     std::string Name;
+    // std::vector<std::string> ArgNames = {"scope_struct"};
+    // std::vector<Data_Tree> Types = {Data_Tree("Scope_Struct")};
     std::vector<std::string> ArgNames = {"scope_struct"};
     std::vector<Data_Tree> Types = {Data_Tree("Scope_Struct")};
  
@@ -1044,6 +1062,12 @@ std::unique_ptr<ExprAST> ParseProtoExpr(Parser_Struct parser_struct, std::string
 
     if(CurTok!=tok_identifier)
         LogError(parser_struct.line, "Prototype expected name.");
+
+    if (IdentifierStr=="sys") {
+        ArgNames.clear();  
+        Types.clear();  
+        getNextToken(); // eat name
+    }
 
     Name = IdentifierStr;
     getNextToken(); // eat name
@@ -1346,9 +1370,9 @@ std::optional<std::vector<std::unique_ptr<ExprAST>>> Parse_Arguments(Parser_Stru
         getNextToken();
   
         if (CurTok=='(') {
-          std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, IdentifierStr, 0);
+          std::unique_ptr<Nameable> nameable = std::make_unique<Nameable>(parser_struct, IdentifierStr, 1);
           nameable->AddNested(std::make_unique<NameableRoot>(parser_struct));
-          Args.push_back(ParseCallExpr(parser_struct, std::move(nameable), class_name, 1));
+          Args.push_back(ParseCallExpr(parser_struct, std::move(nameable), class_name, 2));
         } else
             Args.push_back(std::make_unique<IntExprAST>(data_name_to_type()[IdentifierStr]));
       }
@@ -1854,6 +1878,12 @@ std::unique_ptr<ExprAST> ParsePrimary(Parser_Struct parser_struct, std::string c
     return ParseNumberExpr(parser_struct);
   case tok_int:
     return ParseIntExpr(parser_struct);
+  case tok_lutlo:
+    return ParseLutLoExpr(parser_struct);
+  case tok_luthi:
+    return ParseLutHiExpr(parser_struct);
+  case tok_hexa:
+    return ParseHexaExpr(parser_struct);
   case tok_bool:
     return ParseBoolExpr(parser_struct);
   case tok_str:

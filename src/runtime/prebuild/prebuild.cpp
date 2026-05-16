@@ -29,7 +29,10 @@ extern "C" int prebuild() {
   BinopPrecedence[tok_diff] = 10;
   BinopPrecedence[tok_minor_eq] = 10;
   BinopPrecedence[tok_higher_eq] = 10;
-  BinopPrecedence[tok_offby] = 19;
+  BinopPrecedence[tok_offby] = 15;
+  BinopPrecedence['|'] = 18;
+  BinopPrecedence[tok_lshift] = 19;
+  BinopPrecedence[tok_rshift] = 19;
   BinopPrecedence['+'] = 20;
   BinopPrecedence['-'] = 20;
   BinopPrecedence['%'] = 35;
@@ -149,16 +152,12 @@ extern "C" int prebuild() {
     return_string_fn = {"to_string", "cat_str_float"};
 
 
-    native_functions = {"ShuffleStrVec", "gload_img", "wload_img", "silent_sleep", "__slee_p_",
-                      "LenStrVec", "zeros_vec", "ones_vec", "start_timer", "end_timer",
+    native_functions = {"__slee_p_",
+                      "start_timer", "end_timer",
                       "_glob_b_", "print", "cross_entropy", "backprop", "AdamW", "SGD",
                       "load_preprocess_img", "max", "min", "unbug",
                       "cpu_idx", "OneCycleLR", "CosineLR", "wload_img_resize",
-                      "build_vocab", "tokenize", "wtokenize", "write_zerosw",
-                      "wtokenize_pad_left", "print_randoms", "wtokenize_pad_left_batch_first",
-                      "wtokenize_pad_left_idx", "print_scope", "load_bin", "wload_bin", "randint",
                       "print_tensor", "path_exists", "dir_exists", "load_bin_idx",
-                      "network_ema", "mse", "priority_sample", "priority_sample_val",
                       "importance_sample_idx", "importance_sample_weight",
                       "cross_entropy_idx"};
     native_functions = concat_str_vec(native_functions, return_string_fn);
@@ -199,7 +198,8 @@ extern "C" int prebuild() {
                      
 
     op_map = {{'*', "mult"}, {'@', "mma"},  {'+', "add"}, {'-', "sub"}, {'/', "div"}, {'<', "minor"},
-            {'>', "higher"}, {tok_equal, "equal"},
+            {'>', "higher"}, {tok_equal, "equal"}, {'|', "bitor"},
+            {tok_lshift, "lshift"}, {tok_rshift, "rshift"},
             {tok_diff, "different"}, {tok_higher_eq, "higher_eq"}, {tok_minor_eq, "minor_eq"}, {'%', "mod"}, {'=', "attr"},
             {77, "error"}, {tok_arrow, "message"}, {tok_and, "and"}, {tok_not, "not"}, {tok_or, "or"},
             {tok_xor, "xor"}, {tok_offby, "offby"}};

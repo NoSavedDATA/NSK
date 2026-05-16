@@ -3,6 +3,7 @@
 #include <mutex>
 #include <set>
 #include <thread>
+#include <unistd.h>
 #include <unordered_set>
 
 #include "../char_pool/include.h"
@@ -178,6 +179,10 @@ extern "C" void scope_struct_Get_Async_Scope(Scope_Struct *scope_struct, int thr
 
 
 
+extern "C" float ctx_print_buffer(Scope_Struct *ctx, int offset) {
+    // write(1, ctx->print_buffer, offset);
+    return 0;
+}
 
 
 

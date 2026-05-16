@@ -53,14 +53,18 @@ Data_Tree vec_make_ret(Parser_Struct parser_struct, std::vector<std::unique_ptr<
   return dt;
 }
 
+Data_Tree vec_shuffle_ret(Parser_Struct parser_struct, std::vector<std::unique_ptr<ExprAST>>& Args) {
+  return Args[0]->GetDataTree();
+}
+
 // __m256i chunk = _mm256_loadu_si256((__m256i*)ptr);
 Value *simd_load(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     llvm::Type *ty = get_type_from_data(data_type);
 
-    Value *vecptr = Builder->CreateBitCast(ArgsV[0], Builder->getPtrTy());
-    auto *L = Builder->CreateLoad(ty, ArgsV[0]);
+
+    auto *L = Builder->CreateLoad(ty, Builder->CreateExtractValue(ArgsV[0], {0}));
     L->setAlignment(llvm::Align(1));
     return L;
 }
@@ -80,26 +84,79 @@ Value *vec_make(Parser_Struct parser_struct, Function *TheFunction,
     // ret->print(llvm::errs());
     // llvm::errs() << "\n";
     return ret;
+
 }
+
+Value *vec_shuffle(Parser_Struct parser_struct,
+                   Function *TheFunction,
+                   std::string Callee,
+                   Data_Tree data_type,
+                   std::vector<Data_Tree> &args_type,
+                   Value *scope_struct,
+                   std::vector<std::unique_ptr<ExprAST>> &Args,
+                   std::vector<Value*> &ArgsV) {
+
+    Value *lut     = ArgsV[0];
+    Value *indices = ArgsV[1];
+
+    auto *vecTy =
+        dyn_cast<FixedVectorType>(lut->getType());
+
+    if (!vecTy)
+        LogError(parser_struct.line,
+                 "vec_shuffle expected vector");
+
+    int lanes = vecTy->getNumElements();
+
+    Type *elemTy = vecTy->getElementType();
+
+    Value *result =
+        UndefValue::get(vecTy);
+
+    for (int i = 0; i < lanes; i++) {
+        Value *idx =
+            Builder->CreateExtractElement(
+                indices,
+                Builder->getInt32(i)
+            );
+        idx = Builder->CreateAnd(
+            idx,
+            ConstantInt::get(elemTy, 0x0F)
+        );
+        Value *value =
+            Builder->CreateExtractElement(
+                lut,
+                idx
+            );
+        result =
+            Builder->CreateInsertElement(
+                result,
+                value,
+                Builder->getInt32(i)
+            );
+    }
+
+    return result;
+}
+
 
 Value *vec_movemask(Parser_Struct parser_struct, Function *TheFunction,
                  std::string Callee, Data_Tree data_type, std::vector<Data_Tree> &args_type,
                  Value *scope_struct, std::vector<std::unique_ptr<ExprAST>> &Args, std::vector<Value*> &ArgsV) {
     auto *vecTy = llvm::FixedVectorType::get(Builder->getInt8Ty(), 32);
 
-    // shift right to keep MSB
     Value *shift = Builder->CreateLShr(ArgsV[0],
         ConstantVector::getSplat(
             llvm::ElementCount::getFixed(32),
             Builder->getInt8(7)));
 
-    // truncate to i1
     auto *i1vec = llvm::FixedVectorType::get(Builder->getInt1Ty(), 32);
     Value *trunc = Builder->CreateTrunc(shift, i1vec);
 
-    // pack bits
     return Builder->CreateBitCast(trunc, Builder->getInt32Ty());
 }
+
+
 
 
 extern "C" int print_vec_i8(int8_t *v, int size) {

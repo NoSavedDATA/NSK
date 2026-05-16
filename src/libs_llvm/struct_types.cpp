@@ -58,7 +58,7 @@ void Generate_Struct_Types() {
     StructType *int_vecTy  = StructType::create(
         *TheContext,
         {intTy, vecIntTy, intPtrTy},
-        "DT_int_vec"
+        "st.DT_int_vec"
     );
     struct_types["int_vec"] = int_vecTy;
 
@@ -66,27 +66,27 @@ void Generate_Struct_Types() {
     struct_types["DT_str"] = StructType::create(
         *TheContext,
         {int8PtrTy, intTy},
-        "DT_str"
+        "st.DT_str"
     ); 
 
     // array
     struct_types["array"] = StructType::create(
         *TheContext,
         {intTy, intTy, intTy, int8PtrTy},
-        "DT_array"
+        "st.DT_array"
     ); 
 
     // --- map ---
     struct_types["map_node"]  = StructType::create(
         *TheContext,
         {int8PtrTy, int8PtrTy, int8PtrTy},
-        "DT_map"
+        "st.map_node"
     );
     // map
     struct_types["map"]  = StructType::create(
         *TheContext,
         {intTy, intTy, intTy, intTy, intTy, struct_types["map_node"]->getPointerTo()->getPointerTo()},
-        "DT_map"
+        "st.DT_map"
     );
     
     // --- Scope_Struct --- 
@@ -94,16 +94,15 @@ void Generate_Struct_Types() {
     StructType *GC_Struct_Type = StructType::create(
         *TheContext,
         {intTy, longTy, longTy, boolTy, void_vecTy},
-        "GC"
+        "st.GC"
     );
     // Scope_Struct
     StructType *Scope_Struct_Type = StructType::create(
         *TheContext,
-        // {intTy, intTy, GC_Struct_Type},
         {intTy, intTy, ArrayType::get(int8PtrTy, ContextStackSize),
          intTy, int8PtrTy, GC_Struct_Type,
          ArrayType::get(int8Ty, PrintBufferSize)},
-        "scope_struct"
+        "st.scope_struct"
     );
     struct_types["GC"] = GC_Struct_Type;
     struct_types["scope_struct"] = Scope_Struct_Type;
@@ -160,5 +159,4 @@ void Generate_Class_Types() {
             }
         }
     }
-
 }
