@@ -301,6 +301,34 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("map_print", map_printTy);
 
+	FunctionType *map_node_set_bucketTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_node_set_bucket", map_node_set_bucketTy);
+
+	FunctionType *map_node_set_nextTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_node_set_next", map_node_set_nextTy);
+
+	FunctionType *map_node_overwrite_bucketTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy, Type::getInt32Ty(*TheContext)},
+		false
+	);
+	TheModule->getOrInsertFunction("map_node_overwrite_bucket", map_node_overwrite_bucketTy);
+
+	FunctionType *map_node_overwriteTy= FunctionType::get(
+		Type::getInt32Ty(*TheContext),
+		{int8PtrTy, int8PtrTy, int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("map_node_overwrite", map_node_overwriteTy);
+
 	FunctionType *map_keysTy= FunctionType::get(
 		int8PtrTy,
 		{int8PtrTy, int8PtrTy},

@@ -511,6 +511,63 @@ void set_functions_args_type() {
 		Function_Arg_Names["map_print"].push_back("0");
 		Function_Arg_Names["map_print"].push_back("1");
 		
+		Function_Arg_Types["map_node_set_bucket"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_node_set_bucket"]["1"] = "map_node";
+		Function_Arg_Types["map_node_set_bucket"]["2"] = "map";
+		Function_Arg_Types["map_node_set_bucket"]["3"] = "int";
+		
+		Function_Arg_DataTypes["map_node_set_bucket"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_node_set_bucket"]["1"] = Data_Tree("map_node");
+		Function_Arg_DataTypes["map_node_set_bucket"]["2"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_node_set_bucket"]["3"] = Data_Tree("int");
+		
+		Function_Arg_Names["map_node_set_bucket"].push_back("0");
+		Function_Arg_Names["map_node_set_bucket"].push_back("1");
+		Function_Arg_Names["map_node_set_bucket"].push_back("2");
+		Function_Arg_Names["map_node_set_bucket"].push_back("3");
+		
+		Function_Arg_Types["map_node_set_next"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_node_set_next"]["1"] = "map_node";
+		Function_Arg_Types["map_node_set_next"]["2"] = "map_node";
+		
+		Function_Arg_DataTypes["map_node_set_next"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_node_set_next"]["1"] = Data_Tree("map_node");
+		Function_Arg_DataTypes["map_node_set_next"]["2"] = Data_Tree("map_node");
+		
+		Function_Arg_Names["map_node_set_next"].push_back("0");
+		Function_Arg_Names["map_node_set_next"].push_back("1");
+		Function_Arg_Names["map_node_set_next"].push_back("2");
+		
+		Function_Arg_Types["map_node_overwrite_bucket"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_node_overwrite_bucket"]["1"] = "map_node";
+		Function_Arg_Types["map_node_overwrite_bucket"]["2"] = "map";
+		Function_Arg_Types["map_node_overwrite_bucket"]["3"] = "int";
+		
+		Function_Arg_DataTypes["map_node_overwrite_bucket"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_node_overwrite_bucket"]["1"] = Data_Tree("map_node");
+		Function_Arg_DataTypes["map_node_overwrite_bucket"]["2"] = Data_Tree("map");
+		Function_Arg_DataTypes["map_node_overwrite_bucket"]["3"] = Data_Tree("int");
+		
+		Function_Arg_Names["map_node_overwrite_bucket"].push_back("0");
+		Function_Arg_Names["map_node_overwrite_bucket"].push_back("1");
+		Function_Arg_Names["map_node_overwrite_bucket"].push_back("2");
+		Function_Arg_Names["map_node_overwrite_bucket"].push_back("3");
+		
+		Function_Arg_Types["map_node_overwrite"]["0"] = "Scope_Struct";
+		Function_Arg_Types["map_node_overwrite"]["1"] = "map_node";
+		Function_Arg_Types["map_node_overwrite"]["2"] = "map_node";
+		Function_Arg_Types["map_node_overwrite"]["3"] = "map_node";
+		
+		Function_Arg_DataTypes["map_node_overwrite"]["0"] = Data_Tree("Scope_Struct");
+		Function_Arg_DataTypes["map_node_overwrite"]["1"] = Data_Tree("map_node");
+		Function_Arg_DataTypes["map_node_overwrite"]["2"] = Data_Tree("map_node");
+		Function_Arg_DataTypes["map_node_overwrite"]["3"] = Data_Tree("map_node");
+		
+		Function_Arg_Names["map_node_overwrite"].push_back("0");
+		Function_Arg_Names["map_node_overwrite"].push_back("1");
+		Function_Arg_Names["map_node_overwrite"].push_back("2");
+		Function_Arg_Names["map_node_overwrite"].push_back("3");
+		
 		Function_Arg_Types["map_keys"]["0"] = "Scope_Struct";
 		Function_Arg_Types["map_keys"]["1"] = "map";
 		
@@ -609,10 +666,10 @@ void set_functions_args_type() {
 	
 		
 		Function_Arg_Types["array_Create"]["0"] = "Scope_Struct";
-		Function_Arg_Types["array_Create"]["1"] = "uint16_t";
+		Function_Arg_Types["array_Create"]["1"] = "i16";
 		
 		Function_Arg_DataTypes["array_Create"]["0"] = Data_Tree("Scope_Struct");
-		Function_Arg_DataTypes["array_Create"]["1"] = Data_Tree("uint16_t");
+		Function_Arg_DataTypes["array_Create"]["1"] = Data_Tree("i16");
 		
 		Function_Arg_Names["array_Create"].push_back("0");
 		Function_Arg_Names["array_Create"].push_back("1");

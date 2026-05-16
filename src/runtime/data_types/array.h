@@ -24,3 +24,5 @@ class DT_array {
 void array_Clean_Up(void *data_ptr, int);
 
 extern "C" void array_double_size(Scope_Struct *scope_struct, DT_array *vec);
+
+extern "C" int hash_array_int(Scope_Struct *ctx, DT_array *arr);

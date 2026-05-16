@@ -40,6 +40,10 @@ int GC_Span::Sweep(int tid, uint64_t mark_bit) {
                 void *obj_addr = static_cast<char*>(span_address) + idx*elem_size;
 
                 // if (u_type==104) continue;
+                // if (u_type==102) continue;
+                // if (u_type==103) continue;
+                // if (elem_size==16)
+                //     std::cout << "" << u_type << " | " << data_type_to_name()[u_type] << "\n";
                 // if (u_type==103) continue;
                 // if (elem_size==16)
                 //     std::cout << "" << u_type << " | " << data_type_to_name()[u_type] << "\n";
@@ -151,23 +155,6 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
         // bool init = __atomic_load_n(&ch->init, __ATOMIC_RELEASE);
         return;
     }
-    // if (root_type==uint16_t{6}) { // list
-    //     DT_list *list = static_cast<DT_list*>(ptr);
-    //     for (int i=0; i<list->size; ++i) {
-    //         const char *type = list->data_types->at(i).c_str(); 
-    //         uint16_t list_type = data_name_to_type[type];
-    //         if(in_vec(list_type, compound_types)) {
-    //             gc_list(list->get<void*>(i), list_type, mark_bit);
-    //             continue;
-    //         }
-    //         if(list_type==uint16_t{100}) { //str
-    //             mark_obj(list->get<char*>(i), type16, mark_bit);
-    //             continue;
-    //         }
-    //         if(!in_vec(list_type, primary_data_types)) //not a primary
-    //             mark_obj(list->get<void*>(i), type16, mark_bit);
-    //     }
-    // }
     if (root_type==uint16_t{102}) { // array 
         DT_array *array = static_cast<DT_array*>(ptr);
         void *datap = __atomic_load_n(&array->data, __ATOMIC_ACQUIRE);
@@ -200,32 +187,40 @@ void GC_Arena::gc_list(void *ptr, uint16_t root_type, uint64_t mark_bit) {
         }
     }
     if (root_type==uint16_t{104}) { // map 
-        // std::cout << "GOT MAP" << "\n";
         DT_map *map = static_cast<DT_map*>(ptr);
+
         uint16_t ktype = data_name_to_type()[map->key_type];
         uint16_t vtype = data_name_to_type()[map->val_type];
         bool mark_key = ktype>100; //not primary
         bool mark_val = vtype>100;
+        int map_capacity = __atomic_load_n(&map->capacity,__ATOMIC_ACQUIRE);
+        DT_map_node **nodes = __atomic_load_n(&map->nodes,__ATOMIC_ACQUIRE);
 
-        for (int i=0; i<map->capacity; ++i) {
-            DT_map_node *node = __atomic_load_n(&map->nodes[i],__ATOMIC_ACQUIRE);
+
+        // std::cout << "mark map " << ptr << " -- " << ktype << " - " << vtype << "\n";
+        for (int i=0; i<map_capacity; ++i) {
+            // DT_map_node *node = __atomic_load_n(&map->nodes[i],__ATOMIC_ACQUIRE);
+            DT_map_node *node = __atomic_load_n(&nodes[i],__ATOMIC_ACQUIRE);
             while (node!=nullptr) {
-                mark_obj(node, type16, mark_bit);
                 if (mark_key) {
-                    mark_obj(node->key, type16, mark_bit);
-                    if (ktype==102) {
-                        std::cout << "MARK ARRAY" << "\n";
-                        DT_array *arr = (DT_array*)node->key;
-                        std::cout << "arr vsize " << arr->virtual_size << "\n";
-                        gc_list(node->key, ktype, mark_bit);
-                    }
+                    void *key = __atomic_load_n(&node->key,__ATOMIC_ACQUIRE);
+                    mark_obj(key, type16, mark_bit);
+                    if (ktype==102||ktype==104)
+                        gc_list(key, ktype, mark_bit);
+                    else
+                        worklist_push(key, ktype);
                 }
-                if(mark_val)
-                    worklist_push(node->value, vtype);
+                if(mark_val) {
+                    void *value = __atomic_load_n(&node->value,__ATOMIC_ACQUIRE);
+                    mark_obj(value, type16, mark_bit);
+                    // if (vtype==102||vtype==104)
+                    //     gc_list(value, vtype, mark_bit);
+                    // else
+                        worklist_push(value, vtype);
+                }
                 node = __atomic_load_n(&node->next,__ATOMIC_ACQUIRE);
             }
         }
-        // std::exit(0);
     }
 }
 
@@ -375,9 +370,12 @@ void GC_Arena::check_roots_worklist(Scope_Struct *scope_struct, uint64_t mark_bi
     // std::cout << "stack size: " << stack_size << "\n";
     for (int i=0; i<stack_size; ++i) {
         void *root_ptr = scope_struct->pointers_stack[i];
-        // std::cout << "root " << root_ptr << "\n";
-        if (!mark_obj(root_ptr, type16, mark_bit))
+        // std::cout << "root " << root_ptr << "  --  ";
+        if (!mark_obj(root_ptr, type16, mark_bit)) {
+            // std::cout << "\n";
             continue;
+        }
+        // std::cout << "" << type16 << "\n";
 
         TypeInfo *class_info = type_info[type16]; 
         if (class_info!=nullptr) {
@@ -406,6 +404,7 @@ void GC::Sweep(Scope_Struct *scope_struct) {
     __atomic_store_n(&marking, true, __ATOMIC_RELEASE);
     std::unique_lock<std::mutex> lock(arena->sweep_mtx, std::defer_lock);
 
+    std::cout << "sweep" << "\n";
     arena->gen += 2;
 
     lock.lock();
@@ -467,7 +466,6 @@ void GC::CleanUp_Unused(int tid) {
         arena->current_span[span_group] = first_span;
     }
     mark_bit ^= 1;
-    // retire_clean(); // trigger even with no sweep in observer fn
 }
 
 
@@ -483,21 +481,21 @@ void GC::retire_node(DT_map_node *data, int tid) {
     CAS_push(x, retired_nodes);
 }
 
-void GC::retire_clean() {
-    // stw
 
+void GC::retire_clean() {
+    // array vec
     DT_array_retire *vec_list =
         __atomic_exchange_n(&retired_arr,
                             nullptr,
                             __ATOMIC_ACQUIRE);
     while (vec_list) {
         cache_push(vec_list->data, vec_list->size, vec_list->tid);
-        // free(vec_list->data);
         DT_array_retire *old = vec_list;
         vec_list = vec_list->next;
         delete old;
     }
 
+    // map nodes
     DT_node_retire *nodes_list =
         __atomic_exchange_n(&retired_nodes,
                             nullptr,
@@ -505,7 +503,8 @@ void GC::retire_clean() {
     while (nodes_list) {
         if(!check_is_in_bounds((char*)arena->arena, (char*)nodes_list->data->key))
             free(nodes_list->data->key);
-        free(nodes_list->data->value);
+        if(!check_is_in_bounds((char*)arena->arena, (char*)nodes_list->data->value))
+            free(nodes_list->data->value);
         free(nodes_list->data);
         DT_node_retire *old = nodes_list;
         nodes_list = nodes_list->next;

@@ -3,6 +3,7 @@
 #include "../compiler_frontend/logging_v.h"
 
 #include <cstring>
+#include <mutex>
 #include <string>
 
 inline uint32_t str_hash(const char* str, std::size_t len) {
@@ -63,6 +64,7 @@ struct DT_map {
     DT_map_node **nodes;
     std::string key_type;    // sizeof(key)
     std::string val_type;    // sizeof(value)
+    std::mutex snapshot_mtx;
 
     DT_map();
     void New(Scope_Struct *, int, int, int, std::string, std::string);

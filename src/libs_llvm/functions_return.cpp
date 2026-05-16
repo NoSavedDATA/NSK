@@ -22,7 +22,7 @@ void set_functions_return_type() {
   functions_return_type = {{"_glob_b_", "str_vec"}, {"glob", "str_vec"},
                            {"to_string", "str"}, {"cat_str_float", "str"}, {"str_split_idx", "str"}, {"str_to_float", "float"},
 						{"IndexStrVec", "str"}, {"str_vec_Idx", "str"}, {"ShuffleStrVec", "str_vec"},
-						{"map_Create", "map"}, {"map_node_reclaim", "int"}, {"map_has_str", "bool"}, {"map_has_int", "bool"}, {"map_has_i64", "bool"}, {"map_has_float", "bool"}, {"map_has_char", "bool"}, {"map_print", "int"}, {"map_keys", "array"}, {"map_values", "array"}, {"map_size", "int"}, {"map_clear", "int"}, 
+						{"map_Create", "map"}, {"map_node_reclaim", "int"}, {"map_has_str", "bool"}, {"map_has_int", "bool"}, {"map_has_i64", "bool"}, {"map_has_float", "bool"}, {"map_has_char", "bool"}, {"map_print", "int"}, {"map_node_set_bucket", "int"}, {"map_node_set_next", "int"}, {"map_node_overwrite_bucket", "int"}, {"map_node_overwrite", "int"}, {"map_keys", "array"}, {"map_values", "array"}, {"map_size", "int"}, {"map_clear", "int"}, 
 						{"read_float", "float"}, {"float_ptr_print", "float"}, {"float_to_str", "str"}, {"float_to_str_buffer", "int64_t"}, {"nsk_pow", "float"}, {"nsk_sqrt", "float"}, 
 						{"charv_print", "int"}, 
 						{"is_null", "bool"}, 
@@ -67,6 +67,10 @@ void set_functions_return_type() {
 	functions_return_data_type["map_has_float"] = Data_Tree("bool");
 	functions_return_data_type["map_has_char"] = Data_Tree("bool");
 	functions_return_data_type["map_print"] = Data_Tree("int");
+	functions_return_data_type["map_node_set_bucket"] = Data_Tree("int");
+	functions_return_data_type["map_node_set_next"] = Data_Tree("int");
+	functions_return_data_type["map_node_overwrite_bucket"] = Data_Tree("int");
+	functions_return_data_type["map_node_overwrite"] = Data_Tree("int");
 	functions_return_data_type["map_keys"] = Data_Tree("array");
 	functions_return_data_type["map_values"] = Data_Tree("array");
 	functions_return_data_type["map_size"] = Data_Tree("int");

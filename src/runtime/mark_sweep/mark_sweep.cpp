@@ -115,6 +115,7 @@ void GC_Observer(Scope_Struct *scope_struct) {
         int size = gc->size_occupied;
         // if (true) {
         if (gc->size_occupied>=gc->next_clean) {
+            std::cout << "size: " << size << "\n";
             sweeps++;
             gc->Sweep(scope_struct);
             gc->next_clean = std::min(gc->next_clean*2, 8UL<<20);

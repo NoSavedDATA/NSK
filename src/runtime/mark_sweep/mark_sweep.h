@@ -259,6 +259,7 @@ struct GC {
     }
 
 
+    void retire_nodes(DT_map_node **data, int tid);
     void retire_node(DT_map_node *data, int tid);
     void retire_arr(void *, int, int);
     void retire_clean();

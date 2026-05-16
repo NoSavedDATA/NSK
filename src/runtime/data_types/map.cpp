@@ -69,29 +69,35 @@ extern "C" DT_map *map_Create(Scope_Struct *scope_struct, Data_Tree dt) {
     return map;
 }
 
-void map_node_Clean_Up(void *ptr, int tid) {
-    // Let the map clean as it has better context.
-}
+
+std::unordered_map<DT_map_node*,int> cleaned_nodes;
 
 void map_Clean_Up(void *ptr, int tid) {
     DT_map *map = static_cast<DT_map*>(ptr);
- 
-    bool key_primary = in_str(map->key_type, primary_data_tokens);
-    bool val_primary = in_str(map->val_type, primary_data_tokens);
 
-    for (int i=0; i<map->capacity; ++i) {
-        DT_map_node *node = map->nodes[i];
+    int capacity = __atomic_load_n(&map->capacity, __ATOMIC_ACQUIRE);
+    DT_map_node **nodes = __atomic_load_n(&map->nodes,__ATOMIC_ACQUIRE);
+
+    bool dang = (map->key_type=="int"&&map->val_type=="int");
+
+    bool key_primary = data_name_to_type()[map->key_type] < 100;
+    bool val_primary = data_name_to_type()[map->val_type] < 100;
+
+    for (int i=0; i<capacity; ++i) {
+        DT_map_node *node = nodes[i];
         while (node!=nullptr) {
-            if(key_primary) 
+            DT_map_node *next = node->next;
+            if(key_primary)
                 free(node->key);
             if(val_primary) 
                 free(node->value);
-            
-            node = node->next;
+            // if (dang)
+            //     std::cout << "" << node << "\n";
+            free(node);
+            node = next;
         }
     }
-
-    free(map->nodes);
+    free(nodes);
 }
 
 
@@ -99,7 +105,6 @@ DT_node_retire::DT_node_retire(DT_map_node *data, int tid)
             : data(data), tid(tid) {}
 
 extern "C" int map_node_reclaim(Scope_Struct *ctx, DT_map *map, DT_map_node *node) {
-
     // std::cout << "reclaim map " << map << ", node " << node << "\n";
     GC *gc = ctx->gc;
     gc->retire_node(node, ctx->thread_id);
@@ -121,9 +126,7 @@ void DT_map::Insert(int hash_pos, DT_map_node *node, DT_map_node **nodes) {
 }
 
 extern "C" void map_expand(Scope_Struct *scope_struct, DT_map *map) {
-    std::unique_lock<std::mutex> lock(scope_struct->gc->arena->sweep_mtx);
     int capacity = map->capacity*4;
-
 
     DT_map_node **nodes = (DT_map_node**)malloc(capacity*8); // 8 == size of one void *
     for (int i=0; i<capacity; i++)
@@ -144,6 +147,13 @@ extern "C" void map_expand(Scope_Struct *scope_struct, DT_map *map) {
             } else if (map->key_type=="float") {
                 float *key = static_cast<float*>(node->key);
                 hashed = float_hash(*key);
+            } else if (map->key_type=="array") {
+                DT_array *key = static_cast<DT_array*>(node->key);
+                if (key->type==2)
+                    hashed = hash_array_int(scope_struct, key);
+                else
+                    LogErrorC(-1, "map expand not implemented for array of type " + map->key_type);
+
             }
             
             unsigned int bucket_pos = hashed % capacity;
@@ -155,7 +165,7 @@ extern "C" void map_expand(Scope_Struct *scope_struct, DT_map *map) {
         }
     }
 
-    // free(map->nodes);
+    free(map->nodes);
     __atomic_store_n(&map->nodes, nodes, __ATOMIC_RELEASE);
     __atomic_store_n(&map->capacity, capacity, __ATOMIC_RELEASE);
     __atomic_store_n(&map->expand_at, capacity*4, __ATOMIC_RELEASE);
@@ -165,19 +175,9 @@ extern "C" void map_expand(Scope_Struct *scope_struct, DT_map *map) {
 extern "C" bool map_has_str(Scope_Struct *ctx, DT_map *map, DT_str query) {
     std::unique_lock<std::mutex> lock(ctx->gc->arena->sweep_mtx);
     int hash_pos = str_hash(query.str, query.size) % map->capacity;
-    char *q = (char*)malloc(query.size+1);
-    // memcpy(q, query.str, query.size);
-    // std::cout << "\n\n";
-    // q[query.size]='\0';
-    // std::cout << "hash: " << hash_pos << "\n";
-    // std::cout << "query: " << q << "\n";
     DT_map_node *cur_node = map->nodes[hash_pos];
-    // std::cout << "node " << "\n";
-    // std::cout << "node " << cur_node << "\n";
     while(cur_node!=nullptr) {
         char *key = static_cast<char*>(cur_node->key);
-        // std::cout << "key " << "\n";
-        // std::cout << "key " << key << "\n";
         if(query.size == strlen(key) &&
            std::memcmp(query.str, key, query.size) == 0)
             return true;
@@ -186,10 +186,6 @@ extern "C" bool map_has_str(Scope_Struct *ctx, DT_map *map, DT_str query) {
     return false;
 }
 extern "C" bool map_has_int(Scope_Struct *scope_struct, DT_map *map, int query) {
-    // std::cout << "map_has_int" << "\n";
-    // std::cout << "map_has_int " << map << "\n";
-    // std::cout << "map_has_int " << query << "\n";
-    // std::cout << "st " << scope_struct->stack_top << "\n";
     int hash_pos = query % map->capacity;
     DT_map_node *cur_node = map->nodes[hash_pos];
     while(cur_node!=nullptr) {
@@ -241,6 +237,34 @@ extern "C" void print_str(char *str) {
 
 extern "C" int map_print(Scope_Struct *scope_struct, DT_map *map) {
     map->print();
+    return 0;
+}
+
+
+extern "C" int map_node_set_bucket(Scope_Struct *scope_struct, DT_map_node *new_node,
+                        DT_map *map, int hash_pos) {
+    __atomic_store_n(&map->nodes[hash_pos], new_node, __ATOMIC_RELEASE);
+    return 0;
+}
+extern "C" int map_node_set_next(Scope_Struct *scope_struct, DT_map_node *new_node,
+                        DT_map_node *bucket_last) {
+    __atomic_store_n(&bucket_last->next, new_node, __ATOMIC_RELEASE);
+    return 0;
+}
+extern "C" int map_node_overwrite_bucket(Scope_Struct *scope_struct, DT_map_node *new_node,
+                        DT_map *map, int hash_pos) {
+    DT_map_node *old_node = __atomic_load_n(&map->nodes[hash_pos], __ATOMIC_ACQUIRE);
+    DT_map_node *old_node_next = __atomic_load_n(&old_node->next, __ATOMIC_ACQUIRE);
+    __atomic_store_n(&new_node->next, old_node_next, __ATOMIC_RELEASE);
+    __atomic_store_n(&map->nodes[hash_pos], new_node, __ATOMIC_RELEASE);
+
+    return 0;
+}
+extern "C" int map_node_overwrite(Scope_Struct *scope_struct, DT_map_node *new_node,
+                        DT_map_node *prev, DT_map_node *replaced) {
+    DT_map_node *replaced_next = __atomic_load_n(&replaced->next, __ATOMIC_ACQUIRE);
+    __atomic_store_n(&new_node->next, replaced_next, __ATOMIC_RELEASE);
+    __atomic_store_n(&prev->next, new_node, __ATOMIC_RELEASE);
     return 0;
 }
 
@@ -349,16 +373,18 @@ extern "C" void map_bad_key_float(Scope_Struct *scope_struct, float key) {
 
 
 extern "C" int map_clear(Scope_Struct *ctx, DT_map *map) {
-    int idx=0;
     GC *gc = ctx->gc;
-    for (int i=0; i<map->capacity; ++i) {
-        DT_map_node *node = map->nodes[i];
+
+    int capacity = __atomic_load_n(&map->capacity, __ATOMIC_ACQUIRE);
+    for (int i=0; i<capacity; ++i) {
+        DT_map_node *node = __atomic_exchange_n(&map->nodes[i], nullptr, __ATOMIC_ACQ_REL);
         while (node!=nullptr) {
+            DT_map_node *next = __atomic_load_n(&node->next, __ATOMIC_ACQUIRE);
             gc->retire_node(node, ctx->thread_id);
-            node = node->next;
+            node = next;
         }
-        map->nodes[i]=nullptr;
     }
+    __atomic_store_n(&map->size, 0, __ATOMIC_RELEASE);
     return 0;
 }
 
@@ -396,7 +422,8 @@ void DT_map::print() {
 
 
 void DT_map::insert(Scope_Struct *scope_struct, std::string key, void *value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     char *new_key = allocate<char>(scope_struct, key.size()+1, "str");
     memcpy(new_key, key.c_str(), key.size()+1);
@@ -429,7 +456,8 @@ void DT_map::insert(Scope_Struct *scope_struct, std::string key, void *value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, int key, void *value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     int *new_key = (int*)malloc(sizeof(int));
     *new_key = key;
@@ -462,7 +490,8 @@ void DT_map::insert(Scope_Struct *scope_struct, int key, void *value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, float key, void *value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     float *new_key = (float*)malloc(sizeof(float));
     *new_key = key;
@@ -499,7 +528,8 @@ void DT_map::insert(Scope_Struct *scope_struct, float key, void *value) {
 
 
 void DT_map::insert(Scope_Struct *scope_struct, std::string key, int value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     char *new_key = allocate<char>(scope_struct, key.size()+1, "str");
     memcpy(new_key, key.c_str(), key.size()+1);
@@ -535,7 +565,8 @@ void DT_map::insert(Scope_Struct *scope_struct, std::string key, int value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, int key, int value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     int *new_key = (int*)malloc(sizeof(int));
     *new_key = key;
@@ -571,7 +602,8 @@ void DT_map::insert(Scope_Struct *scope_struct, int key, int value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, float key, int value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     float *new_key = (float*)malloc(sizeof(float));
     *new_key = key;
@@ -610,7 +642,8 @@ void DT_map::insert(Scope_Struct *scope_struct, float key, int value) {
 
 
 void DT_map::insert(Scope_Struct *scope_struct, std::string key, float value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     char *new_key = allocate<char>(scope_struct, key.size()+1, "str");
     memcpy(new_key, key.c_str(), key.size()+1);
@@ -646,7 +679,8 @@ void DT_map::insert(Scope_Struct *scope_struct, std::string key, float value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, int key, float value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     int *new_key = (int*)malloc(sizeof(int));
     *new_key = key;
@@ -682,7 +716,8 @@ void DT_map::insert(Scope_Struct *scope_struct, int key, float value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, float key, float value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     float *new_key = (float*)malloc(sizeof(float));
     *new_key = key;
@@ -726,7 +761,8 @@ void DT_map::insert(Scope_Struct *scope_struct, float key, float value) {
 
 
 void DT_map::insert(Scope_Struct *scope_struct, std::string key, bool value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     char *new_key = allocate<char>(scope_struct, key.size()+1, "str");
     memcpy(new_key, key.c_str(), key.size()+1);
@@ -762,7 +798,8 @@ void DT_map::insert(Scope_Struct *scope_struct, std::string key, bool value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, int key, bool value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     int *new_key = (int*)malloc(sizeof(int));
     *new_key = key;
@@ -798,7 +835,8 @@ void DT_map::insert(Scope_Struct *scope_struct, int key, bool value) {
 }
 
 void DT_map::insert(Scope_Struct *scope_struct, float key, bool value) {
-    DT_map_node *new_node = allocate<DT_map_node>(scope_struct, 1, "map_node");
+    std::cout << "OUTDATED INSERT" << "\n";
+    DT_map_node *new_node = (DT_map_node *)malloc(sizeof(DT_map_node));
 
     bool *new_key = (bool*)malloc(sizeof(bool));
     *new_key = key;

@@ -34,7 +34,7 @@ void set_user_functions() {
 		"list_New", "list_append_int", "list_append_float", "list_append_bool", "list_append", "list_print", "tuple_print", "list_Create", "list_shuffle", "list_size", "list_CalculateIdx", "to_int", "to_float", "to_bool", "assign_wise_list_Idx", "int_list_Store_Idx", "float_list_Store_Idx", "list_Store_Idx", "zip", "list_Idx", "tuple_Idx", 
 		"dive_void", "dive_int", "dive_float", "emerge_void", "emerge_int", "emerge_float", "get_tid", "pthread_create_aux", "pthread_join_aux", "pthread_create_aux", "pthread_join_aux", 
 		"print", "print_void_ptr", "print_void_ptrC", "print_int16", "print_int", "print_float", "print_int64", "print_uint64", 
-		"map_Create", "map_node_reclaim", "map_expand", "map_has_str", "map_has_int", "map_has_i64", "map_has_float", "map_has_char", "print_str", "map_print", "map_keys", "map_values", "map_size", "map_bad_key_str", "map_bad_key_int", "map_bad_key_i64", "map_bad_key_array", "map_bad_key_float", "map_clear", 
+		"map_Create", "map_node_reclaim", "map_expand", "map_has_str", "map_has_int", "map_has_i64", "map_has_float", "map_has_char", "print_str", "map_print", "map_node_set_bucket", "map_node_set_next", "map_node_overwrite_bucket", "map_node_overwrite", "map_keys", "map_values", "map_size", "map_bad_key_str", "map_bad_key_int", "map_bad_key_i64", "map_bad_key_array", "map_bad_key_float", "map_clear", 
 		"dir_exists", "path_exists", 
 		"charv_print", 
 		"putchard", "printd", 
@@ -79,8 +79,6 @@ void set_user_functions() {
 	llvm_callee["vec_shuffle"] = vec_shuffle;
 	llvm_callee["vec_movemask"] = vec_movemask;
 	llvm_callee["vec_print"] = vec_print;
-	clean_up_functions["map_node"] = map_node_Clean_Up;
-
 	clean_up_functions["map"] = map_Clean_Up;
 
 	clean_up_functions["channel"] = channel_Clean_Up;

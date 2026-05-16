@@ -474,13 +474,12 @@ extern "C" int array_shuffle_str(Scope_Struct *ctx, DT_array *arr) {
 extern "C" int hash_array_int(Scope_Struct *ctx, DT_array *arr) {
     int h = 2166136261u; // FNV offset
     int *data = (int*)arr->data;
-    int size = arr->virtual_size;
+    int size = std::min(arr->virtual_size, 8);
 
     for (int i=0; i<size; ++i) {
         h ^= data[i];
         h *= 16777619u;
     }
-
     return h;
 }
 

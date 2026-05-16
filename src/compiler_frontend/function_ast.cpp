@@ -717,9 +717,7 @@ Function *FunctionAST::codegen() {
     scope_struct = callret("scope_struct_CreateFirst", {}); 
     call("scope_struct_Alloc_GC", {scope_struct});
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
-    // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
-    // Builder->CreateStore(const_int(0), alloca);
-    // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
+    fn_stack_offset[current_codegen_function] = 0;
   }
   
   
@@ -744,9 +742,7 @@ Function *FunctionAST::codegen() {
         scope_struct = &Arg;
         Value *stack_top_value_gep = Builder->CreateStructGEP(st, scope_struct, 3); 
         function_values[current_codegen_function]["QQ_stack_top"] = Builder->CreateLoad(intTy, stack_top_value_gep);
-        // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
-        // Builder->CreateStore(Builder->CreateLoad(intTy, stack_top_value_gep), alloca);
-        // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
+        fn_stack_offset[current_codegen_function] = 0;
     } else {
         function_values[current_codegen_function][arg_name] = &Arg;
         StoreVal(TheFunction, current_codegen_function, arg_name, &Arg,
@@ -762,9 +758,7 @@ Function *FunctionAST::codegen() {
     call("prebuild", {});
     call("scope_struct_Alloc_GC", {scope_struct});
     function_values[current_codegen_function]["QQ_stack_top"] = const_int(0);
-    // AllocaInst *alloca = CreateEntryBlockAlloca(TheFunction, "stack_top", intTy);
-    // Builder->CreateStore(const_int(0), alloca);
-    // function_allocas[current_codegen_function]["QQ_stack_top"] = alloca;
+    fn_stack_offset[current_codegen_function] = 0;
   }
 
   for (auto &body : Body)
@@ -779,7 +773,7 @@ Function *FunctionAST::codegen() {
 
     // Validate the generated code, checking for consistency.
     verifyFunction(*TheFunction);
-    TheModule->print(llvm::errs(), nullptr);
+    // TheModule->print(llvm::errs(), nullptr);
 
     return TheFunction;
   } 

@@ -19,6 +19,7 @@ using namespace llvm;
 
 
 
+extern std::map<std::string, int> fn_stack_offset;
 extern std::vector<Value *> thread_pointers;
 extern std::map<std::string, std::map<std::string, AllocaInst *>> function_allocas;
 extern std::map<std::string, std::map<std::string, Value *>> function_values;

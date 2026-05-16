@@ -25,6 +25,7 @@ using namespace llvm;
 namespace fs = std::filesystem;
 
 
+std::map<std::string, int> fn_stack_offset;
 std::map<std::string, std::map<std::string, AllocaInst *>> function_allocas;
 std::map<std::string, std::map<std::string, Value *>> function_values;
 std::map<std::string, std::map<Value *, Value *>> function_vecs;
@@ -787,48 +788,36 @@ Value *Malloc_LLVM_Struct(Value *scope_struct, std::string &struct_name, std::st
 }
 
 Value *Load_Stack_Top(std::string fn) {
-    // Value *stack_top_value_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3);
-    // return Builder->CreateLoad(intTy, stack_top_value_gep);
-    return Builder->CreateLoad(intTy, function_allocas[fn]["QQ_stack_top"]);
+    Value *stack_top_value = function_values[fn]["QQ_stack_top"];
+    Value *st = Builder->CreateAdd(stack_top_value, const_int(fn_stack_offset[fn]));
+    return st;
 }
 void Set_Stack_Top(Value *scope_struct, std::string fn) {
     Value *stack_top_value_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3);
-    Builder->CreateStore(function_values[fn]["QQ_stack_top"], stack_top_value_gep);
-    // Builder->CreateStore(Load_Stack_Top(fn), stack_top_value_gep);
+    Builder->CreateStore(Load_Stack_Top(fn), stack_top_value_gep);
 }
 
-inline Value *Prepare_Stack_Pointer_Value(Data_Tree dt, Value *val) {
-    std::string type = dt.Type;
-    if (type=="str") {
-        LogBlue("got str");
-        return Builder->CreateExtractValue(val, {0});
-    } else
-        return val;
-}
 
-void Allocate_On_Pointer_Stack(Value *scope_struct, std::string function_name, std::string var_name, Data_Tree dt, Value *val) {
-    Value *stack_top_value = function_values[function_name]["QQ_stack_top"];
-    // Value *stack_top_value = Load_Stack_Top(function_name);
+void Allocate_On_Pointer_Stack(Value *scope_struct, std::string function_name,
+        std::string var_name, Data_Tree dt, Value *val) {
+
+    Value *stack_top_value = Load_Stack_Top(function_name);
     function_pointers[function_name][var_name] = stack_top_value;
 
     Value *stack_gep = Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 2);
 
     Value *void_ptr_gep = Builder->CreateGEP(ArrayType::get(int8PtrTy, ContextStackSize), stack_gep, { const_int(0), stack_top_value });
     
-    if (var_name!="tok")
-    stack_top_value = Builder->CreateAdd(stack_top_value, const_int(1));
     Builder->CreateStore(stack_top_value,
                          Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3));
 
-    // Builder->CreateStore(stack_top_value, function_allocas[function_name]["QQ_stack_top"]);
-    function_values[function_name]["QQ_stack_top"] = stack_top_value;
-
     Builder->CreateStore(val, void_ptr_gep);
+    // std::cout << function_name <<  " - " << var_name << ": " << fn_stack_offset[function_name] << "\n";
+    fn_stack_offset[function_name]++;
 }
 
 void Allocate_On_Pointer_Stack_no_metadata(Value *scope_struct, std::string function_name, Value *val) {
-    Value *stack_top_value = function_values[function_name]["QQ_stack_top"];
-    // Value *stack_top_value = Load_Stack_Top(function_name);
+    Value *stack_top_value = Load_Stack_Top(function_name);
     // Prevents the function_pointer from being used inside another function (invalid Value *).
     
     // pointer to [N x i8*]
@@ -839,11 +828,10 @@ void Allocate_On_Pointer_Stack_no_metadata(Value *scope_struct, std::string func
     Value *void_ptr_gep = Builder->CreateGEP(ArrayType::get(int8PtrTy, ContextStackSize), stack_gep, { const_int(0), stack_top_value });
     Builder->CreateStore(val, void_ptr_gep);
     
-    stack_top_value = Builder->CreateAdd(stack_top_value, const_int(1));
     Builder->CreateStore(stack_top_value,
                          Builder->CreateStructGEP(struct_types["scope_struct"], scope_struct, 3));
-    function_values[function_name]["QQ_stack_top"] = stack_top_value;
-    // Builder->CreateStore(stack_top_value, function_allocas[function_name]["QQ_stack_top"]);
+
+    fn_stack_offset[function_name]++;
 }
 
 Value *Load_Pointer_Stack(Value *scope_struct, std::string function_name, std::string var_name) {
@@ -913,7 +901,7 @@ inline std::vector<Value *> Codegen_Argument_List(Parser_Struct parser_struct, s
     }
     ArgsV.push_back(arg);
 
-    if (!is_nsk_fn && !in_str(type, primary_data_tokens) && \
+    if (!is_nsk_fn && !in_vec(type, primary_data_tokens) && \
         (F||dynamic_cast<BinaryExprAST*>(Args[i].get())\
           ||dynamic_cast<UnaryExprAST*>(Args[i].get())\
           ||dynamic_cast<NameableCall*>(Args[i].get()))) {
@@ -1442,8 +1430,7 @@ Value *ForExprAST::codegen(Value *scope_struct) {
     Builder->SetInsertPoint(CondBB);
 
 
-    std::vector<std::string> assigned_vars={"QQ_stack_top"}, changed_vars;
-    // std::vector<std::string> assigned_vars, changed_vars;
+    std::vector<std::string> assigned_vars, changed_vars;
     Get_Recursive_Assign_Statements(Body, assigned_vars);
     // Possible phi for each value
     auto old_function_values = function_values[parser_struct.function_name];
@@ -1509,9 +1496,7 @@ Value *ForExprAST::codegen(Value *scope_struct) {
 
     LoopVar->addIncoming(NextVal, CurBB);
     for (auto &name : changed_vars) {
-        Value *val = (name=="QQ_stack_top") 
-                ? old_function_values[name]
-                : function_values[parser_struct.function_name][name];
+        Value *val = function_values[parser_struct.function_name][name];
         function_phi_values[name]->addIncoming(val, CurBB);
     }
 
@@ -1680,8 +1665,7 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     Builder->SetInsertPoint(CondBB);
 
 
-    // std::vector<std::string> assigned_vars, changed_vars;
-    std::vector<std::string> assigned_vars={"QQ_stack_top"}, changed_vars;
+    std::vector<std::string> assigned_vars, changed_vars;
     Get_Recursive_Assign_Statements(Body, assigned_vars);
     // Possible phi for each value
     auto old_function_values = function_values[parser_struct.function_name];
@@ -1712,10 +1696,7 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     BasicBlock *CurBB = Builder->GetInsertBlock(); // handles branching
      
     for (auto &name : changed_vars) {
-        Value *val = (name=="QQ_stack_top") 
-                ? old_function_values[name]
-                : function_values[parser_struct.function_name][name];
-        // Value *val =function_values[parser_struct.function_name][name]; 
+        Value *val = function_values[parser_struct.function_name][name]; 
         function_phi_values[name]->addIncoming(val, CurBB);
     }
 
@@ -2081,7 +2062,8 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
 
                 // From nullptr
                 Builder->SetInsertPoint(FromNullBB);
-                Builder->CreateStore(new_node_ptr, node_gep); 
+                // Builder->CreateStore(new_node_ptr, node_gep); 
+                call("map_node_set_bucket", {scope_struct, new_node_ptr, vec_ptr, hash_pos});
                 Builder->CreateBr(AfterBB);
 
                 // Check first key
@@ -2114,10 +2096,11 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 // Key overwrite
                 Builder->SetInsertPoint(FromFirstKeyBB);
                 call("map_node_reclaim", {scope_struct, vec_ptr, node});
-                Value *next_node_of_first_gep = Builder->CreateStructGEP(st_node, node, 2);
-                Value *next_node_of_first = Builder->CreateLoad(int8PtrTy, next_node_of_first_gep);
-                Builder->CreateStore(next_node_of_first, new_node_next_gep);
-                Builder->CreateStore(new_node_ptr, node_gep);
+                // Value *next_node_of_first_gep = Builder->CreateStructGEP(st_node, node, 2);
+                // Value *next_node_of_first = Builder->CreateLoad(int8PtrTy, next_node_of_first_gep);
+                // Builder->CreateStore(next_node_of_first, new_node_next_gep);
+                // Builder->CreateStore(new_node_ptr, node_gep);
+                call("map_node_overwrite_bucket", {scope_struct, new_node_ptr, vec_ptr, hash_pos});
                 Builder->CreateStore(map_size, size_gep);
                 Builder->CreateBr(AfterBB);
 
@@ -2162,17 +2145,19 @@ Value *BinaryExprAST::codegen(Value *scope_struct) {
                 // Pointer Chase Overwrite
                 Builder->SetInsertPoint(FromKeyBB);
                 call("map_node_reclaim", {scope_struct, vec_ptr, next_node});
-                Value *next_next_node_gep = Builder->CreateStructGEP(st_node, next_node, 2);
-                Value *next_next_node = Builder->CreateLoad(int8PtrTy, next_next_node_gep);
-                Builder->CreateStore(next_next_node, new_node_next_gep);
-                Builder->CreateStore(new_node_ptr, next_node_gep);
+                call("map_node_overwrite", {scope_struct, new_node_ptr, map_phi_node, next_node});
+                // Value *next_next_node_gep = Builder->CreateStructGEP(st_node, next_node, 2);
+                // Value *next_next_node = Builder->CreateLoad(int8PtrTy, next_next_node_gep);
+                // Builder->CreateStore(next_next_node, new_node_next_gep);
+                // Builder->CreateStore(new_node_ptr, next_node_gep);
                 // Builder->CreateStore(map_size, size_gep);
                 Builder->CreateBr(AfterBB);
 
 
                 // New pointer from Pointer Chase
                 Builder->SetInsertPoint(FromPtrChaseBB);
-                Builder->CreateStore(new_node_ptr, next_node_gep); 
+                // Builder->CreateStore(new_node_ptr, next_node_gep); 
+                call("map_node_set_next", {scope_struct, new_node_ptr, map_phi_node});
                 Builder->CreateBr(AfterBB);
 
 
@@ -2742,9 +2727,6 @@ Function *codegenAsyncFunction(std::vector<std::unique_ptr<ExprAST>> asyncBody, 
         function_values[async_scope][var_name] = v;
     }
     function_values[async_scope]["QQ_stack_top"] = const_int(0);
-    // AllocaInst *alloca = CreateEntryBlockAlloca(asyncFun, "stack_top", intTy);
-    // Builder->CreateStore(const_int(0), alloca);
-    // function_allocas[async_scope]["QQ_stack_top"] = alloca;
 
     for (auto &body : asyncBody)
         V = body->codegen(scope_struct_typed);
@@ -4058,8 +4040,7 @@ Value *NameableAppend::codegen(Value *scope_struct) {
     std::string elem_type = inner_dt.Nested_Data[0].Type;
 
 
-    if (inner_dt.Type=="array")
-    {
+    if (inner_dt.Type=="array") {
         Function *TheFunction = Builder->GetInsertBlock()->getParent();
         BasicBlock *good_sizeBB = BasicBlock::Create(*TheContext, "array.append.ok_size", TheFunction);
         BasicBlock *bad_sizeBB = BasicBlock::Create(*TheContext, "array.append.bad_size", TheFunction);
@@ -4155,33 +4136,37 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
     if (!is_nsk_fn||Callee=="scope_struct_Sweep") {
         // Prevents the case in which it allocates a slot for an argument
-        previous_stack_top = function_values[parser_struct.function_name]["QQ_stack_top"];
-        // previous_stack_top = Load_Stack_Top(parser_struct.function_name);
+
+        previous_stack_top = Load_Stack_Top(parser_struct.function_name);
+        // if (!in_vec(parser_struct.function_name, {"BPE_train", "BPE_get_buff", "BPE_get_masks"})) {
+        //     p2t("----------------");
+        //     Value *stack_top_value = function_values[parser_struct.function_name]["QQ_stack_top"];
+        //     Value *offset =const_int(fn_stack_offset[parser_struct.function_name]);
+        //     p2t("load as " + parser_struct.function_name + " to " + Callee);
+        //     call("print_int", {previous_stack_top});
+        //     call("print_int", {stack_top_value});
+        //     call("print_int", {offset});
+        //     p2t("----------------");
+        // }
         Set_Stack_Top(scope_struct, parser_struct.function_name);
     }
-
 
 
     std::vector<Value*> ArgsV = {scope_struct};
     std::vector<Data_Tree> ArgTypes;
 
-
     Value *obj_ptr;
     bool shall_swap = false;
     if(Depth>1&&!FromLib) {
-        if (ends_with(Callee, "__init__")&&isSelf)
-        {
+        if (ends_with(Callee, "__init__")&&isSelf) {
             Inner->IsLeaf=true;
             Inner->Load_Last=false; // inhibits Load_slot
         }
 
         obj_ptr = Inner->codegen(scope_struct);
 
-
         if(!is_nsk_fn)
-        {
             shall_swap=true;
-        }
         else {
             ArgTypes.push_back(Inner->GetDataTree());
             ArgsV.push_back(obj_ptr);
@@ -4252,11 +4237,9 @@ Value *NameableCall::codegen(Value *scope_struct) {
 
   if (has_obj_overwrite) // Retrieve previous object
     set_scope_obj(scope_struct, previous_obj);
-  if (!is_nsk_fn) {
-      // Builder->CreateStore(previous_stack_top, function_allocas[parser_struct.function_name]["QQ_stack_top"]);
-      function_values[parser_struct.function_name]["QQ_stack_top"] = previous_stack_top;
+  if (!is_nsk_fn)
       Set_Stack_Top(scope_struct, parser_struct.function_name);
-  }
+  
 
   // if(ReturnType=="")
   //   when it is void
