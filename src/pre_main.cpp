@@ -445,6 +445,9 @@ void build_dicts() {
   Function_Required_Arg_Count["vec_print"] = 1;
 
 
+  // array_copy
+  method_return_overwrite["array_clone"] = array_clone_dt;
+
 
 
   // print

@@ -674,6 +674,17 @@ void set_functions_args_type() {
 		Function_Arg_Names["array_Create"].push_back("0");
 		Function_Arg_Names["array_Create"].push_back("1");
 		
+		Function_Arg_Types["array_clone"]["0"] = "Scope_Struct";
+		Function_Arg_Types["array_clone"]["1"] = "array";
+		
+		Function_Arg_DataTypes["array_clone"]["0"] = Data_Tree("Scope_Struct");
+		Data_Tree array_clone_1 = Data_Tree("array");
+		array_clone_1.Nested_Data.push_back(Data_Tree("any"));
+		Function_Arg_DataTypes["array_clone"]["1"] = array_clone_1;
+		
+		Function_Arg_Names["array_clone"].push_back("0");
+		Function_Arg_Names["array_clone"].push_back("1");
+		
 		Function_Arg_Types["array_size"]["0"] = "Scope_Struct";
 		Function_Arg_Types["array_size"]["1"] = "array";
 		

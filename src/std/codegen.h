@@ -20,6 +20,7 @@ using namespace llvm;
 
 
 
+Data_Tree array_clone_dt(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&, std::unique_ptr<Nameable> &);
 
 Value *DT_charv_Create(Parser_Struct parser_struct, Function *TheFunction,
                       std::string, std::string type, Data_Tree data_type,

@@ -59,6 +59,23 @@ extern "C" DT_array *array_Create(Scope_Struct *scope_struct, uint16_t elem_type
   return vec;
 }
 
+extern "C" DT_array *array_clone(Scope_Struct *scope_struct, DT_array *v) { 
+    
+    DT_array *ret = newT<DT_array>(scope_struct, "array");
+
+    __atomic_store_n(&ret->virtual_size, v->virtual_size, __ATOMIC_RELEASE);
+    __atomic_store_n(&ret->size, v->size, __ATOMIC_RELEASE);
+    __atomic_store_n(&ret->elem_size, v->elem_size, __ATOMIC_RELEASE);
+    __atomic_store_n(&ret->type, v->type, __ATOMIC_RELEASE);
+    
+    int data_size = v->size*v->elem_size;
+    __atomic_store_n(&ret->data, cache_pop(data_size, scope_struct->thread_id), __ATOMIC_RELEASE);
+
+    memcpy(ret->data, v->data, data_size);
+
+    return ret;
+}
+
 void array_Clean_Up(void *data_ptr, int tid) {
     DT_array *array = static_cast<DT_array *>(data_ptr);
     // cache_push(array->data, array->size, tid);

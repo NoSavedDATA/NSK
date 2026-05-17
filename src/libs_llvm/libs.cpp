@@ -1064,6 +1064,13 @@ void Generate_LLVM_Functions() {
 	);
 	TheModule->getOrInsertFunction("array_Create", array_CreateTy);
 
+	FunctionType *array_cloneTy= FunctionType::get(
+		int8PtrTy,
+		{int8PtrTy, int8PtrTy},
+		false
+	);
+	TheModule->getOrInsertFunction("array_clone", array_cloneTy);
+
 	FunctionType *array_sizeTy= FunctionType::get(
 		Type::getInt32Ty(*TheContext),
 		{int8PtrTy, int8PtrTy},

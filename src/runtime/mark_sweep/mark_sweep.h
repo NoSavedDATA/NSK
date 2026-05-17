@@ -235,7 +235,6 @@ struct GC {
         std::cout << "\n";
     }
     inline void *Allocate(Scope_Struct *scope_struct, int size, uint16_t type_id, int tid) {
-
         int obj_class = GC_size_to_c[(size+7)/8];
 
         if(size>GC_max_object_size) {

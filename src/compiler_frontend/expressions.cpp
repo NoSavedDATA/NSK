@@ -1244,6 +1244,13 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
   }
 
   Data_Tree ret = functions_return_data_type[Callee];
+
+  if (function_return_overwrite.count(Callee)>0)
+    ret = function_return_overwrite[Callee](parser_struct, Args);
+  if (method_return_overwrite.count(Callee)>0)
+    ret = method_return_overwrite[Callee](parser_struct, Args, Inner);
+  
+
    
 
   std::string ret_type = ret.Type;
@@ -1273,8 +1280,6 @@ Data_Tree NameableCall::GetDataTree(bool from_assignment) {
 
     ret = return_dt;
   }
-  if (function_return_overwrite.count(Callee)>0)
-    ret = function_return_overwrite[Callee](parser_struct, Args);
 
 
   data_type = ret;

@@ -33,6 +33,12 @@ inline void printTy(Value *v) {
 }
 
 
+Data_Tree array_clone_dt(Parser_Struct parser_struct, std::vector<std::unique_ptr<ExprAST>>& Args, std::unique_ptr<Nameable> &inner) {
+  Data_Tree dt = Data_Tree("array");
+  dt.Nested_Data.push_back(inner->GetDataTree().Nested_Data[0]);
+  return dt;
+}
+
 Value *DT_charv_Create(Parser_Struct parser_struct, Function *TheFunction,
                       std::string name, std::string type, Data_Tree data_type,
                       Value *scope_struct, Value *initial_value,

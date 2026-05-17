@@ -152,6 +152,7 @@ class BPE
 
 	def int merge_freqs()
 		print("merge")
+		#join_gc()
 		while self.last_tok<self.vocab_size
 			i64 key = (i64(self.highest_b) <| 32) | self.highest_p
 			print("tok ", self.last_tok, " -> ", self.highest_b, "-", self.highest_p)
@@ -160,6 +161,7 @@ class BPE
 			self.highest_freq=0
 
 			self.freqs.clear()
+			#GC_print()
 
 			int asize = self.arr_freqs.size()
 			var token_keys = self.arr_freqs.keys()
@@ -170,32 +172,43 @@ class BPE
 			
 			for i=0, i<asize
 				var tok = token_keys[i]
-				int wsize = token_keys[i].size()
 				int freq = token_values[i]
 				array<int> new_tok
-				bool changed=false
 
-				int w=0
-				while w<wsize-1
-					i64 tkey = (i64(tok[w]) <| 32) | tok[w+1]
-					if self.tokens.has(tkey)
-						int b = self.tokens[tkey]
-						new_tok.append(self.tokens[tkey])
-						w = w + 1
-						changed=true
-					else
+				while true
+					int wsize = tok.size()
+					int changes=0
+					bool changed=false
+					int w=0
+					while w<wsize-1
+						i64 tkey = (i64(tok[w]) <| 32) | tok[w+1]
+						if self.tokens.has(tkey)
+							changed=true
+							int b = self.tokens[tkey]
+							new_tok.append(self.tokens[tkey])
+							changes=changes+1
+							w = w + 2
+						else
+							new_tok.append(tok[w])
+							w = w + 1
+					if w<wsize
 						new_tok.append(tok[w])
-					w = w + 1
-				new_tok.append(tok[wsize-1])
-				next_tokens[new_tok] = freq 
+					if !changed
+						if changes>1
+							new_tok.print()
+						break
+					tok = new_tok.clone()
+					new_tok.clear()
 
-				#if changed
-				#	new_tok.print()
+
+
+				next_tokens[tok] = freq 
 
 				w=0
-				while w<new_tok.size()-1
-					self.inc_freq(new_tok[w], new_tok[w+1], freq)
+				while w<tok.size()-1
+					self.inc_freq(tok[w], tok[w+1], freq)
 					w=w+1
+
 			self.arr_freqs.clear()
 			self.arr_freqs = next_tokens
 

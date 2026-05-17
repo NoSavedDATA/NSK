@@ -36,6 +36,7 @@ std::unordered_map<std::string, llvm::Type*> str_toTy;
 std::unordered_map<std::string, Function *> async_fn;
 std::string current_codegen_function;
 std::unordered_map<std::string, std::function<Data_Tree(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&)>>function_return_overwrite;
+std::unordered_map<std::string, std::function<Data_Tree(Parser_Struct, std::vector<std::unique_ptr<ExprAST>>&, std::unique_ptr<Nameable> &inner)>>method_return_overwrite;
 
 std::vector<std::string> Global_Uniques;
 std::unordered_map<std::string, int> Global_Uniques_Idx;
@@ -1341,16 +1342,21 @@ Value *BreakExprAST::codegen(Value *scope_struct) {
 }
 
 
-void SetBreakPHIS(Parser_Struct parser_struct, std::vector<std::string> &assigned_vars,
-            std::map<std::string,PHINode*> &function_phi_values, std::map<std::string, Value*> &break_values_snapshot, std::vector<BasicBlock *> &BreakBB, BasicBlock *LoopPredecessor) {
+void SetBreakPHIS(Parser_Struct parser_struct, std::vector<std::string> &assigned_vars, 
+            std::vector<std::string> &created_vars,
+            std::map<std::string,PHINode*> &function_phi_values, std::map<std::string, Value*> &break_values_snapshot, std::vector<BasicBlock *> &BreakBB, BasicBlock *LoopPredecessor, BasicBlock *LoopBB) {
 
     for (const auto &pair : break_values_snapshot) {
         std::string name = pair.first;
         bool existed_already = in_vec(pair.first, assigned_vars);
 
         if (existed_already) {
+            bool was_created = in_vec(name, created_vars);
             PHINode *phi_val = Builder->CreatePHI(pair.second->getType(), 2, name.c_str());
-            phi_val->addIncoming(function_phi_values[name], LoopPredecessor);
+
+            BasicBlock *preBB = was_created ? LoopBB : LoopPredecessor;
+            Value *val = was_created ? function_values[parser_struct.function_name][name] : function_phi_values[name];
+            phi_val->addIncoming(val, preBB);
             phi_val->addIncoming(pair.second, BreakBB[0]);
 
             function_values[parser_struct.function_name][name] = phi_val;
@@ -1399,6 +1405,35 @@ void Get_Recursive_Assign_Statements(const std::vector<std::unique_ptr<ExprAST>>
     }
 
 }
+void Get_Recursive_Create_Statements(const std::vector<std::unique_ptr<ExprAST>> &stmt, std::vector<std::string> &created_vars) {
+
+    for (auto &body : stmt) {
+        if (auto *if_stmt = dynamic_cast<IfExprAST*>(body.get())) {
+            Get_Recursive_Create_Statements(if_stmt->Then, created_vars);
+            Get_Recursive_Create_Statements(if_stmt->Else, created_vars);
+        }
+        if (auto *while_stmt = dynamic_cast<WhileExprAST*>(body.get()))
+            Get_Recursive_Create_Statements(while_stmt->Body, created_vars);
+        if (auto *while_stmt = dynamic_cast<ForExprAST*>(body.get()))
+            Get_Recursive_Create_Statements(while_stmt->Body, created_vars);
+        if (auto *while_stmt = dynamic_cast<ForEachExprAST*>(body.get()))
+            Get_Recursive_Create_Statements(while_stmt->Body, created_vars);
+        
+        if (auto *stmt = dynamic_cast<DataExprAST*>(body.get())) {
+            for (const auto &pair : stmt->VarNames) 
+                created_vars.push_back(pair.first);
+        }
+        if (auto *stmt = dynamic_cast<UnkVarExprAST*>(body.get())) {
+            for (const auto &pair : stmt->VarNames) 
+                created_vars.push_back(pair.first);
+        }
+        if (auto *stmt = dynamic_cast<ObjectExprAST*>(body.get())) {
+            for (const auto &pair : stmt->VarNames) 
+                created_vars.push_back(pair.first);
+        }
+    }
+
+}
 
 
 Value *ForExprAST::codegen(Value *scope_struct) {
@@ -1430,8 +1465,9 @@ Value *ForExprAST::codegen(Value *scope_struct) {
     Builder->SetInsertPoint(CondBB);
 
 
-    std::vector<std::string> assigned_vars, changed_vars;
+    std::vector<std::string> assigned_vars, changed_vars, created_vars;
     Get_Recursive_Assign_Statements(Body, assigned_vars);
+    Get_Recursive_Create_Statements(Body, created_vars);
     // Possible phi for each value
     auto old_function_values = function_values[parser_struct.function_name];
     std::map<std::string, PHINode*> function_phi_values;
@@ -1505,7 +1541,7 @@ Value *ForExprAST::codegen(Value *scope_struct) {
     TheFunction->insert(TheFunction->end(), AfterBB);
     Builder->SetInsertPoint(AfterBB);
 
-    SetBreakPHIS(parser_struct, assigned_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB);
+    SetBreakPHIS(parser_struct, assigned_vars, created_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB, LoopBB);
 
     // verifyFunction(*TheFunction);
     // TheModule->print(llvm::errs(), nullptr);
@@ -1555,8 +1591,9 @@ Value *ForEachExprAST::codegen(Value *scope_struct) {
 
 
     // --- PHI Nodes --- //
-    std::vector<std::string> assigned_vars, changed_vars;
+    std::vector<std::string> assigned_vars, changed_vars, created_vars;
     Get_Recursive_Assign_Statements(Body, assigned_vars);
+    Get_Recursive_Create_Statements(Body, created_vars);
     // Possible phi for each value
     auto old_function_values = function_values[parser_struct.function_name];
     std::map<std::string, PHINode*> function_phi_values;
@@ -1640,7 +1677,7 @@ Value *ForEachExprAST::codegen(Value *scope_struct) {
     TheFunction->insert(TheFunction->end(), AfterBB);
     Builder->SetInsertPoint(AfterBB);
 
-    SetBreakPHIS(parser_struct, assigned_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB);
+    SetBreakPHIS(parser_struct, assigned_vars, created_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB, LoopBB);
 
     return const_float(0.0f);
 }
@@ -1665,8 +1702,9 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     Builder->SetInsertPoint(CondBB);
 
 
-    std::vector<std::string> assigned_vars, changed_vars;
+    std::vector<std::string> assigned_vars, changed_vars, created_vars;
     Get_Recursive_Assign_Statements(Body, assigned_vars);
+    Get_Recursive_Create_Statements(Body, created_vars);
     // Possible phi for each value
     auto old_function_values = function_values[parser_struct.function_name];
     std::map<std::string, PHINode*> function_phi_values;
@@ -1708,7 +1746,7 @@ Value *WhileExprAST::codegen(Value *scope_struct) {
     Builder->SetInsertPoint(AfterBB);
 // TheFunction->print(llvm::errs());
 
-    SetBreakPHIS(parser_struct, assigned_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB);
+    SetBreakPHIS(parser_struct, assigned_vars, created_vars, function_phi_values, break_values_snapshot, BreakBB, CondBB, LoopBB);
 
     return Constant::getNullValue(Type::getFloatTy(*TheContext));
 }
